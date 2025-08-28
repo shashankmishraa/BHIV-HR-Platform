@@ -673,6 +673,109 @@ This platform was built following MDVP methodology:
 
 Each day delivered working, deployable features with real business value.
 
+## 🔧 System Administration
+
+### Database Management
+```bash
+# Connect to Database
+docker exec -it bhiv-hr-platform-db-1 psql -U bhiv_user -d bhiv_hr
+
+# View Enhanced Schema
+\d candidates
+
+# Query Enhanced Data
+SELECT name, seniority_level, technical_skills, education_level 
+FROM candidates LIMIT 5;
+```
+
+### Service Monitoring
+```bash
+# View Service Logs
+docker compose logs -f gateway
+docker compose logs -f agent
+docker compose logs -f portal
+
+# Check Service Health
+curl http://localhost:8000/health
+curl http://localhost:9000/health
+```
+
+### Data Backup & Restore
+```bash
+# Backup Database
+docker exec bhiv-hr-platform-db-1 pg_dump -U bhiv_user bhiv_hr > backup.sql
+
+# Restore Database
+docker exec -i bhiv-hr-platform-db-1 psql -U bhiv_user bhiv_hr < backup.sql
+```
+
+## 🎯 Complete Workflow Example
+
+### 1. Setup & Data Preparation
+```bash
+# Start platform
+docker compose up --build
+
+# Process resumes
+cd scripts && python simple_enhanced_processor.py
+
+# Upload candidates
+python final_upload_test.py
+```
+
+### 2. Job Creation & Management
+```bash
+# Create job via API
+curl -X POST http://localhost:8000/v1/jobs \
+  -H "Content-Type: application/json" \
+  -H "X-API-KEY: myverysecureapikey123" \
+  -d '{"title": "Senior Developer", "description": "Python expert needed", "client_id": 1}'
+
+# Or use Portal: http://localhost:8501
+```
+
+### 3. AI-Powered Candidate Matching
+```bash
+# Get top candidates
+curl -H "X-API-KEY: myverysecureapikey123" \
+  http://localhost:8000/v1/match/1/top
+
+# Review in Portal dashboard
+```
+
+### 4. Values Assessment
+```bash
+# Submit values feedback
+curl -X POST http://localhost:8000/v1/feedback \
+  -H "Content-Type: application/json" \
+  -H "X-API-KEY: myverysecureapikey123" \
+  -d '{"candidate_id": 1, "values_scores": {"integrity": 5, "honesty": 4, "discipline": 5, "hard_work": 5, "gratitude": 4}}'
+```
+
+### 5. Interview & Offer Process
+```bash
+# Schedule interview
+curl -X POST http://localhost:8000/v1/interviews \
+  -H "Content-Type: application/json" \
+  -H "X-API-KEY: myverysecureapikey123" \
+  -d '{"candidate_id": 1, "job_id": 1, "interview_date": "2025-02-01T10:00:00Z"}'
+
+# Make offer
+curl -X POST http://localhost:8000/v1/offers \
+  -H "Content-Type: application/json" \
+  -H "X-API-KEY: myverysecureapikey123" \
+  -d '{"candidate_id": 1, "job_id": 1, "salary": 120000}'
+```
+
+### 6. Reporting & Analytics
+```bash
+# Export comprehensive report
+curl -H "X-API-KEY: myverysecureapikey123" \
+  http://localhost:8000/v1/reports/job/1/export.csv -o final_report.csv
+
+# View live dashboard: http://localhost:8501
+```
+
 ## 📞 Support
 
 For technical support or questions:
