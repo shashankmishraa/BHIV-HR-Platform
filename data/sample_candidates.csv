@@ -1,6 +1,0 @@
-name,email,cv_url,phone,experience_years,status
-John Smith,john.smith@email.com,https://example.com/john-cv.pdf,+1-555-0101,5,applied
-Jane Doe,jane.doe@email.com,https://example.com/jane-cv.pdf,+1-555-0102,3,applied
-Mike Johnson,mike.johnson@email.com,https://example.com/mike-cv.pdf,+1-555-0103,7,applied
-Sarah Wilson,sarah.wilson@email.com,https://example.com/sarah-cv.pdf,+1-555-0104,4,applied
-David Brown,david.brown@email.com,https://example.com/david-cv.pdf,+1-555-0105,6,applied

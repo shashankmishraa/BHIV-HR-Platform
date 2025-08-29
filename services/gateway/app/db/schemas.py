@@ -1,61 +1,50 @@
-from pydantic import BaseModel, ConfigDict
-from typing import Optional, Dict, Any, List
+from pydantic import BaseModel, Field
+from typing import Optional, Dict
 from datetime import datetime
 
-class JobBase(BaseModel):
-    title: str
-    description: str
+class JobCreate(BaseModel):
+    title: str = Field(..., example="Senior Python Developer")
+    description: str = Field(..., example="Looking for experienced Python developer with AI/ML skills")
+    client_id: int = Field(..., example=1)
+    department: Optional[str] = Field(None, example="Engineering")
+    location: Optional[str] = Field(None, example="Remote")
+    experience_level: Optional[str] = Field(None, example="Senior")
+    employment_type: Optional[str] = Field(None, example="Full-time")
+    requirements: Optional[str] = Field(None, example="5+ years Python experience")
+    status: Optional[str] = Field("active", example="active")
 
-class JobCreate(JobBase):
-    client_id: int
-
-class Job(JobBase):
-    id: int
-    client_id: int
-    created_at: datetime
-    model_config = ConfigDict(from_attributes=True)
-
-
-class CandidateBase(BaseModel):
-    name: str
-    cv_url: str
-    status: Optional[str] = "applied"
-    metadata_json: Optional[Dict[str, Any]] = {}
-
-class CandidateCreate(CandidateBase):
-    job_id: int
-
-class CandidateBulkCreate(BaseModel):
-    candidates: List[CandidateCreate]
-
-class Candidate(CandidateBase):
-    id: int
-    job_id: int
-    
-    model_config = ConfigDict(from_attributes=True)
-
-class FeedbackBase(BaseModel):
-    reviewer: str
-    free_text: Optional[str] = None
-    values_scores: Optional[Dict[str, int]] = {}
-
-class FeedbackCreate(FeedbackBase):
+class FeedbackCreate(BaseModel):
     candidate_id: int
-
-class Feedback(FeedbackBase):
-    id: int
-    candidate_id: int
-    
-    model_config = ConfigDict(from_attributes=True)
+    reviewer: Optional[str] = Field(None, example="HR Manager")
+    feedback_text: Optional[str] = Field(None, example="Excellent candidate with strong technical skills")
+    values_scores: Optional[Dict[str, int]] = Field(None, example={
+        "integrity": 5, "honesty": 4, "discipline": 5, "hard_work": 5, "gratitude": 4
+    })
 
 class InterviewCreate(BaseModel):
-    job_id: int
-    candidate_id: int
-    datetime: datetime
-    status: Optional[str] = "scheduled"
+    job_id: int = Field(..., example=1)
+    candidate_id: int = Field(..., example=2)
+    interview_date: datetime = Field(..., example="2025-02-01T10:00:00Z")
+    interviewer: Optional[str] = Field(None, example="Tech Lead")
 
 class OfferCreate(BaseModel):
+    job_id: int = Field(..., example=1)
+    candidate_id: int = Field(..., example=2)
+    salary: Optional[int] = Field(None, example=120000)
+    status: str = Field(..., example="sent")
+
+class CandidateCreate(BaseModel):
+    name: str
+    email: str = ""
+    cv_url: str = ""
+    phone: str = ""
+    experience_years: int = 0
+    status: str = "applied"
     job_id: int
-    candidate_id: int
-    status: str
-    date_offered: datetime
+    location: str = ""
+    education_level: str = ""
+    technical_skills: str = ""
+    seniority_level: str = ""
+
+class BulkCandidatesRequest(BaseModel):
+    candidates: list[CandidateCreate]

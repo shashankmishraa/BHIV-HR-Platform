@@ -123,3 +123,127 @@ async def get_candidates_by_job(job_id: int, db: Session = Depends(get_db)):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get candidates: {str(e)}")
+
+@router.get("/search")
+async def search_candidates(q: str = "", job_id: int = 1, skills: str = "", location: str = "", experience_min: int = 0, db: Session = Depends(get_db)):
+    """Search and filter candidates by multiple criteria"""
+    try:
+        where_conditions = ["job_id = :job_id"]
+        params = {"job_id": job_id}
+        
+        if q:
+            where_conditions.append("(LOWER(name) LIKE LOWER(:search) OR LOWER(email) LIKE LOWER(:search))")
+            params["search"] = f"%{q}%"
+        
+        if skills:
+            where_conditions.append("LOWER(technical_skills) LIKE LOWER(:skills)")
+            params["skills"] = f"%{skills}%"
+        
+        if location:
+            where_conditions.append("LOWER(location) LIKE LOWER(:location)")
+            params["location"] = f"%{location}%"
+        
+        if experience_min > 0:
+            where_conditions.append("experience_years >= :exp_min")
+            params["exp_min"] = experience_min
+        
+        where_clause = "WHERE " + " AND ".join(where_conditions)
+        
+        query = text(f"""
+            SELECT id, name, email, phone, location, experience_years, 
+                   technical_skills, seniority_level, status
+            FROM candidates 
+            {where_clause}
+            ORDER BY experience_years DESC, name ASC
+            LIMIT 50
+        """)
+        
+        result = db.execute(query, params)
+        candidates = []
+        for row in result:
+            candidates.append({
+                "id": row[0],
+                "name": row[1],
+                "email": row[2],
+                "phone": row[3],
+                "location": row[4],
+                "experience_years": row[5],
+                "technical_skills": row[6],
+                "seniority_level": row[7],
+                "status": row[8]
+            })
+        
+        return {
+            "search_query": q,
+            "filters": {
+                "job_id": job_id,
+                "skills": skills,
+                "location": location,
+                "experience_min": experience_min
+            },
+            "candidates": candidates,
+            "count": len(candidates),
+            "message": f"Found {len(candidates)} candidates"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
+
+@router.get("/search")
+async def search_candidates(q: str = "", job_id: int = None, db: Session = Depends(get_db)):
+    """Search candidates by name, email, skills, or location"""
+    try:
+        # Build search query
+        where_conditions = []
+        params = {}
+        
+        if job_id:
+            where_conditions.append("job_id = :job_id")
+            params["job_id"] = job_id
+        
+        if q:
+            search_condition = """
+                (LOWER(name) LIKE LOWER(:search) OR 
+                 LOWER(email) LIKE LOWER(:search) OR 
+                 LOWER(technical_skills) LIKE LOWER(:search) OR 
+                 LOWER(location) LIKE LOWER(:search) OR
+                 LOWER(seniority_level) LIKE LOWER(:search))
+            """
+            where_conditions.append(search_condition)
+            params["search"] = f"%{q}%"
+        
+        where_clause = "WHERE " + " AND ".join(where_conditions) if where_conditions else ""
+        
+        query = text(f"""
+            SELECT id, name, email, phone, location, cv_url, experience_years, 
+                   education_level, technical_skills, seniority_level, status, created_at
+            FROM candidates 
+            {where_clause}
+            ORDER BY experience_years DESC, created_at DESC
+            LIMIT 20
+        """)
+        
+        result = db.execute(query, params)
+        candidates = []
+        for row in result:
+            candidates.append({
+                "id": row[0],
+                "name": row[1],
+                "email": row[2],
+                "phone": row[3],
+                "location": row[4],
+                "cv_url": row[5],
+                "experience_years": row[6],
+                "education_level": row[7],
+                "technical_skills": row[8],
+                "seniority_level": row[9],
+                "status": row[10],
+                "created_at": str(row[11])
+            })
+        
+        return {
+            "search_query": q,
+            "job_id": job_id,
+            "candidates": candidates,
+            "count": len(candidates),
+            "message": f"Found {len(candidates)} candidates matching '{q}'" if q else f"Showing top {len(candidates)} candidates"
+        }

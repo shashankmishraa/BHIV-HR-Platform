@@ -1,282 +1,297 @@
-from fastapi import FastAPI
-from fastapi.openapi.docs import get_swagger_ui_html
-from fastapi.openapi.utils import get_openapi
+from fastapi import FastAPI, HTTPException, Header, Depends
+from fastapi.middleware.cors import CORSMiddleware
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 import json
-from fastapi.responses import JSONResponse
 import logging
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import OperationalError
 import os
-from .api.routes_candidates import router as candidates_router
+import httpx
+from typing import Optional
+from .db.schemas import JobCreate, FeedbackCreate, InterviewCreate, OfferCreate, CandidateCreate, BulkCandidatesRequest
+# from .api import routes_reports  # Temporarily disabled due to pandas issue
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Configure secure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
 logger = logging.getLogger(__name__)
 
+# Sanitize log inputs
+def sanitize_log_input(input_str):
+    if not isinstance(input_str, str):
+        return str(input_str)
+    return input_str.replace('\n', '').replace('\r', '')[:200]
+
 app = FastAPI(
-    title="🎯 BHIV HR Platform API Gateway",
-    description="""## Values-Driven Recruiting Platform with AI-Powered Matching
-    
-### 🚀 Features:
-- **AI-Powered Candidate Matching** with Talah Agent
-- **Values-Based Assessment** (MDVP Compliance)
-- **Resume Processing & Analysis**
-- **Interview Management & Feedback**
-- **Real-time Analytics Dashboard**
-
-### 🏆 Core Values Integration:
-- **Integrity** - Moral uprightness and ethical behavior
-- **Honesty** - Truthfulness and transparency
-- **Discipline** - Self-control and commitment to excellence
-- **Hard Work** - Dedication and perseverance
-- **Gratitude** - Appreciation and humility
-
-### 🔧 API Capabilities:
-- **Jobs Management**: Create, list, and manage job postings
-- **Candidates**: Upload, search, and manage candidate profiles
-- **AI Matching**: Get top-5 candidates using Talah AI
-- **Feedback**: Submit and track values-based assessments
-- **Analytics**: Real-time statistics and reporting
-    """,
-    version="2.0.0",
-    contact={
-        "name": "BHIV HR Platform Support",
-        "email": "support@bhiv-hr.com",
-    },
-    license_info={
-        "name": "BHIV License",
-    },
+    title="BHIV HR Platform API Gateway",
+    description="Values-Driven Recruiting Platform with AI-Powered Matching",
+    version="2.0.0"
 )
 
-def wait_for_database():
-    """Wait for database to be ready with retry logic"""
+# Add CORS middleware with security
+allowed_origins = os.getenv("CORS_ORIGINS", "http://localhost:8501,http://localhost:3000").split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
+)
+
+# Include report routes - temporarily disabled
+# app.include_router(routes_reports.router, prefix="/v1/reports", tags=["reports"])
+
+# Database connection with fallback
+def get_db_engine():
     database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr")
-    
-    for attempt in range(30):  # Try for up to 30 seconds
-        try:
-            engine = create_engine(database_url)
-            with engine.connect() as connection:
-                connection.execute(text("SELECT 1"))
-            logger.info("✅ Database connection successful!")
-            return True
-        except OperationalError as e:
-            logger.info(f"⏳ Database not ready (attempt {attempt + 1}/30): {e}")
-            time.sleep(1)
-        except Exception as e:
-            logger.error(f"❌ Unexpected database error: {e}")
-            time.sleep(1)
-    
-    logger.error("❌ Database connection failed after 30 attempts")
-    return False
+    return create_engine(database_url, pool_pre_ping=True, pool_recycle=300)
 
-# Wait for database on startup
-@app.on_event("startup")
-async def startup_event():
-    logger.info("🚀 Starting BHIV HR Platform API...")
-    if wait_for_database():
-        logger.info("✅ Gateway ready!")
-    else:
-        logger.error("❌ Gateway startup failed - database unavailable")
+# API key validation with fallback
+def validate_api_key(api_key: str) -> bool:
+    expected_key = os.getenv("API_KEY_SECRET", "myverysecureapikey123")
+    try:
+        import secrets
+        return secrets.compare_digest(api_key, expected_key)
+    except:
+        return api_key == expected_key
 
-@app.get("/", tags=["System"], summary="🏠 API Gateway Root")
+# Authentication dependency
+def get_api_key(authorization: Optional[str] = Header(None), x_api_key: Optional[str] = Header(None)):
+    api_key = None
+    if authorization and authorization.startswith("Bearer "):
+        api_key = authorization[7:]
+    elif x_api_key:
+        api_key = x_api_key
+    
+    if not api_key or not validate_api_key(api_key):
+        raise HTTPException(status_code=401, detail="Invalid API key")
+    return api_key
+
+@app.get("/")
 def read_root():
-    """Welcome endpoint for BHIV HR Platform API Gateway.
-    
-    Returns comprehensive information about the platform capabilities,
-    available endpoints, and AI agent features.
-    
-    Returns:
-        dict: API information and available endpoints
-    """
     return {
         "message": "🎯 BHIV HR Platform API Gateway",
-        "description": "Values-Driven Recruiting Platform with AI-Powered Matching",
         "version": "2.0.0",
         "status": "healthy",
-        "features": [
-            "🤖 AI-Powered Candidate Matching",
-            "🏆 Values-Based Assessment (MDVP)",
-            "📄 Resume Processing & Analysis",
-            "📊 Real-time Analytics Dashboard",
-            "🎯 Top-5 Candidate Shortlisting"
-        ],
-        "endpoints": {
-            "docs": "/docs - Swagger UI Documentation",
-            "health": "/health - System Health Check",
-            "candidates": "/v1/candidates - Candidate Management",
-            "jobs": "/v1/jobs - Job Management",
-            "match": "/v1/match/{job_id}/top - AI Matching",
-            "feedback": "/v1/feedback - Values Assessment",
-            "analytics": "/candidates/stats - Real-time Statistics"
-        },
-        "ai_agent": {
-            "name": "🤖 Talah AI Agent",
-            "version": "1.0.0",
-            "capabilities": [
-                "📄 Resume Analysis & Parsing",
-                "🎯 Candidate Scoring Algorithm",
-                "🏆 Values Alignment Assessment",
-                "📊 Top-5 Shortlisting with Rankings",
-                "🔍 Skills & Experience Matching"
-            ],
-            "endpoint": "http://agent:9000"
-        },
-        "core_values": {
-            "integrity": "Moral uprightness and ethical behavior",
-            "honesty": "Truthfulness and transparency",
-            "discipline": "Self-control and commitment to excellence",
-            "hard_work": "Dedication and perseverance",
-            "gratitude": "Appreciation and humility"
+"endpoints": {
+            "jobs": "POST/GET /v1/jobs - Job management",
+            "candidates": "GET /v1/candidates/job/{id} - List candidates",
+            "search": "GET /v1/candidates/search - Search & filter",
+            "match": "GET /v1/match/{job_id}/top - AI matching",
+            "feedback": "POST /v1/feedback - Values assessment",
+            "interviews": "POST /v1/interviews - Schedule interviews",
+            "offers": "POST /v1/offers - Job offers",
+            "reports": "GET /v1/reports/job/{id}/export.csv - Export reports",
+            "values": "POST /v1/feedback - Values assessment with scoring",
+            "health": "GET /health - Health check",
+            "docs": "GET /docs - API documentation"
         }
     }
 
-@app.get("/health", tags=["System"], summary="🏥 Health Check")
+@app.get("/health")
 def health_check():
-    """System health check endpoint.
-    
-    Returns:
-        dict: Health status of the gateway and connected services
-    """
     return {
         "status": "healthy",
-        "service": "🎯 BHIV HR Gateway",
+        "service": "BHIV HR Gateway",
         "version": "2.0.0",
-        "timestamp": time.time(),
-        "components": {
-            "database": "connected",
-            "ai_agent": "available",
-            "api_gateway": "running"
-        }
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
-@app.post("/v1/jobs", tags=["Jobs Management"], summary="🏢 Create New Job")
-async def create_job(job_data: dict):
-    """Create a new job posting in the system.
-    
-    Args:
-        job_data: Job information including title, description, client_id
-        
-    Returns:
-        dict: Job creation result with job_id
-    """
+@app.post("/v1/jobs")
+async def create_job(job_data: JobCreate, api_key: str = Depends(get_api_key)):
     try:
-        from sqlalchemy import text
-        database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr")
-        engine = create_engine(database_url)
-        
+        engine = get_db_engine()
         with engine.connect() as connection:
-            # Insert job and get the ID
+            # Create enhanced jobs table
+            connection.execute(text("""
+                CREATE TABLE IF NOT EXISTS jobs (
+                    id SERIAL PRIMARY KEY,
+                    client_id INTEGER,
+                    title VARCHAR(255),
+                    description TEXT,
+                    department VARCHAR(100),
+                    location VARCHAR(255),
+                    experience_level VARCHAR(50),
+                    employment_type VARCHAR(50),
+                    requirements TEXT,
+                    status VARCHAR(50) DEFAULT 'active',
+                    created_at TIMESTAMP DEFAULT NOW()
+                )
+            """))
+            
             query = text("""
-                INSERT INTO jobs (client_id, title, description, created_at)
-                VALUES (:client_id, :title, :description, NOW())
+                INSERT INTO jobs (client_id, title, description, department, location, 
+                                experience_level, employment_type, requirements, status, created_at)
+                VALUES (:client_id, :title, :description, :department, :location,
+                        :experience_level, :employment_type, :requirements, :status, NOW())
                 RETURNING id
             """)
             result = connection.execute(query, {
-                "client_id": job_data.get("client_id", 1),
-                "title": job_data.get("title", "Untitled Job"),
-                "description": job_data.get("description", "")
+                "client_id": job_data.client_id,
+                "title": job_data.title,
+                "description": job_data.description,
+                "department": job_data.department,
+                "location": job_data.location,
+                "experience_level": job_data.experience_level,
+                "employment_type": job_data.employment_type,
+                "requirements": job_data.requirements,
+                "status": job_data.status
             })
             job_id = result.fetchone()[0]
             connection.commit()
             
-        return {
-            "message": "Job created successfully",
-            "status": "success",
-            "job_id": job_id
-        }
+        return {"message": "Job created successfully", "job_id": job_id}
     except Exception as e:
-        return {
-            "message": f"Failed to create job: {str(e)}",
-            "status": "error",
-            "job_id": None
-        }
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/v1/feedback", tags=["Values Assessment"], summary="🏆 Submit Values Feedback")
-async def submit_feedback(feedback_data: dict):
-    """Submit values-based feedback for a candidate.
-    
-    Accepts both free-text feedback and structured values scores (1-5 scale)
-    for Integrity, Honesty, Discipline, Hard Work, and Gratitude.
-    
-    Args:
-        feedback_data: Feedback including candidate_id, values_scores, text
-        
-    Returns:
-        dict: Feedback submission result with feedback_id
-    """
+@app.get("/v1/jobs")
+async def list_jobs(api_key: str = Depends(get_api_key)):
     try:
-        from sqlalchemy import text
-        database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr")
-        engine = create_engine(database_url)
-        
+        engine = get_db_engine()
         with engine.connect() as connection:
-            # Insert feedback with values scores
             query = text("""
-                INSERT INTO feedback (candidate_id, reviewer, free_text, values_scores, created_at)
-                VALUES (:candidate_id, :reviewer, :feedback_text, :values_scores, NOW())
-                RETURNING id
+                SELECT id, title, description, client_id, department, location, 
+                       experience_level, employment_type, requirements, status, created_at 
+                FROM jobs ORDER BY created_at DESC
+            """)
+            result = connection.execute(query)
+            jobs = []
+            for row in result:
+                jobs.append({
+                    "id": row[0],
+                    "title": row[1],
+                    "description": row[2],
+                    "client_id": row[3],
+                    "department": row[4],
+                    "location": row[5],
+                    "experience_level": row[6],
+                    "employment_type": row[7],
+                    "requirements": row[8],
+                    "status": row[9],
+                    "created_at": row[10].isoformat() if row[10] else None
+                })
+        return {"jobs": jobs, "count": len(jobs)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/v1/candidates/job/{job_id}")
+async def get_candidates_by_job(job_id: int, api_key: str = Depends(get_api_key)):
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            query = text("""
+                SELECT id, name, email, phone, location, cv_url, experience_years, 
+                       education_level, technical_skills, seniority_level, status, created_at
+                FROM candidates 
+                WHERE job_id = :job_id
+                ORDER BY created_at DESC
+            """)
+            result = connection.execute(query, {"job_id": job_id})
+            candidates = []
+            for row in result:
+                candidates.append({
+                    "id": row[0],
+                    "name": row[1],
+                    "email": row[2],
+                    "phone": row[3],
+                    "location": row[4],
+                    "cv_url": row[5],
+                    "experience_years": row[6],
+                    "education_level": row[7],
+                    "technical_skills": row[8],
+                    "seniority_level": row[9],
+                    "status": row[10],
+                    "created_at": str(row[11])
+                })
+        return {"job_id": job_id, "candidates": candidates, "count": len(candidates)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/v1/candidates/search")
+async def search_candidates(
+    q: str = "",
+    job_id: int = 1,
+    skills: str = "",
+    location: str = "",
+    experience_min: int = 0,
+    api_key: str = Depends(get_api_key)
+):
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            where_conditions = ["job_id = :job_id"]
+            params = {"job_id": job_id}
+            
+            if q:
+                where_conditions.append("(LOWER(name) LIKE LOWER(:search) OR LOWER(email) LIKE LOWER(:search))")
+                params["search"] = f"%{q}%"
+            
+            if skills:
+                where_conditions.append("LOWER(technical_skills) LIKE LOWER(:skills)")
+                params["skills"] = f"%{skills}%"
+            
+            if location:
+                where_conditions.append("LOWER(location) LIKE LOWER(:location)")
+                params["location"] = f"%{location}%"
+            
+            if experience_min > 0:
+                where_conditions.append("experience_years >= :exp_min")
+                params["exp_min"] = experience_min
+            
+            query = text("""
+                SELECT id, name, email, phone, location, experience_years, 
+                       technical_skills, seniority_level, status
+                FROM candidates 
+                WHERE job_id = :job_id
+                AND (:search IS NULL OR (LOWER(name) LIKE LOWER(:search) OR LOWER(email) LIKE LOWER(:search)))
+                AND (:skills IS NULL OR LOWER(technical_skills) LIKE LOWER(:skills))
+                AND (:location IS NULL OR LOWER(location) LIKE LOWER(:location))
+                AND experience_years >= :exp_min
+                ORDER BY experience_years DESC, name ASC
+                LIMIT 50
             """)
             
-            # Prepare values scores JSON
-            values_scores = feedback_data.get("values_scores", {})
-            if not values_scores:
-                # Default values if not provided
-                values_scores = {
-                    "integrity": 3,
-                    "honesty": 3, 
-                    "discipline": 3,
-                    "hard_work": 3,
-                    "gratitude": 3
-                }
+            safe_params = {
+                "job_id": job_id,
+                "search": f"%{q}%" if q else None,
+                "skills": f"%{skills}%" if skills else None,
+                "location": f"%{location}%" if location else None,
+                "exp_min": experience_min
+            }
             
-            # Add recommendation to values scores
-            values_scores["recommendation"] = feedback_data.get("overall_recommendation", "Neutral")
-            
-            result = connection.execute(query, {
-                "candidate_id": feedback_data.get("candidate_id", 1),
-                "reviewer": feedback_data.get("reviewer_name", "Anonymous"),
-                "feedback_text": feedback_data.get("feedback_text", ""),
-                "values_scores": json.dumps(values_scores)
-            })
-            feedback_id = result.fetchone()[0]
-            connection.commit()
+            result = connection.execute(query, safe_params)
+            candidates = []
+            for row in result:
+                candidates.append({
+                    "id": row[0],
+                    "name": row[1],
+                    "email": row[2],
+                    "phone": row[3],
+                    "location": row[4],
+                    "experience_years": row[5],
+                    "technical_skills": row[6],
+                    "seniority_level": row[7],
+                    "status": row[8]
+                })
             
         return {
-            "message": "Values feedback submitted successfully",
-            "status": "success",
-            "feedback_id": feedback_id,
-            "values_summary": {
-                "integrity": values_scores.get("integrity", 3),
-                "honesty": values_scores.get("honesty", 3),
-                "discipline": values_scores.get("discipline", 3),
-                "hard_work": values_scores.get("hard_work", 3),
-                "gratitude": values_scores.get("gratitude", 3),
-                "average_score": sum([values_scores.get(k, 3) for k in ["integrity", "honesty", "discipline", "hard_work", "gratitude"]]) / 5
-            }
+            "search_query": q[:100] if q else "",  # Limit query length
+            "filters": {"job_id": job_id, "skills": skills[:50] if skills else "", "location": location[:50] if location else "", "experience_min": experience_min},
+            "candidates": candidates,
+            "count": len(candidates),
+            "message": f"Found {len(candidates)} candidates"
         }
     except Exception as e:
-        return {
-            "message": f"Failed to submit feedback: {str(e)}",
-            "status": "error",
-            "feedback_id": None
-        }
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/v1/match/{job_id}/top", tags=["AI Matching"], summary="🤖 Get Top-5 Candidates")
-async def get_top_candidates(job_id: int):
-    """Get top-5 candidates for a job using Talah AI.
-    
-    Uses advanced AI algorithms to analyze and rank candidates
-    based on job requirements and values alignment.
-    
-    Args:
-        job_id: ID of the job to match candidates for
-        
-    Returns:
-        dict: Top-5 candidates with AI scores and analysis
-    """
-    import httpx
+@app.get("/v1/match/{job_id}/top")
+async def get_top_candidates(job_id: int, api_key: str = Depends(get_api_key)):
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post("http://agent:9000/match", json={"job_id": job_id})
@@ -287,130 +302,76 @@ async def get_top_candidates(job_id: int):
     except Exception as e:
         return {"job_id": job_id, "top_candidates": [], "status": "error"}
 
-@app.get("/candidates/stats", tags=["Analytics"], summary="📊 Real-time Statistics")
-def get_candidate_stats():
-    """Get real-time statistics from the HR platform.
-    
-    Provides live data for dashboard analytics including
-    candidate counts, job postings, and feedback metrics.
-    
-    Returns:
-        dict: Real-time platform statistics
-    """
+@app.post("/v1/feedback")
+async def submit_feedback(feedback_data: FeedbackCreate, api_key: str = Depends(get_api_key)):
     try:
-        from sqlalchemy import text
-        database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr")
-        engine = create_engine(database_url)
+        from .services.values_scoring import ValuesScoring
         
+        engine = get_db_engine()
         with engine.connect() as connection:
-            # Get total candidates
-            candidates_result = connection.execute(text("SELECT COUNT(*) FROM candidates"))
-            total_candidates = candidates_result.fetchone()[0]
+            # Create enhanced feedback table
+            connection.execute(text("""
+                CREATE TABLE IF NOT EXISTS feedback (
+                    id SERIAL PRIMARY KEY,
+                    candidate_id INTEGER REFERENCES candidates(id),
+                    reviewer VARCHAR(255),
+                    free_text TEXT,
+                    values_scores JSONB,
+                    overall_recommendation VARCHAR(50),
+                    created_at TIMESTAMP DEFAULT NOW()
+                )
+            """))
             
-            # Get total jobs
-            jobs_result = connection.execute(text("SELECT COUNT(*) FROM jobs"))
-            total_jobs = jobs_result.fetchone()[0]
-            
-            # Get total feedback
-            feedback_result = connection.execute(text("SELECT COUNT(*) FROM feedback"))
-            total_feedback = feedback_result.fetchone()[0]
-            
-            return {
-                "total_candidates": total_candidates,
-                "total_jobs": total_jobs,
-                "total_feedback": total_feedback,
-                "status": "success"
+            # Process values assessment
+            values_scores = feedback_data.values_scores or {
+                "integrity": 3, "honesty": 3, "discipline": 3, "hard_work": 3, "gratitude": 3
             }
-    except Exception as e:
-        return {
-            "total_candidates": 0,
-            "total_jobs": 0,
-            "total_feedback": 0,
-            "status": "error",
-            "message": str(e)
-        }
-
-# Additional API endpoints
-@app.get("/v1/jobs", tags=["Jobs Management"], summary="📋 List All Jobs")
-async def list_jobs():
-    """List all active job postings with candidate counts.
-    
-    Returns:
-        dict: List of all jobs with statistics
-    """
-    try:
-        from sqlalchemy import text
-        database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr")
-        engine = create_engine(database_url)
-        
-        with engine.connect() as connection:
+            
+            values_profile = ValuesScoring.create_values_profile(
+                values_scores, 
+                getattr(feedback_data, 'feedback_text', '')
+            )
+            
             query = text("""
-                SELECT 
-                    j.id,
-                    j.title,
-                    j.description,
-                    j.client_id,
-                    j.created_at,
-                    COUNT(c.id) as candidate_count,
-                    COUNT(f.id) as feedback_count,
-                    COUNT(i.id) as interview_count,
-                    COUNT(o.id) as offer_count
-                FROM jobs j
-                LEFT JOIN candidates c ON j.id = c.job_id
-                LEFT JOIN feedback f ON c.id = f.candidate_id
-                LEFT JOIN interviews i ON c.id = i.candidate_id
-                LEFT JOIN offers o ON c.id = o.candidate_id
-                GROUP BY j.id, j.title, j.description, j.client_id, j.created_at
-                ORDER BY j.created_at DESC
+                INSERT INTO feedback (candidate_id, reviewer, free_text, values_scores, overall_recommendation, created_at)
+                VALUES (:candidate_id, :reviewer, :feedback_text, :values_scores, :recommendation, NOW())
+                RETURNING id
             """)
             
-            result = connection.execute(query)
-            jobs = []
+            result = connection.execute(query, {
+                "candidate_id": feedback_data.candidate_id,
+                "reviewer": sanitize_log_input(getattr(feedback_data, 'reviewer', 'Anonymous')),
+                "feedback_text": sanitize_log_input(getattr(feedback_data, 'feedback_text', '')),
+                "values_scores": json.dumps(values_profile["values_scores"]),
+                "recommendation": values_profile["recommendation"]
+            })
+            feedback_id = result.fetchone()[0]
             
-            for row in result:
-                jobs.append({
-                    "id": row[0],
-                    "title": row[1],
-                    "description": row[2],
-                    "client_id": row[3],
-                    "created_at": row[4].isoformat() if row[4] else None,
-                    "statistics": {
-                        "candidates": row[5],
-                        "feedback_received": row[6],
-                        "interviews_scheduled": row[7],
-                        "offers_made": row[8]
-                    }
-                })
+            # Update candidate with values prediction
+            connection.execute(text("""
+                UPDATE candidates 
+                SET values_prediction = :values_scores
+                WHERE id = :candidate_id
+            """), {
+                "candidate_id": feedback_data.candidate_id,
+                "values_scores": json.dumps(values_profile["values_scores"])
+            })
+            
+            connection.commit()
             
         return {
-            "message": "Jobs retrieved successfully",
-            "status": "success",
-            "jobs": jobs,
-            "total_jobs": len(jobs)
+            "message": "Values assessment submitted successfully", 
+            "feedback_id": feedback_id,
+            "values_profile": values_profile
         }
     except Exception as e:
-        return {
-            "message": f"Failed to retrieve jobs: {str(e)}",
-            "status": "error",
-            "jobs": []
-        }
+        logger.error(f"Feedback submission error: {sanitize_log_input(str(e))}")
+        raise HTTPException(status_code=500, detail="Failed to submit feedback")
 
-@app.post("/v1/interviews", tags=["Interview Management"], summary="📞 Schedule Interview")
-async def schedule_interview(interview_data: dict):
-    """Schedule an interview with a candidate.
-    
-    Args:
-        interview_data: Interview details including candidate_id, job_id, date, interviewer
-        
-    Returns:
-        dict: Interview scheduling result with interview_id
-    """
+@app.post("/v1/interviews")
+async def schedule_interview(interview_data: InterviewCreate, api_key: str = Depends(get_api_key)):
     try:
-        from sqlalchemy import text
-        database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr")
-        engine = create_engine(database_url)
-        
-        # Create interviews table if not exists
+        engine = get_db_engine()
         with engine.connect() as connection:
             connection.execute(text("""
                 CREATE TABLE IF NOT EXISTS interviews (
@@ -424,7 +385,6 @@ async def schedule_interview(interview_data: dict):
                 )
             """))
             
-            # Insert interview
             query = text("""
                 INSERT INTO interviews (candidate_id, job_id, interview_date, interviewer, status, created_at)
                 VALUES (:candidate_id, :job_id, :interview_date, :interviewer, 'scheduled', NOW())
@@ -432,49 +392,22 @@ async def schedule_interview(interview_data: dict):
             """)
             
             result = connection.execute(query, {
-                "candidate_id": interview_data.get("candidate_id", 1),
-                "job_id": interview_data.get("job_id", 1),
-                "interview_date": interview_data.get("interview_date", "2025-09-01 10:00:00"),
-                "interviewer": interview_data.get("interviewer", "HR Manager")
+                "candidate_id": interview_data.candidate_id,
+                "job_id": interview_data.job_id,
+                "interview_date": interview_data.interview_date,
+                "interviewer": getattr(interview_data, 'interviewer', 'HR Manager')
             })
             interview_id = result.fetchone()[0]
             connection.commit()
             
-        return {
-            "message": "Interview scheduled successfully",
-            "status": "success",
-            "interview_id": interview_id,
-            "details": {
-                "candidate_id": interview_data.get("candidate_id"),
-                "job_id": interview_data.get("job_id"),
-                "interview_date": interview_data.get("interview_date"),
-                "interviewer": interview_data.get("interviewer"),
-                "status": "scheduled"
-            }
-        }
+        return {"message": "Interview scheduled successfully", "interview_id": interview_id}
     except Exception as e:
-        return {
-            "message": f"Failed to schedule interview: {str(e)}",
-            "status": "error",
-            "interview_id": None
-        }
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/v1/offers", tags=["Offer Management"], summary="🎉 Make Job Offer")
-async def make_offer(offer_data: dict):
-    """Make a job offer to a candidate.
-    
-    Args:
-        offer_data: Offer details including candidate_id, job_id, salary, status
-        
-    Returns:
-        dict: Offer creation result with offer_id
-    """
+@app.post("/v1/offers")
+async def make_offer(offer_data: OfferCreate, api_key: str = Depends(get_api_key)):
     try:
-        from sqlalchemy import text
-        database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr")
-        engine = create_engine(database_url)
-        
-        # Create offers table if not exists
+        engine = get_db_engine()
         with engine.connect() as connection:
             connection.execute(text("""
                 CREATE TABLE IF NOT EXISTS offers (
@@ -488,7 +421,6 @@ async def make_offer(offer_data: dict):
                 )
             """))
             
-            # Insert offer
             query = text("""
                 INSERT INTO offers (candidate_id, job_id, salary, status, offer_date, created_at)
                 VALUES (:candidate_id, :job_id, :salary, :status, NOW(), NOW())
@@ -496,139 +428,96 @@ async def make_offer(offer_data: dict):
             """)
             
             result = connection.execute(query, {
-                "candidate_id": offer_data.get("candidate_id", 1),
-                "job_id": offer_data.get("job_id", 1),
-                "salary": offer_data.get("salary", 100000),
-                "status": offer_data.get("status", "sent")
+                "candidate_id": offer_data.candidate_id,
+                "job_id": offer_data.job_id,
+                "salary": getattr(offer_data, 'salary', 100000),
+                "status": offer_data.status
             })
             offer_id = result.fetchone()[0]
             connection.commit()
             
-        return {
-            "message": "Job offer created successfully",
-            "status": "success",
-            "offer_id": offer_id,
-            "details": {
-                "candidate_id": offer_data.get("candidate_id"),
-                "job_id": offer_data.get("job_id"),
-                "salary": offer_data.get("salary"),
-                "status": offer_data.get("status", "sent"),
-                "offer_date": datetime.now().isoformat()
-            }
-        }
+        return {"message": "Job offer created successfully", "offer_id": offer_id}
     except Exception as e:
-        return {
-            "message": f"Failed to create offer: {str(e)}",
-            "status": "error",
-            "offer_id": None
-        }
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/v1/reports/job/{job_id}/export.csv", tags=["Reports"], summary="📄 Export Job Report")
-async def export_job_report(job_id: int):
-    """Export comprehensive job report as CSV with candidate values scores.
-    
-    Includes candidate information, values assessments, interview status,
-    and offer details for complete recruiting pipeline visibility.
-    
-    Args:
-        job_id: ID of the job to export
-        
-    Returns:
-        dict: CSV export data with candidate values and recruiting metrics
-    """
+@app.post("/v1/candidates/bulk")
+async def upload_candidates_bulk(request: BulkCandidatesRequest, api_key: str = Depends(get_api_key)):
     try:
-        from sqlalchemy import text
-        database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr")
-        engine = create_engine(database_url)
-        
+        engine = get_db_engine()
         with engine.connect() as connection:
-            # Get comprehensive job report data
-            query = text("""
-                SELECT 
-                    c.id as candidate_id,
-                    c.name,
-                    c.email,
-                    c.status as candidate_status,
-                    f.values_scores,
-                    f.free_text as feedback,
-                    f.reviewer,
-                    i.interview_date,
-                    i.interviewer,
-                    i.status as interview_status,
-                    o.salary,
-                    o.status as offer_status,
-                    o.offer_date
-                FROM candidates c
-                LEFT JOIN feedback f ON c.id = f.candidate_id
-                LEFT JOIN interviews i ON c.id = i.candidate_id
-                LEFT JOIN offers o ON c.id = o.candidate_id
-                WHERE c.job_id = :job_id
-                ORDER BY c.id
-            """)
+            # Create candidates table if not exists
+            connection.execute(text("""
+                CREATE TABLE IF NOT EXISTS candidates (
+                    id SERIAL PRIMARY KEY,
+                    job_id INTEGER,
+                    name VARCHAR(255),
+                    email VARCHAR(255),
+                    phone VARCHAR(50),
+                    location VARCHAR(255),
+                    cv_url TEXT,
+                    experience_years INTEGER DEFAULT 0,
+                    education_level VARCHAR(100),
+                    technical_skills TEXT,
+                    seniority_level VARCHAR(50),
+                    status VARCHAR(50) DEFAULT 'applied',
+                    created_at TIMESTAMP DEFAULT NOW()
+                )
+            """))
             
-            result = connection.execute(query, {"job_id": job_id})
-            rows = result.fetchall()
+            inserted_count = 0
+            for candidate in request.candidates:
+                query = text("""
+                    INSERT INTO candidates (job_id, name, email, phone, location, cv_url, 
+                                          experience_years, education_level, technical_skills, 
+                                          seniority_level, status, created_at)
+                    VALUES (:job_id, :name, :email, :phone, :location, :cv_url, 
+                            :experience_years, :education_level, :technical_skills, 
+                            :seniority_level, :status, NOW())
+                """)
+                connection.execute(query, {
+                    "job_id": candidate.job_id,
+                    "name": candidate.name,
+                    "email": candidate.email,
+                    "phone": candidate.phone,
+                    "location": candidate.location,
+                    "cv_url": candidate.cv_url,
+                    "experience_years": candidate.experience_years,
+                    "education_level": candidate.education_level,
+                    "technical_skills": candidate.technical_skills,
+                    "seniority_level": candidate.seniority_level,
+                    "status": candidate.status
+                })
+                inserted_count += 1
             
-            # Convert to CSV format
-            csv_data = []
-            csv_data.append([
-                "Candidate ID", "Name", "Email", "Status",
-                "Integrity", "Honesty", "Discipline", "Hard Work", "Gratitude",
-                "Average Values Score", "Feedback", "Reviewer",
-                "Interview Date", "Interviewer", "Interview Status",
-                "Salary Offer", "Offer Status", "Offer Date"
-            ])
-            
-            for row in rows:
-                # Handle values_scores - it might already be a dict or need parsing
-                if row[4]:
-                    if isinstance(row[4], str):
-                        values_scores = json.loads(row[4])
-                    else:
-                        values_scores = row[4]  # Already a dict
-                else:
-                    values_scores = {}
-                
-                # Extract individual values scores
-                integrity = values_scores.get("integrity", "N/A")
-                honesty = values_scores.get("honesty", "N/A")
-                discipline = values_scores.get("discipline", "N/A")
-                hard_work = values_scores.get("hard_work", "N/A")
-                gratitude = values_scores.get("gratitude", "N/A")
-                
-                # Calculate average if all values present
-                if all(isinstance(v, (int, float)) for v in [integrity, honesty, discipline, hard_work, gratitude]):
-                    avg_score = round((integrity + honesty + discipline + hard_work + gratitude) / 5, 1)
-                else:
-                    avg_score = "N/A"
-                
-                csv_data.append([
-                    row[0], row[1], row[2], row[3],
-                    integrity, honesty, discipline, hard_work, gratitude,
-                    avg_score, row[5] or "N/A", row[6] or "N/A",
-                    row[7] or "N/A", row[8] or "N/A", row[9] or "N/A",
-                    row[10] or "N/A", row[11] or "N/A", row[12] or "N/A"
-                ])
-            
+            connection.commit()
+        
         return {
-            "message": "Job report generated successfully",
-            "status": "success",
-            "job_id": job_id,
-            "csv_data": csv_data,
-            "total_candidates": len(csv_data) - 1 if csv_data else 0,  # Exclude header
-            "export_timestamp": datetime.now().isoformat(),
-            "columns": [
-                "candidate_info", "values_assessment", "interview_data", "offer_details"
-            ]
+            "message": f"Successfully uploaded {inserted_count} candidates",
+            "count": inserted_count,
+            "status": "success"
         }
     except Exception as e:
-        return {
-            "message": f"Failed to generate report: {str(e)}",
-            "status": "error",
-            "job_id": job_id,
-            "csv_data": []
-        }
+        raise HTTPException(status_code=500, detail=f"Failed to upload candidates: {str(e)}")
 
-# Include candidates routes
-app.include_router(candidates_router, prefix="/v1/candidates", tags=["Candidates Management"])
-app.include_router(candidates_router, prefix="/candidates", tags=["Candidates Management"])
+@app.get("/candidates/stats")
+def get_candidate_stats():
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            candidates_result = connection.execute(text("SELECT COUNT(*) FROM candidates"))
+            total_candidates = candidates_result.fetchone()[0]
+            
+            jobs_result = connection.execute(text("SELECT COUNT(*) FROM jobs"))
+            total_jobs = jobs_result.fetchone()[0]
+            
+            feedback_result = connection.execute(text("SELECT COUNT(*) FROM feedback"))
+            total_feedback = feedback_result.fetchone()[0]
+            
+            return {
+                "total_candidates": total_candidates,
+                "total_jobs": total_jobs,
+                "total_feedback": total_feedback,
+                "status": "success"
+            }
+    except Exception as e:
+        return {"total_candidates": 0, "total_jobs": 0, "total_feedback": 0, "status": "error"}

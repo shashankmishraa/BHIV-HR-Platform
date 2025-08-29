@@ -1,332 +1,356 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import List, Dict, Optional
-import httpx
+import psycopg2
 import os
-import random
 import json
+from typing import List, Dict, Any
+import logging
+from datetime import datetime
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="🤖 Talah AI Agent",
-    description="""## AI-Powered Candidate Matching & Assessment Engine
-    
-### 🎯 Core Capabilities:
-- **Resume Analysis**: Extract skills, experience, and qualifications
-- **Candidate Scoring**: Advanced algorithm for candidate ranking
-- **Values Alignment**: Assess cultural fit based on BHIV values
-- **Top-5 Shortlisting**: Intelligent candidate selection
-- **Skills Matching**: Match candidates to job requirements
-
-### 🏆 Values Assessment:
-- **Integrity**: Ethical behavior analysis
-- **Honesty**: Communication transparency
-- **Discipline**: Work consistency patterns
-- **Hard Work**: Dedication indicators
-- **Gratitude**: Team collaboration signals
-
-### 🔧 AI Features:
-- Natural Language Processing for resume parsing
-- Machine Learning scoring algorithms
-- Predictive analytics for success probability
-- Bias-free candidate evaluation
-    """,
-    version="1.0.0",
-    contact={
-        "name": "Talah AI Support",
-        "email": "ai-support@bhiv-hr.com",
-    }
+    title="Talah AI Agent",
+    description="Advanced AI-powered candidate matching and analysis",
+    version="1.0.0"
 )
 
-# Define the request models
 class MatchRequest(BaseModel):
     job_id: int
-    
-class AnalyzeRequest(BaseModel):
+
+class CandidateScore(BaseModel):
     candidate_id: int
     name: str
-    email: Optional[str] = None
-    experience_years: Optional[int] = 0
-    skills: Optional[List[str]] = None
-
-# Optionally: define a response model (for validation and docs)
-class Candidate(BaseModel):
-    id: int
-    name: str
+    email: str
     score: float
-    values_alignment: float
-    skills_match: Optional[int] = None
-    ai_insights: Optional[List[str]] = None
-    recommendation_strength: Optional[str] = None
+    skills_match: List[str]
+    experience_match: str
+    location_match: bool
+    reasoning: str
 
 class MatchResponse(BaseModel):
     job_id: int
-    top_candidates: List[Candidate]
+    top_candidates: List[CandidateScore]
+    total_candidates: int
+    processing_time: float
+    algorithm_version: str
     status: str
-    ai_analysis: Optional[str] = None
-    processing_time: Optional[str] = None
-    algorithm_version: Optional[str] = None
 
-@app.get("/", tags=["AI Agent"], summary="🤖 Talah AI Agent Root")
+def get_db_connection():
+    """Get database connection"""
+    try:
+        conn = psycopg2.connect(
+            host=os.getenv("DB_HOST", "db"),
+            database=os.getenv("DB_NAME", "bhiv_hr"),
+            user=os.getenv("DB_USER", "bhiv_user"),
+            password=os.getenv("DB_PASSWORD", "bhiv_pass"),
+            port=os.getenv("DB_PORT", "5432")
+        )
+        return conn
+    except Exception as e:
+        logger.error(f"Database connection failed: {e}")
+        return None
+
+def calculate_skills_match(job_requirements: str, candidate_skills: str) -> tuple:
+    """Calculate skills matching score"""
+    if not job_requirements or not candidate_skills:
+        return 0.0, []
+    
+    # Extract key skills from job requirements
+    job_skills = set()
+    tech_keywords = ['python', 'java', 'javascript', 'react', 'node', 'sql', 'aws', 'docker', 
+                    'kubernetes', 'machine learning', 'ai', 'data science', 'pandas', 'numpy',
+                    'tensorflow', 'pytorch', 'git', 'linux', 'mongodb', 'postgresql']
+    
+    job_req_lower = job_requirements.lower()
+    candidate_skills_lower = candidate_skills.lower()
+    
+    for skill in tech_keywords:
+        if skill in job_req_lower:
+            job_skills.add(skill)
+    
+    # Find matching skills
+    matched_skills = []
+    for skill in job_skills:
+        if skill in candidate_skills_lower:
+            matched_skills.append(skill.title())
+    
+    # Calculate score
+    if not job_skills:
+        return 0.5, matched_skills  # Neutral score if no specific skills required
+    
+    score = len(matched_skills) / len(job_skills)
+    return min(score, 1.0), matched_skills
+
+def calculate_experience_match(job_level: str, candidate_years: int, candidate_level: str) -> tuple:
+    """Calculate experience matching score"""
+    if not job_level:
+        return 0.5, "No specific level required"
+    
+    job_level_lower = job_level.lower()
+    candidate_level_lower = (candidate_level or "").lower()
+    
+    # Experience level mapping
+    level_scores = {
+        'entry': (0, 2),
+        'junior': (1, 3), 
+        'mid': (2, 5),
+        'senior': (4, 8),
+        'lead': (6, 15),
+        'principal': (8, 20)
+    }
+    
+    # Determine required experience range
+    required_range = None
+    for level, years_range in level_scores.items():
+        if level in job_level_lower:
+            required_range = years_range
+            break
+    
+    if not required_range:
+        return 0.5, "Experience level unclear"
+    
+    min_years, max_years = required_range
+    
+    # Calculate score based on candidate experience
+    if candidate_years >= min_years and candidate_years <= max_years:
+        score = 1.0
+        match_desc = f"Perfect match for {job_level} level"
+    elif candidate_years < min_years:
+        gap = min_years - candidate_years
+        score = max(0.3, 1.0 - (gap * 0.2))
+        match_desc = f"Below required experience by {gap} years"
+    else:
+        excess = candidate_years - max_years
+        score = max(0.7, 1.0 - (excess * 0.1))
+        match_desc = f"Overqualified by {excess} years"
+    
+    return score, match_desc
+
+def calculate_location_match(job_location: str, candidate_location: str) -> tuple:
+    """Calculate location matching"""
+    if not job_location or not candidate_location:
+        return 0.5, False
+    
+    job_loc_lower = job_location.lower()
+    candidate_loc_lower = candidate_location.lower()
+    
+    # Remote work
+    if 'remote' in job_loc_lower:
+        return 1.0, True
+    
+    # Exact match
+    if job_loc_lower == candidate_loc_lower:
+        return 1.0, True
+    
+    # City match (basic)
+    job_cities = ['mumbai', 'delhi', 'bangalore', 'pune', 'hyderabad', 'chennai']
+    for city in job_cities:
+        if city in job_loc_lower and city in candidate_loc_lower:
+            return 0.9, True
+    
+    return 0.3, False
+
+@app.get("/")
 def read_root():
-    """Welcome endpoint for Talah AI Agent.
-    
-    Returns information about AI capabilities and available endpoints.
-    
-    Returns:
-        dict: AI agent information and capabilities
-    """
     return {
-        "message": "🤖 Talah AI Agent - Advanced Candidate Matching Engine",
+        "service": "Talah AI Agent",
         "version": "1.0.0",
-        "status": "healthy",
-        "ai_capabilities": {
-            "resume_analysis": "Extract skills, experience, qualifications",
-            "candidate_scoring": "Advanced ranking algorithm (0-100)",
-            "values_alignment": "Cultural fit assessment (1-5 scale)",
-            "skills_matching": "Job requirement compatibility",
-            "bias_detection": "Fair and unbiased evaluation"
-        },
-        "supported_formats": [
-            "PDF Resumes",
-            "Word Documents", 
-            "Text Profiles",
-            "LinkedIn Data"
-        ],
-        "algorithms": {
-            "scoring_model": "Weighted Multi-Criteria Decision Analysis",
-            "nlp_engine": "Advanced Natural Language Processing",
-            "ml_framework": "Supervised Learning with Feedback Loop"
-        },
         "endpoints": {
-            "match": "/match - Get top candidates for a job",
-            "analyze": "/analyze - Analyze single candidate",
-            "health": "/health - AI system health check"
+            "match": "POST /match - Get top candidates for job",
+            "analyze": "GET /analyze/{candidate_id} - Analyze candidate",
+            "health": "GET /health - Service health check"
         }
     }
 
-@app.post("/match", response_model=MatchResponse, tags=["AI Matching"], summary="🎯 AI Candidate Matching")
-async def match_candidates(request: MatchRequest):
-    """Advanced AI-powered candidate matching and ranking.
-    
-    Uses machine learning algorithms to analyze candidates and provide
-    intelligent rankings based on job requirements and values alignment.
-    
-    Args:
-        request: MatchRequest containing job_id
-        
-    Returns:
-        MatchResponse: Top-5 candidates with AI scores and analysis
-    """
-    job_id = request.job_id
-    
-    # Get real candidates from database via gateway
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(f"http://gateway:8000/candidates/job/{job_id}")
-            if response.status_code == 200:
-                candidates_data = response.json()
-                candidates = candidates_data.get("candidates", [])
-                
-                if not candidates:
-                    return {
-                        "job_id": job_id,
-                        "top_candidates": [],
-                        "status": "no_candidates",
-                        "ai_analysis": "No candidates available for analysis"
-                    }
-                
-                # Enhanced AI scoring logic
-                scored_candidates = []
-                for i, candidate in enumerate(candidates[:5]):  # Top 5
-                    # Simulate advanced AI scoring
-                    base_score = 95 - (i * 2)  # Base technical score
-                    experience_bonus = random.randint(-5, 10)  # Experience factor
-                    skills_match = random.randint(85, 100)  # Skills compatibility
-                    
-                    final_score = min(100, max(70, base_score + experience_bonus))
-                    values_score = round(4.8 - (i * 0.15) + random.uniform(-0.2, 0.2), 1)
-                    values_score = max(3.0, min(5.0, values_score))
-                    
-                    # AI-generated insights
-                    insights = [
-                        "Strong technical background",
-                        "Excellent communication skills", 
-                        "Good cultural fit indicators",
-                        "Relevant industry experience",
-                        "Leadership potential identified"
-                    ]
-                    
-                    scored_candidates.append({
-                        "id": candidate.get("id", i+1),
-                        "name": candidate.get("name", "Unknown"),
-                        "score": final_score,
-                        "values_alignment": values_score,
-                        "skills_match": skills_match,
-                        "ai_insights": random.sample(insights, 2),
-                        "recommendation_strength": "High" if final_score > 90 else "Medium" if final_score > 80 else "Low"
-                    })
-                
-                return {
-                    "job_id": job_id,
-                    "top_candidates": scored_candidates,
-                    "status": "success",
-                    "ai_analysis": f"Analyzed {len(candidates)} candidates using advanced ML algorithms",
-                    "processing_time": "1.2 seconds",
-                    "algorithm_version": "v2.1.0"
-                }
-            else:
-                return {
-                    "job_id": job_id,
-                    "top_candidates": [],
-                    "status": "gateway_error",
-                    "ai_analysis": "Unable to connect to candidate database"
-                }
-    except Exception as e:
-        return {
-            "job_id": job_id,
-            "top_candidates": [],
-            "status": "error",
-            "ai_analysis": f"AI processing error: {str(e)}"
-        }
-
-@app.post("/analyze", tags=["AI Analysis"], summary="🔍 Single Candidate Analysis")
-async def analyze_candidate(candidate_data: dict):
-    """Analyze a single candidate using AI algorithms.
-    
-    Provides detailed analysis of candidate profile including:
-    - Skills assessment
-    - Experience evaluation
-    - Values alignment prediction
-    - Cultural fit analysis
-    
-    Args:
-        candidate_data: Candidate information for analysis
-        
-    Returns:
-        dict: Detailed AI analysis results
-    """
-    try:
-        # Simulate AI analysis
-        analysis = {
-            "candidate_id": candidate_data.get("id", "unknown"),
-            "name": candidate_data.get("name", "Unknown"),
-            "overall_score": random.randint(75, 98),
-            "detailed_analysis": {
-                "technical_skills": {
-                    "score": random.randint(80, 95),
-                    "strengths": ["Programming", "Problem Solving", "System Design"],
-                    "areas_for_growth": ["Leadership", "Communication"]
-                },
-                "experience_level": {
-                    "years": candidate_data.get("experience_years", 0),
-                    "relevance": "High",
-                    "industry_match": "Excellent"
-                },
-                "values_prediction": {
-                    "integrity": round(random.uniform(3.5, 5.0), 1),
-                    "honesty": round(random.uniform(3.5, 5.0), 1),
-                    "discipline": round(random.uniform(3.0, 5.0), 1),
-                    "hard_work": round(random.uniform(3.5, 5.0), 1),
-                    "gratitude": round(random.uniform(3.0, 5.0), 1)
-                },
-                "cultural_fit": {
-                    "score": random.randint(75, 95),
-                    "indicators": ["Team collaboration", "Growth mindset", "Communication style"],
-                    "risk_factors": ["Remote work adaptation"]
-                }
-            },
-            "ai_recommendations": [
-                "Strong candidate for technical roles",
-                "Consider for senior positions",
-                "Good cultural alignment with company values"
-            ],
-            "confidence_level": "High",
-            "processing_metadata": {
-                "algorithm_version": "v2.1.0",
-                "analysis_time": "0.8 seconds",
-                "data_sources": ["Resume", "Profile", "Skills Assessment"]
-            }
-        }
-        
-        return {
-            "status": "success",
-            "analysis": analysis
-        }
-        
-    except Exception as e:
-        return {
-            "status": "error",
-            "message": f"Analysis failed: {str(e)}"
-        }
-
-@app.get("/capabilities", tags=["AI Info"], summary="🤖 AI Capabilities Overview")
-def get_ai_capabilities():
-    """Get detailed information about Talah AI capabilities.
-    
-    Returns:
-        dict: Comprehensive AI capabilities and features
-    """
-    return {
-        "ai_engine": {
-            "name": "Talah AI v2.1.0",
-            "type": "Advanced Machine Learning System",
-            "specialization": "HR & Recruitment Intelligence"
-        },
-        "core_capabilities": {
-            "resume_parsing": {
-                "accuracy": "96.8%",
-                "supported_formats": ["PDF", "DOCX", "TXT"],
-                "languages": ["English", "Spanish", "French"]
-            },
-            "candidate_scoring": {
-                "algorithm": "Multi-Criteria Decision Analysis",
-                "factors": ["Skills", "Experience", "Education", "Values Fit"],
-                "scale": "0-100 points"
-            },
-            "values_assessment": {
-                "framework": "BHIV Values Framework",
-                "dimensions": ["Integrity", "Honesty", "Discipline", "Hard Work", "Gratitude"],
-                "scale": "1-5 stars"
-            },
-            "bias_mitigation": {
-                "techniques": ["Blind Resume Review", "Diverse Training Data", "Fairness Constraints"],
-                "compliance": "EEOC Guidelines"
-            }
-        },
-        "performance_metrics": {
-            "processing_speed": "<2 seconds per candidate",
-            "accuracy_rate": "94.5%",
-            "false_positive_rate": "<3%",
-            "uptime": "99.9%"
-        },
-        "integration_features": {
-            "api_endpoints": ["/match", "/analyze", "/health"],
-            "real_time_processing": True,
-            "batch_processing": True,
-            "webhook_support": True
-        }
-    }
-
-@app.get("/health", tags=["System"], summary="🏥 AI Health Check")
+@app.get("/health")
 def health_check():
-    """AI Agent health check endpoint.
-    
-    Returns:
-        dict: Health status of AI systems and models
-    """
     return {
         "status": "healthy",
-        "service": "🤖 Talah AI Agent",
+        "service": "Talah AI Agent",
         "version": "1.0.0",
-        "ai_systems": {
-            "nlp_engine": "operational",
-            "scoring_model": "active",
-            "values_analyzer": "running",
-            "bias_detector": "enabled"
-        },
-        "performance": {
-            "avg_processing_time": "<2 seconds",
-            "accuracy_rate": "94.5%",
-            "uptime": "99.9%"
-        }
+        "timestamp": datetime.now().isoformat()
     }
+
+@app.post("/match", response_model=MatchResponse)
+async def match_candidates(request: MatchRequest):
+    """Advanced AI-powered candidate matching"""
+    start_time = datetime.now()
+    
+    try:
+        conn = get_db_connection()
+        if not conn:
+            raise HTTPException(status_code=500, detail="Database connection failed")
+        
+        cursor = conn.cursor()
+        
+        # Get job details
+        cursor.execute("""
+            SELECT title, description, department, location, experience_level, requirements
+            FROM jobs WHERE id = %s
+        """, (request.job_id,))
+        
+        job_data = cursor.fetchone()
+        if not job_data:
+            return MatchResponse(
+                job_id=request.job_id,
+                top_candidates=[],
+                total_candidates=0,
+                processing_time=0.0,
+                algorithm_version="1.0.0",
+                status="job_not_found"
+            )
+        
+        job_title, job_desc, job_dept, job_location, job_level, job_requirements = job_data
+        
+        # Get all candidates for this job
+        cursor.execute("""
+            SELECT id, name, email, phone, location, experience_years, 
+                   technical_skills, seniority_level, education_level
+            FROM candidates 
+            WHERE job_id = %s AND status = 'applied'
+            ORDER BY created_at DESC
+        """, (request.job_id,))
+        
+        candidates = cursor.fetchall()
+        
+        if not candidates:
+            return MatchResponse(
+                job_id=request.job_id,
+                top_candidates=[],
+                total_candidates=0,
+                processing_time=0.0,
+                algorithm_version="1.0.0",
+                status="no_candidates"
+            )
+        
+        # Score each candidate
+        scored_candidates = []
+        
+        for candidate in candidates:
+            cand_id, name, email, phone, location, exp_years, skills, seniority, education = candidate
+            
+            # Calculate individual scores
+            skills_score, matched_skills = calculate_skills_match(
+                job_requirements or job_desc, skills or ""
+            )
+            
+            exp_score, exp_reasoning = calculate_experience_match(
+                job_level or "", exp_years or 0, seniority or ""
+            )
+            
+            location_score, location_match = calculate_location_match(
+                job_location or "", location or ""
+            )
+            
+            # Calculate overall score (weighted)
+            overall_score = (
+                skills_score * 0.5 +      # 50% weight on skills
+                exp_score * 0.3 +         # 30% weight on experience  
+                location_score * 0.2      # 20% weight on location
+            )
+            
+            # Generate reasoning
+            reasoning_parts = []
+            if matched_skills:
+                reasoning_parts.append(f"Skills match: {', '.join(matched_skills)}")
+            reasoning_parts.append(f"Experience: {exp_reasoning}")
+            if location_match:
+                reasoning_parts.append("Location compatible")
+            
+            reasoning = "; ".join(reasoning_parts)
+            
+            scored_candidates.append(CandidateScore(
+                candidate_id=cand_id,
+                name=name,
+                email=email,
+                score=round(overall_score * 100, 1),
+                skills_match=matched_skills,
+                experience_match=exp_reasoning,
+                location_match=location_match,
+                reasoning=reasoning
+            ))
+        
+        # Sort by score and get top 5
+        scored_candidates.sort(key=lambda x: x.score, reverse=True)
+        top_5 = scored_candidates[:5]
+        
+        processing_time = (datetime.now() - start_time).total_seconds()
+        
+        conn.close()
+        
+        return MatchResponse(
+            job_id=request.job_id,
+            top_candidates=top_5,
+            total_candidates=len(candidates),
+            processing_time=round(processing_time, 3),
+            algorithm_version="1.0.0",
+            status="success"
+        )
+        
+    except Exception as e:
+        logger.error(f"Matching error: {e}")
+        raise HTTPException(status_code=500, detail=f"Matching failed: {str(e)}")
+
+@app.get("/analyze/{candidate_id}")
+async def analyze_candidate(candidate_id: int):
+    """Detailed candidate analysis"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            raise HTTPException(status_code=500, detail="Database connection failed")
+        
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT name, email, technical_skills, experience_years, 
+                   seniority_level, education_level, location
+            FROM candidates WHERE id = %s
+        """, (candidate_id,))
+        
+        candidate = cursor.fetchone()
+        if not candidate:
+            raise HTTPException(status_code=404, detail="Candidate not found")
+        
+        name, email, skills, exp_years, seniority, education, location = candidate
+        
+        # Analyze skills
+        skill_categories = {
+            'Programming': ['python', 'java', 'javascript', 'c++', 'go'],
+            'Web Development': ['react', 'node', 'html', 'css', 'django'],
+            'Data Science': ['pandas', 'numpy', 'tensorflow', 'machine learning', 'ai'],
+            'Cloud': ['aws', 'azure', 'docker', 'kubernetes'],
+            'Database': ['sql', 'mysql', 'postgresql', 'mongodb']
+        }
+        
+        skills_lower = (skills or "").lower()
+        categorized_skills = {}
+        
+        for category, skill_list in skill_categories.items():
+            found_skills = [skill for skill in skill_list if skill in skills_lower]
+            if found_skills:
+                categorized_skills[category] = found_skills
+        
+        conn.close()
+        
+        return {
+            "candidate_id": candidate_id,
+            "name": name,
+            "email": email,
+            "experience_years": exp_years,
+            "seniority_level": seniority,
+            "education_level": education,
+            "location": location,
+            "skills_analysis": categorized_skills,
+            "total_skills": len(skills.split(',')) if skills else 0,
+            "analysis_timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Analysis error: {e}")
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=9000)

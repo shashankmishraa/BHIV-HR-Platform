@@ -7,14 +7,20 @@ import os
 
 def wait_for_db():
     """Wait for database to be ready"""
+    db_host = os.getenv('DB_HOST', 'localhost')
+    db_port = int(os.getenv('DB_PORT', '5432'))
+    db_name = os.getenv('POSTGRES_DB', 'bhiv_hr')
+    db_user = os.getenv('POSTGRES_USER', 'bhiv_user')
+    db_pass = os.getenv('POSTGRES_PASSWORD', 'bhiv_pass')
+    
     for i in range(30):
         try:
             conn = psycopg2.connect(
-                host="localhost",
-                port=5432,
-                database="bhiv_hr",
-                user="bhiv_user",
-                password="bhiv_pass"
+                host=db_host,
+                port=db_port,
+                database=db_name,
+                user=db_user,
+                password=db_pass
             )
             conn.close()
             print("✅ Database connection successful!")
@@ -32,11 +38,11 @@ def create_tables():
     
     try:
         conn = psycopg2.connect(
-            host="localhost",
-            port=5432,
-            database="bhiv_hr",
-            user="bhiv_user",
-            password="bhiv_pass"
+            host=os.getenv('DB_HOST', 'localhost'),
+            port=int(os.getenv('DB_PORT', '5432')),
+            database=os.getenv('POSTGRES_DB', 'bhiv_hr'),
+            user=os.getenv('POSTGRES_USER', 'bhiv_user'),
+            password=os.getenv('POSTGRES_PASSWORD', 'bhiv_pass')
         )
         cur = conn.cursor()
         

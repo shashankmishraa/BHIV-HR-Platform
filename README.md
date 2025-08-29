@@ -1,798 +1,315 @@
-# 🎯 BHIV HR Platform - Values-Driven Recruiting with MDVP
+# BHIV HR Platform
 
-A containerized HR platform with API Gateway, Client Portal, AI Agent, and PostgreSQL database, built with **Minimum Daily Value Push (MDVP)** methodology.
+AI-powered recruiting platform with candidate matching and values assessment.
 
-## 🚀 Quick Start
+## Quick Start
 
-### Prerequisites
-- Docker and Docker Compose installed
-- Git (for cloning)
+```bash
+docker-compose up -d
+```
 
-### 1. Clone and Start
+**Access:**
+- Portal: http://localhost:8501
+- API: http://localhost:8000/docs
+- AI Agent: http://localhost:9000/docs
+
+## Project Structure
+
+```
+bhiv-hr-platform/
+├── services/
+│   ├── gateway/          # FastAPI API Gateway
+│   │   ├── app/
+│   │   │   ├── main.py   # API endpoints
+│   │   │   └── db/schemas.py # Pydantic models
+│   │   └── Dockerfile
+│   ├── agent/           # AI Matching Service
+│   │   ├── app.py       # AI matching logic
+│   │   └── Dockerfile
+│   ├── portal/          # Streamlit Web UI
+│   │   ├── app.py       # Web interface
+│   │   └── Dockerfile
+│   └── db/
+│       └── init.sql     # Database schema
+├── scripts/             # Processing scripts
+├── resume/             # Resume PDFs (25 files)
+├── data/               # Processed data
+└── docker-compose.yml  # Service orchestration
+```
+
+## API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Health check |
+| `/v1/jobs` | POST/GET | Job management |
+| `/v1/candidates/bulk` | POST | Upload candidates |
+| `/v1/candidates/job/{id}` | GET | List candidates |
+| `/v1/candidates/search` | GET | Search & filter |
+| `/v1/match/{id}/top` | GET | AI matching |
+| `/v1/feedback` | POST | Values assessment |
+| `/v1/interviews` | POST | Schedule interviews |
+| `/v1/offers` | POST | Job offers |
+| `/candidates/stats` | GET | Statistics |
+
+## Core Features
+
+### Search & Filter
+```bash
+# Search by name
+curl -H "Authorization: Bearer <your-api-key>" \
+  "http://localhost:8000/v1/candidates/search?q=Hiten&job_id=1"
+
+# Filter by skills - Returns 18 candidates with Python
+curl -H "Authorization: Bearer <your-api-key>" \
+  "http://localhost:8000/v1/candidates/search?skills=Python&job_id=1"
+
+# Filter by location
+curl -H "Authorization: Bearer <your-api-key>" \
+  "http://localhost:8000/v1/candidates/search?location=Mumbai&job_id=1"
+```
+
+### AI Matching
+```bash
+curl -H "Authorization: Bearer <your-api-key>" \
+  http://localhost:8000/v1/match/1/top
+```
+
+### Bulk Upload
+```bash
+curl -X POST http://localhost:8000/v1/candidates/bulk \
+  -H "Authorization: Bearer <your-api-key>" \
+  -H "Content-Type: application/json" \
+  -d '{"candidates": [{"name": "John Doe", "email": "john@example.com", "job_id": 1}]}'
+```
+
+## Database Schema
+
+### Jobs Table
+```sql
+CREATE TABLE jobs (
+    id SERIAL PRIMARY KEY,
+    client_id INTEGER,
+    title VARCHAR(255),
+    description TEXT,
+    department VARCHAR(100),
+    location VARCHAR(255),
+    experience_level VARCHAR(50),
+    employment_type VARCHAR(50),
+    requirements TEXT,
+    status VARCHAR(50) DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### Candidates Table
+```sql
+CREATE TABLE candidates (
+    id SERIAL PRIMARY KEY,
+    job_id INTEGER,
+    name VARCHAR(255),
+    email VARCHAR(255),
+    phone VARCHAR(50),
+    location VARCHAR(255),
+    cv_url TEXT,
+    experience_years INTEGER DEFAULT 0,
+    education_level VARCHAR(100),
+    technical_skills TEXT,
+    seniority_level VARCHAR(50),
+    status VARCHAR(50) DEFAULT 'applied',
+    created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+## System Status
+- **Candidates**: 81 processed with enhanced data extraction
+- **Jobs**: 1 active with comprehensive requirements
+- **Resume Files**: 25+ PDFs processed with AI analysis
+- **Values Assessments**: Integrated 5-point scoring system
+- **Reports**: CSV export with complete candidate lifecycle data
+- **MDVP Compliance**: 4/4 days successful value delivery
+
+## Sample Output
+
+**Search Response:**
+```json
+{
+  "search_query": "",
+  "filters": {"job_id": 1, "skills": "Python", "location": "", "experience_min": 0},
+  "candidates": [
+    {
+      "id": 16,
+      "name": "Rashpal",
+      "email": "rashpalsingh43434@gmail.com",
+      "phone": "+918828396454",
+      "location": "Mumbai",
+      "experience_years": 2,
+      "technical_skills": "NumPy, Pandas, Go, Python, AI",
+      "seniority_level": "Junior",
+      "status": "applied"
+    }
+  ],
+  "count": 18,
+  "message": "Found 18 candidates"
+}
+```
+
+## Authentication
+All endpoints require Bearer token:
+```
+Authorization: Bearer <your-secure-api-key>
+```
+
+**Security Notes:**
+- Generate secure API keys: `openssl rand -hex 32`
+- Use environment variables for all secrets
+- Enable HTTPS in production
+- Implement rate limiting for API endpoints
+
+## Environment Setup
+
+### Required Environment Variables
+Create `.env` file in project root:
+```bash
+# Database Configuration
+DATABASE_URL=postgresql://bhiv_user:secure_password_here@db:5432/bhiv_hr
+POSTGRES_USER=bhiv_user
+POSTGRES_PASSWORD=secure_password_here
+POSTGRES_DB=bhiv_hr
+
+# API Security (Generate with: openssl rand -hex 32)
+API_KEY_SECRET=your_secure_api_key_here_min_32_chars
+JWT_SECRET_KEY=your_jwt_secret_key_here_min_32_chars
+
+# Application Settings
+QUEUE_WORKERS=5
+AI_MATCHING_ENABLED=true
+ENVIRONMENT=development
+
+# Security Settings
+CORS_ORIGINS=http://localhost:8501,http://localhost:3000
+SESSION_TIMEOUT=3600
+API_RATE_LIMIT=100
+
+# Service URLs
+AGENT_SERVICE_URL=http://agent:9000
+GATEWAY_URL=http://gateway:8000
+
+# Logging
+LOG_LEVEL=INFO
+LOG_FILE=/app/logs/app.log
+```
+
+### Deployment Instructions
+
+1. **Clone Repository**
 ```bash
 git clone <repository-url>
 cd bhiv-hr-platform
-docker compose up --build
 ```
 
-### 2. Access Services
-- **🎯 Client Portal**: http://localhost:8501 (Main UI)
-- **📚 API Gateway**: http://localhost:8000 (Swagger UI: /docs)
-- **🤖 Talah AI Agent**: http://localhost:9000 (Swagger UI: /docs)
-- **🗄️ Database**: localhost:5432 (user: bhiv_user, pass: bhiv_pass)
+2. **Environment Setup**
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
 
-## 🏆 Core Values Framework
+3. **Start Services**
+```bash
+docker-compose up -d
+```
 
-### Values Assessment Scale (1-5):
+4. **Verify Deployment**
+```bash
+# Check all services are running
+docker-compose ps
+
+# Test API health
+curl http://localhost:8000/health
+
+# Test AI agent
+curl http://localhost:9000/health
+```
+
+5. **Access Applications**
+- **Portal**: http://localhost:8501 (Recruiter Interface)
+- **API Docs**: http://localhost:8000/docs (Swagger UI)
+- **AI Agent**: http://localhost:9000/docs (AI Service)
+
+### Production Deployment
+
+1. **Security Hardening**
+```bash
+# Generate secure API keys
+openssl rand -hex 32
+
+# Update .env with production values
+API_KEY_SECRET=<your-secure-key>
+DATABASE_URL=<production-db-url>
+```
+
+2. **SSL/TLS Setup**
+```bash
+# Add reverse proxy (nginx/traefik)
+# Configure SSL certificates
+# Update CORS origins
+```
+
+3. **Monitoring**
+```bash
+# Add health check endpoints
+# Configure logging
+# Set up alerting
+```
+
+## Values Integration
+
+### Core Values Assessment (1-5 Scale)
 - **Integrity**: Moral uprightness and ethical behavior
-- **Honesty**: Truthfulness and transparency in communication
-- **Discipline**: Self-control, consistency, and commitment to excellence
-- **Hard Work**: Dedication, perseverance, and going above expectations
-- **Gratitude**: Appreciation, humility, and recognition of others
+- **Honesty**: Truthfulness and transparency  
+- **Discipline**: Self-control and consistency
+- **Hard Work**: Dedication and perseverance
+- **Gratitude**: Appreciation and humility
 
-## 📋 Complete End-to-End Flow
+### MDVP Compliance
+Daily value delivery tracking ensures continuous progress:
+- Day 1: Foundation & Security
+- Day 2: Values Assessment & Dashboard
+- Day 3: Scheduling & Reports
+- Day 4: Polish & Documentation
 
-### 1. Create Job Posting
+## API Usage Examples
+
+### Export Job Report with Values
 ```bash
-curl -X POST http://localhost:8000/v1/jobs \
-  -H "Content-Type: application/json" \
-  -H "X-API-KEY: myverysecureapikey123" \
-  -d '{
-    "title": "Senior Software Engineer",
-    "description": "Looking for experienced developers",
-    "client_id": 1
-  }'
+curl -H "Authorization: Bearer <your-api-key>" \
+  "http://localhost:8000/v1/reports/job/1/export.csv" \
+  --output job_report.csv
 ```
 
-### 2. Upload Enhanced Candidate CVs (Bulk)
-```bash
-curl -X POST http://localhost:8000/v1/candidates/bulk \
-  -H "Content-Type: application/json" \
-  -H "X-API-KEY: myverysecureapikey123" \
-  -d '{
-    "candidates": [
-      {
-        "name": "Adarshyadav",
-        "email": "adarshyadav1019@gmail.com",
-        "phone": "+91 7738620900",
-        "location": "Mumbai",
-        "cv_url": "https://example.com/resumes/AdarshYadavResume.pdf",
-        "experience_years": 0,
-        "education_level": "Masters",
-        "technical_skills": "Java, JavaScript, React, SQL, AWS",
-        "seniority_level": "Entry-level",
-        "status": "applied",
-        "job_id": 1
-      }
-    ]
-  }'
-```
-
-### 3. Get AI-Powered Top-5 Shortlist
-```bash
-curl -X GET http://localhost:8000/v1/match/1/top \
-  -H "X-API-KEY: myverysecureapikey123"
-```
-
-### 4. Submit Values-Based Feedback
+### Submit Values Assessment
 ```bash
 curl -X POST http://localhost:8000/v1/feedback \
+  -H "Authorization: Bearer <your-api-key>" \
   -H "Content-Type: application/json" \
-  -H "X-API-KEY: myverysecureapikey123" \
   -d '{
     "candidate_id": 1,
-    "job_id": 1,
-    "reviewer_name": "HR Manager",
-    "feedback_text": "Excellent technical skills and cultural fit",
+    "reviewer": "HR Manager",
+    "feedback_text": "Excellent candidate with strong values alignment",
     "values_scores": {
       "integrity": 5,
       "honesty": 4,
       "discipline": 5,
       "hard_work": 5,
       "gratitude": 4
-    },
-    "overall_recommendation": "Strongly Recommend"
-  }'
-```
-
-### 5. Schedule Interview
-```bash
-curl -X POST http://localhost:8000/v1/interviews \
-  -H "Content-Type: application/json" \
-  -H "X-API-KEY: myverysecureapikey123" \
-  -d '{
-    "candidate_id": 1,
-    "job_id": 1,
-    "interview_date": "2025-09-01T10:00:00Z",
-    "interviewer": "Tech Lead"
-  }'
-```
-
-### 6. Make Job Offer
-```bash
-curl -X POST http://localhost:8000/v1/offers \
-  -H "Content-Type: application/json" \
-  -H "X-API-KEY: myverysecureapikey123" \
-  -d '{
-    "candidate_id": 1,
-    "job_id": 1,
-    "salary": 120000,
-    "status": "sent"
-  }'
-```
-
-### 7. Export Job Report
-```bash
-curl -X GET http://localhost:8000/v1/reports/job/1/export.csv \
-  -H "X-API-KEY: myverysecureapikey123" \
-  -o job_report.csv
-```
-
-## 🔧 API Endpoints with Examples
-
-### Jobs Management
-
-#### Create Job Posting
-```bash
-# POST /v1/jobs
-curl -X POST http://localhost:8000/v1/jobs \
-  -H "Content-Type: application/json" \
-  -H "X-API-KEY: myverysecureapikey123" \
-  -d '{
-    "title": "Data Scientist",
-    "description": "Looking for experienced data scientists with ML expertise",
-    "client_id": 1
-  }'
-
-# Response:
-{
-  "message": "Job created successfully",
-  "status": "success",
-  "job_id": 3
-}
-```
-
-#### List All Jobs
-```bash
-# GET /v1/jobs
-curl -H "X-API-KEY: myverysecureapikey123" \
-  http://localhost:8000/v1/jobs
-
-# Response:
-{
-  "jobs": [
-    {
-      "id": 1,
-      "title": "Software Engineer",
-      "statistics": {
-        "candidates": 28,
-        "feedback_received": 5,
-        "interviews_scheduled": 2,
-        "offers_made": 1
-      }
     }
-  ]
-}
-```
-
-### Candidates Management
-
-#### Upload Candidates (Bulk)
-```bash
-# POST /v1/candidates/bulk
-curl -X POST http://localhost:8000/v1/candidates/bulk \
-  -H "Content-Type: application/json" \
-  -H "X-API-KEY: myverysecureapikey123" \
-  -d '{
-    "candidates": [
-      {
-        "name": "Alice Johnson",
-        "email": "alice@example.com",
-        "cv_url": "https://example.com/alice-cv.pdf",
-        "phone": "+1-555-0123",
-        "experience_years": 3,
-        "status": "applied",
-        "job_id": 1
-      }
-    ]
   }'
-
-# Response:
-{
-  "message": "Candidates uploaded successfully",
-  "status": "success",
-  "candidates_added": 1
-}
 ```
 
-### AI Matching (Talah Agent)
-
-#### Get Top-5 Candidates with AI Scoring
-```bash
-# GET /v1/match/{job_id}/top
-curl -H "X-API-KEY: myverysecureapikey123" \
-  http://localhost:8000/v1/match/1/top
-
-# Response:
-{
-  "job_id": 1,
-  "top_candidates": [
-    {
-      "id": 31,
-      "name": "Adarshyadav",
-      "score": 95,
-      "values_alignment": 4.8,
-      "skills_match": 92,
-      "recommendation_strength": "High"
-    }
-  ],
-  "ai_analysis": "Analyzed 28 candidates using advanced ML algorithms"
-}
-```
-
-### Values Assessment
-
-#### Submit Values-Based Feedback
-```bash
-# POST /v1/feedback
-curl -X POST http://localhost:8000/v1/feedback \
-  -H "Content-Type: application/json" \
-  -H "X-API-KEY: myverysecureapikey123" \
-  -d '{
-    "candidate_id": 31,
-    "reviewer_name": "Sarah Wilson",
-    "feedback_text": "Outstanding candidate with strong technical skills",
-    "values_scores": {
-      "integrity": 5,
-      "honesty": 5,
-      "discipline": 4,
-      "hard_work": 5,
-      "gratitude": 4
-    },
-    "overall_recommendation": "Strongly Recommend"
-  }'
-
-# Response:
-{
-  "message": "Values feedback submitted successfully",
-  "status": "success",
-  "feedback_id": 3,
-  "values_summary": {
-    "average_score": 4.6
-  }
-}
-```
-
-## 🐳 Docker Services
-
-```yaml
-services:
-  db:          # PostgreSQL database (port 5432)
-  gateway:     # FastAPI Gateway (port 8000) - services/gateway/
-  agent:       # Talah AI Agent (port 9000) - services/agent/
-  portal:      # Streamlit Portal (port 8501) - services/portal/
-```
-
-## 📁 Project Structure
-
-```
-bhiv-hr-platform/
-├── services/           # Microservices
-│   ├── gateway/       # API Gateway (FastAPI)
-│   ├── agent/         # Talah AI Agent
-│   ├── portal/        # Client Portal (Streamlit)
-│   └── db/            # Database initialization
-├── data/              # Data files and logs
-├── resume/            # Resume storage
-├── scripts/           # Utility scripts
-├── config/            # Configuration files
-├── docs/              # Documentation
-└── tests/             # Test files
-```
-
-## 🎯 Client Portal Examples
-
-### Using the Web Interface (http://localhost:8501)
-
-#### 1. Create Job Position
-```
-🏢 Create New Job Position
-┌─────────────────────────────────────────────────┐
-│ Job Title: [Senior Python Developer           ] │
-│ Department: [Engineering ▼]                    │
-│ Location: [Remote                             ] │
-│ Experience: [Senior ▼]                         │
-│ Client ID: [1]                                 │
-│                                                │
-│ Description:                                   │
-│ ┌─────────────────────────────────────────────┐ │
-│ │ We are looking for a senior Python         │ │
-│ │ developer with 5+ years experience...      │ │
-│ └─────────────────────────────────────────────┘ │
-│                                                │
-│           [🚀 Create Job]                      │
-└─────────────────────────────────────────────────┘
-
-Result: ✅ Job created successfully! Job ID: 3
-```
-
-#### 2. Upload Candidates (CSV Format)
-```
-📤 Bulk Candidate Upload
-┌─────────────────────────────────────────────────┐
-│ Job ID: [3]                                     │
-│                                                │
-│ Expected CSV Format:                           │
-│ name,email,cv_url,phone,experience_years,status │
-│                                                │
-│ Choose File: [candidates.csv] [Browse...]       │
-│                                                │
-│           [📤 Upload Candidates]                │
-└─────────────────────────────────────────────────┘
-
-Result: ✅ Successfully uploaded 25 candidates for Job ID: 3
-```
-
-#### 3. View AI Shortlist
-```
-🎯 AI-Powered Candidate Shortlist
-┌─────────────────────────────────────────────────┐
-│ Job ID: [3] [🤖 Generate Shortlist]             │
-└─────────────────────────────────────────────────┘
-
-🤖 AI Analysis Complete! Top-5 candidates:
-
-▼ #1 - Alice Johnson (Overall Score: 95)
-  ├── Technical Score: 92/100
-  ├── Values Alignment: 4.8/5 ⭐
-  ├── Skills: Python, Django, PostgreSQL
-  ├── Cultural Fit: Excellent
-  └── [📞 Contact Alice]
-
-▼ #2 - Bob Smith (Overall Score: 89)
-  ├── Technical Score: 87/100
-  ├── Values Alignment: 4.5/5 ⭐
-  ├── Skills: Python, FastAPI, Docker
-  └── [📞 Contact Bob]
-```
-
-#### 4. Submit Values Feedback
-```
-📊 Values-Based Candidate Assessment
-┌─────────────────────────────────────────────────┐
-│ Candidate: [Alice Johnson]                      │
-│ Job ID: [3]                                     │
-│ Reviewer: [Sarah Wilson - HR Manager]           │
-│                                                │
-│ 🏆 Values Assessment (1-5 scale):              │
-│                                                │
-│ Integrity:    ●●●●●○ (5/5)                     │
-│ Honesty:      ●●●●●○ (5/5)                     │
-│ Discipline:   ●●●●○○ (4/5)                     │
-│ Hard Work:    ●●●●●○ (5/5)                     │
-│ Gratitude:    ●●●●○○ (4/5)                     │
-│                                                │
-│ Overall: [Strongly Recommend ▼]                │
-│                                                │
-│           [📤 Submit Assessment]                │
-└─────────────────────────────────────────────────┘
-
-Result: ✅ Values assessment submitted! Average: 4.6/5
-```
-
-## 🔐 Security & Authentication Examples
-
-### API Key Authentication
-All API endpoints require `X-API-KEY` header:
-
-#### ✅ Correct Authentication
-```bash
-# Successful request with API key
-curl -H "X-API-KEY: myverysecureapikey123" \
-  http://localhost:8000/v1/jobs
-
-# Response: 200 OK
-{
-  "jobs": [...],
-  "status": "success"
-}
-```
-
-#### ❌ Missing Authentication
-```bash
-# Request without API key
-curl http://localhost:8000/v1/jobs
-
-# Response: 401 Unauthorized
-{
-  "error": "Missing or invalid API key",
-  "message": "Please provide X-API-KEY header"
-}
-```
-
-### Environment Variables Setup
-```env
-# Production .env Example
-DATABASE_URL=postgresql://bhiv_user:STRONG_PASSWORD@db:5432/bhiv_hr
-API_KEY=your-secure-api-key-here-min-32-chars
-POSTGRES_USER=bhiv_user
-POSTGRES_PASSWORD=STRONG_PASSWORD_HERE
-POSTGRES_DB=bhiv_hr
-```
-
-## 📊 Dashboard Features with Examples
-
-### Real-time Analytics
-
-#### Candidate Pipeline Visualization
-```
-Applied (56) → Screened (28) → Interviewed (5) → Offered (2) → Hired (1)
-   100%           50%            9%           4%        2%
-```
-
-#### Values Distribution Chart
-```
-Integrity:    ████████████████████ 4.2/5
-Honesty:      ██████████████████████ 4.5/5
-Discipline:   ███████████████ 3.8/5
-Hard Work:    ████████████████████ 4.1/5
-Gratitude:    ███████████████████ 4.0/5
-```
-
-### Values-Based Reporting Examples
-
-#### Individual Candidate Profile
-```
-Candidate: Adarshyadav (ID: 31)
-┌─────────────┬───────┬──────────────────────────────┐
-│ Value       │ Score │ Assessment Notes             │
-├─────────────┼───────┼──────────────────────────────┤
-│ Integrity   │ 5/5   │ Honest in technical approach │
-│ Honesty     │ 5/5   │ Transparent communication    │
-│ Discipline  │ 4/5   │ Consistent work patterns     │
-│ Hard Work   │ 5/5   │ Goes above expectations      │
-│ Gratitude   │ 4/5   │ Appreciates team feedback    │
-└─────────────┴───────┴──────────────────────────────┘
-Overall Average: 4.6/5 - Strongly Recommended
-```
-
-## 🤖 Talah AI Agent Capabilities with Examples
-
-### Advanced Features
-
-#### Resume Analysis Example
-```bash
-# POST /analyze - Analyze single candidate
-curl -X POST http://localhost:9000/analyze \
-  -H "Content-Type: application/json" \
-  -d '{
-    "candidate_id": 31,
-    "name": "Adarshyadav",
-    "email": "adarshyadav1019@gmail.com"
-  }'
-
-# Response:
-{
-  "status": "success",
-  "analysis": {
-    "overall_score": 92,
-    "technical_skills": {
-      "score": 88,
-      "strengths": ["Programming", "Problem Solving"],
-      "areas_for_growth": ["Leadership"]
-    },
-    "values_prediction": {
-      "integrity": 4.8,
-      "honesty": 4.6,
-      "discipline": 4.2,
-      "hard_work": 4.7,
-      "gratitude": 4.1
-    },
-    "ai_recommendations": [
-      "Strong candidate for technical roles",
-      "Consider for senior positions"
-    ],
-    "confidence_level": "High"
-  }
-}
-```
-
-#### Candidate Scoring Algorithm (0-100)
-```
-Scoring Breakdown for Adarshyadav:
-┌─────────────────────┬───────┬─────────────────────────────┐
-│ Factor              │ Score │ Details                     │
-├─────────────────────┼───────┼─────────────────────────────┤
-│ Technical Skills    │ 88/100│ Strong programming ability  │
-│ Experience Match    │ 92/100│ Highly relevant background  │
-│ Values Alignment    │ 96/100│ Excellent cultural fit      │
-│ Communication       │ 85/100│ Clear, professional style   │
-│ Growth Potential    │ 90/100│ Shows learning agility      │
-├─────────────────────┼───────┼─────────────────────────────┤
-│ OVERALL SCORE       │ 92/100│ Strongly Recommended        │
-└─────────────────────┴───────┴─────────────────────────────┘
-```
-
-## 🛠️ Development
-
-### Local Development
-```bash
-# Start services
-docker compose up --build
-
-# View logs
-docker compose logs -f gateway
-docker compose logs -f agent
-docker compose logs -f portal
-
-# Stop services
-docker compose down
-```
-
-### Database Access
-```bash
-# Connect to PostgreSQL
-docker exec -it bhiv-hr-platform-db-1 psql -U bhiv_user -d bhiv_hr
-
-# View tables
-\dt
-
-# Query candidates
-SELECT * FROM candidates LIMIT 5;
-
-# Exit PostgreSQL
-\q
-```
-
-### Development Scripts with Examples
-
-#### Enhanced Resume Processing
-```bash
-# Process resumes with comprehensive data extraction
-python scripts/simple_enhanced_processor.py
-
-# Output:
-# Processing 27 resumes...
-# Processing: AdarshYadavResume.pdf
-#   -> Adarshyadav (Entry-level)
-# Processing: Anurag_CV.pdf
-#   -> Anurag (Entry-level) 
-# Processing: ArulselvamJeganResume.pdf
-#   -> Arulselvamjegan (Entry-level)
-# Saved 27 candidates to enhanced_candidates.csv
-
-# Enhanced Fields Extracted:
-# - Basic: name, email, phone, location
-# - Professional: experience_years, seniority_level, education_level
-# - Technical: technical_skills (categorized by domain)
-# - System: cv_url, status, job_id
-```
-
-#### Test API Endpoints
-```bash
-# Run comprehensive API tests
-python scripts/test_api.py
-
-# Output:
-# 🧪 Testing API Gateway...
-# ✅ Health check: PASSED
-# ✅ Job creation: PASSED
-# ✅ Candidate upload: PASSED
-# ✅ AI matching: PASSED
-# ✅ Values feedback: PASSED
-# 📊 All tests completed: 5/5 PASSED
-```
-
-#### Initialize Database Tables
-```bash
-# Create all required database tables
-python scripts/init_tables.py
-
-# Output:
-# ⏳ Waiting for database connection...
-# ✅ Database connection successful!
-# 📋 Creating interviews table...
-# 📋 Creating offers table...
-# ✅ All tables created successfully!
-```
-
-#### Auto-Upload Resumes
-```bash
-# Automatically upload processed candidates to database
-python scripts/auto_upload_resumes.py
-
-# Output:
-# 📂 Reading processed candidates from data/processed_candidates.csv
-# 📤 Uploading 28 candidates to Job ID 1...
-# ✅ Successfully uploaded: Adarshyadav
-# ✅ Successfully uploaded: Anurag
-# 📊 Upload complete: 28/28 candidates added
-```
-
-## 📈 MDVP (Minimum Daily Value Push) Implementation
-
-This platform was built following MDVP methodology:
-
-### Day 1 - Foundations ✅
-- ✅ API Gateway with FastAPI
-- ✅ Data models (Clients, Jobs, Candidates, Feedback)
-- ✅ Core endpoints (jobs, candidates, matching)
-- ✅ Talah AI integration
-
-### Day 2 - Values & Dashboard ✅  
-- ✅ Values rubric UI (1-5 scale for all 5 values)
-- ✅ Values feedback storage and retrieval
-- ✅ Live dashboard with real data
-- ✅ Candidate funnel visualization
-
-### Day 3 - Scheduling, Offers, Reporting ✅
-- ✅ Interview scheduling endpoints
-- ✅ Offer management system
-- ✅ CSV report export with values data
-- ✅ API key authentication
-- ✅ Complete Docker setup
-
-### Day 4 - Enhanced Data & Testing ✅
-- ✅ Enhanced resume processing (11 fields per candidate)
-- ✅ Comprehensive candidate profiles with technical skills
-- ✅ Database schema updates for enhanced fields
-- ✅ End-to-end testing with real enhanced data
-- ✅ API security hardening
-- ✅ Professional documentation updates
-
-## 🎯 Success Metrics
-
-### Technical Achievements
-- ✅ **Enhanced Resume Processing**: 11 comprehensive fields per candidate
-- ✅ **Real AI Integration**: Talah agent with 27 actual candidate profiles
-- ✅ **Advanced Data Extraction**: Technical skills, seniority, education levels
-- ✅ **Live Dashboard**: Real-time data with enhanced candidate profiles
-- ✅ **Values Framework**: Complete 5-dimension assessment
-- ✅ **Comprehensive Database**: Enhanced schema with professional fields
-- ✅ **Docker Deployment**: One-command setup with real data
-- ✅ **100% API Coverage**: All endpoints tested with enhanced data
-
-### Business Value
-- ✅ **Enhanced Candidate Profiles**: 11 fields for better decision making
-- ✅ **Technical Skills Analysis**: Categorized by programming, web dev, cloud/DevOps
-- ✅ **Seniority Assessment**: Entry-level, Mid-level, Senior classifications
-- ✅ **Location Intelligence**: Geographic distribution of talent pool
-- ✅ **Education Tracking**: Masters, Bachelors, PhD level analysis
-- ✅ **End-to-End Workflow**: Complete recruiter journey with enhanced data
-- ✅ **Values-Driven Hiring**: MDVP compliance with comprehensive profiles
-- ✅ **AI-Powered Matching**: Intelligent ranking with 27 real candidates
-- ✅ **Real-time Analytics**: Data-driven decisions with enhanced metrics
-
-## 🔄 Continuous Integration
-
-### Daily Push Requirements Met
-- **Day 1**: Jobs + Candidates creation ✅
-- **Day 2**: Values feedback + Dashboard ✅  
-- **Day 3**: Interviews + Offers + Reports ✅
-- **Day 4**: Security + Documentation ✅
-
-Each day delivered working, deployable features with real business value.
-
-## 🔧 System Administration
-
-### Database Management
-```bash
-# Connect to Database
-docker exec -it bhiv-hr-platform-db-1 psql -U bhiv_user -d bhiv_hr
-
-# View Enhanced Schema
-\d candidates
-
-# Query Enhanced Data
-SELECT name, seniority_level, technical_skills, education_level 
-FROM candidates LIMIT 5;
-```
-
-### Service Monitoring
-```bash
-# View Service Logs
-docker compose logs -f gateway
-docker compose logs -f agent
-docker compose logs -f portal
-
-# Check Service Health
-curl http://localhost:8000/health
-curl http://localhost:9000/health
-```
-
-### Data Backup & Restore
-```bash
-# Backup Database
-docker exec bhiv-hr-platform-db-1 pg_dump -U bhiv_user bhiv_hr > backup.sql
-
-# Restore Database
-docker exec -i bhiv-hr-platform-db-1 psql -U bhiv_user bhiv_hr < backup.sql
-```
-
-## 🎯 Complete Workflow Example
-
-### 1. Setup & Data Preparation
-```bash
-# Start platform
-docker compose up --build
-
-# Process resumes
-cd scripts && python simple_enhanced_processor.py
-
-# Upload candidates
-python final_upload_test.py
-```
-
-### 2. Job Creation & Management
-```bash
-# Create job via API
-curl -X POST http://localhost:8000/v1/jobs \
-  -H "Content-Type: application/json" \
-  -H "X-API-KEY: myverysecureapikey123" \
-  -d '{"title": "Senior Developer", "description": "Python expert needed", "client_id": 1}'
-
-# Or use Portal: http://localhost:8501
-```
-
-### 3. AI-Powered Candidate Matching
-```bash
-# Get top candidates
-curl -H "X-API-KEY: myverysecureapikey123" \
-  http://localhost:8000/v1/match/1/top
-
-# Review in Portal dashboard
-```
-
-### 4. Values Assessment
-```bash
-# Submit values feedback
-curl -X POST http://localhost:8000/v1/feedback \
-  -H "Content-Type: application/json" \
-  -H "X-API-KEY: myverysecureapikey123" \
-  -d '{"candidate_id": 1, "values_scores": {"integrity": 5, "honesty": 4, "discipline": 5, "hard_work": 5, "gratitude": 4}}'
-```
-
-### 5. Interview & Offer Process
-```bash
-# Schedule interview
-curl -X POST http://localhost:8000/v1/interviews \
-  -H "Content-Type: application/json" \
-  -H "X-API-KEY: myverysecureapikey123" \
-  -d '{"candidate_id": 1, "job_id": 1, "interview_date": "2025-02-01T10:00:00Z"}'
-
-# Make offer
-curl -X POST http://localhost:8000/v1/offers \
-  -H "Content-Type: application/json" \
-  -H "X-API-KEY: myverysecureapikey123" \
-  -d '{"candidate_id": 1, "job_id": 1, "salary": 120000}'
-```
-
-### 6. Reporting & Analytics
-```bash
-# Export comprehensive report
-curl -H "X-API-KEY: myverysecureapikey123" \
-  http://localhost:8000/v1/reports/job/1/export.csv -o final_report.csv
-
-# View live dashboard: http://localhost:8501
-```
-
-## 📞 Support
-
-For technical support or questions:
-- **Email**: support@bhiv-hr.com
-- **Documentation**: http://localhost:8000/docs
-- **AI Agent Docs**: http://localhost:9000/docs
-- **Project Structure**: See PROJECT_STRUCTURE.md
-
-## 📁 File Organization
-
-- **Services**: All microservices in `services/` directory
-- **Data**: Processed data and logs in `data/` directory
-- **Scripts**: Utility scripts in `scripts/` directory
-- **Configuration**: Environment and config files in `config/` directory
-- **Documentation**: All docs in `docs/` directory
-- **Resumes**: Resume files in `resume/` directory
-
----
-
-*Built with Integrity, Honesty, Discipline, Hard Work, and Gratitude* 🏆
+## Tech Stack
+- **Backend**: FastAPI, PostgreSQL
+- **AI**: Custom matching algorithm with semantic analysis
+- **Frontend**: Streamlit with real-time API integration
+- **Deployment**: Docker Compose with health checks
+- **Authentication**: Bearer tokens with secure validation
+- **Reports**: CSV export with comprehensive values data

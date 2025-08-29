@@ -1,60 +1,55 @@
+version: '3.8'
+
 services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: bhiv_hr
+      POSTGRES_USER: bhiv_user
+      POSTGRES_PASSWORD: bhiv_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./services/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bhiv_user -d bhiv_hr"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   gateway:
     build: ./services/gateway
     ports:
       - "8000:8000"
     environment:
       - DATABASE_URL=postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr
-      - API_KEY_SECRET=myverysecureapikey123
-      - AGENT_SERVICE_URL=http://agent:9000
     depends_on:
       db:
         condition: service_healthy
-    networks:
-      - bhiv_network
+    volumes:
+      - ./services/gateway:/app
+    restart: unless-stopped
+
+  agent:
+    build: ./services/agent
+    ports:
+      - "9000:9000"
+    environment:
+      - DATABASE_URL=postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr
+    depends_on:
+      - db
     restart: unless-stopped
 
   portal:
     build: ./services/portal
     ports:
       - "8501:8501"
+    environment:
+      - API_BASE_URL=http://gateway:8000
     depends_on:
       - gateway
-    networks:
-      - bhiv_network
-    restart: unless-stopped
-
-  db:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_USER: bhiv_user
-      POSTGRES_PASSWORD: bhiv_pass
-      POSTGRES_DB: bhiv_hr
-    volumes:
-      - db_data:/var/lib/postgresql/data
-      - ./services/db/init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bhiv_user -d bhiv_hr"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    networks:
-      - bhiv_network
-
-  agent:
-    build: ./services/agent
-    ports:
-      - "9000:9000"
-    networks:
-      - bhiv_network
     restart: unless-stopped
 
 volumes:
-  db_data:
-
-networks:
-  bhiv_network:
-    driver: bridge
+  postgres_data:
