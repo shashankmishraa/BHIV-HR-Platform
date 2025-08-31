@@ -1,3 +1,0 @@
-@echo off
-echo Stopping BHIV HR Platform...
-docker compose down
