@@ -6,16 +6,40 @@ import json
 from typing import List, Dict, Any
 import logging
 from datetime import datetime
+import sys
+
+# Add semantic engine to path
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+
+try:
+    from services.semantic_engine.job_matcher import SemanticJobMatcher
+    from services.semantic_engine.advanced_matcher import AdvancedSemanticMatcher, BatchMatcher
+    SEMANTIC_ENABLED = True
+except ImportError:
+    SEMANTIC_ENABLED = False
+    print("⚠️ Semantic matching not available, using fallback")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="Talah AI Agent",
-    description="Advanced AI-powered candidate matching and analysis",
-    version="1.0.0"
+    title="BHIV AI Agent - Day 2 Enhanced",
+    description="Advanced AI-powered candidate matching with detailed semantic analysis",
+    version="2.1.0"
 )
+
+# Initialize semantic matchers
+semantic_matcher = None
+advanced_matcher = None
+if SEMANTIC_ENABLED:
+    try:
+        semantic_matcher = SemanticJobMatcher()
+        advanced_matcher = AdvancedSemanticMatcher()
+        print("✅ Advanced semantic matching enabled")
+    except Exception as e:
+        print(f"Failed to initialize semantic matcher: {e}")
+        SEMANTIC_ENABLED = False
 
 class MatchRequest(BaseModel):
     job_id: int
@@ -226,47 +250,78 @@ async def match_candidates(request: MatchRequest):
                 status="no_candidates"
             )
         
-        # Score each candidate
+        # Score each candidate using advanced semantic matching
         scored_candidates = []
+        
+        # Prepare job data for semantic matching
+        job_data = {
+            'title': job_title,
+            'description': job_desc,
+            'required_skills': job_requirements,
+            'experience_required': job_level,
+            'location': job_location
+        }
         
         for candidate in candidates:
             cand_id, name, email, phone, location, exp_years, skills, seniority, education = candidate
             
-            # Calculate individual scores
-            skills_score, matched_skills = calculate_skills_match(
-                job_requirements or job_desc, skills or ""
-            )
+            # Prepare candidate data
+            candidate_data = {
+                'name': name,
+                'email': email,
+                'skills': skills or '',
+                'experience': str(exp_years) if exp_years else 'Fresher',
+                'designation': seniority or '',
+                'location': location or ''
+            }
             
-            exp_score, exp_reasoning = calculate_experience_match(
-                job_level or "", exp_years or 0, seniority or ""
-            )
-            
-            location_score, location_match = calculate_location_match(
-                job_location or "", location or ""
-            )
-            
-            # Calculate overall score (weighted)
-            overall_score = (
-                skills_score * 0.5 +      # 50% weight on skills
-                exp_score * 0.3 +         # 30% weight on experience  
-                location_score * 0.2      # 20% weight on location
-            )
-            
-            # Generate reasoning
-            reasoning_parts = []
-            if matched_skills:
-                reasoning_parts.append(f"Skills match: {', '.join(matched_skills)}")
-            reasoning_parts.append(f"Experience: {exp_reasoning}")
-            if location_match:
-                reasoning_parts.append("Location compatible")
-            
-            reasoning = "; ".join(reasoning_parts)
+            # Use advanced semantic matching if available
+            if SEMANTIC_ENABLED and advanced_matcher:
+                try:
+                    match_result = advanced_matcher.calculate_detailed_match(candidate_data, job_data)
+                    overall_score = match_result['total_score'] * 100
+                    
+                    # Extract detailed information
+                    skills_breakdown = match_result['breakdown']['skills']['details']
+                    matched_skills = skills_breakdown.get('matched', [])
+                    exp_reasoning = match_result['breakdown']['experience']['details'].get('status', 'Unknown')
+                    location_match = match_result['breakdown']['location']['details'].get('status') != 'Different location'
+                    
+                    reasoning = f"{match_result['recommendation']}; {'; '.join(match_result['strengths'])}"
+                    
+                except Exception as e:
+                    logger.warning(f"Semantic matching failed for candidate {cand_id}: {e}")
+                    # Fallback to basic matching
+                    skills_score, matched_skills = calculate_skills_match(
+                        job_requirements or job_desc, skills or ""
+                    )
+                    exp_score, exp_reasoning = calculate_experience_match(
+                        job_level or "", exp_years or 0, seniority or ""
+                    )
+                    location_score, location_match = calculate_location_match(
+                        job_location or "", location or ""
+                    )
+                    overall_score = (skills_score * 0.5 + exp_score * 0.3 + location_score * 0.2) * 100
+                    reasoning = f"Skills: {', '.join(matched_skills)}; Experience: {exp_reasoning}"
+            else:
+                # Basic matching fallback
+                skills_score, matched_skills = calculate_skills_match(
+                    job_requirements or job_desc, skills or ""
+                )
+                exp_score, exp_reasoning = calculate_experience_match(
+                    job_level or "", exp_years or 0, seniority or ""
+                )
+                location_score, location_match = calculate_location_match(
+                    job_location or "", location or ""
+                )
+                overall_score = (skills_score * 0.5 + exp_score * 0.3 + location_score * 0.2) * 100
+                reasoning = f"Skills: {', '.join(matched_skills)}; Experience: {exp_reasoning}"
             
             scored_candidates.append(CandidateScore(
                 candidate_id=cand_id,
                 name=name,
                 email=email,
-                score=round(overall_score * 100, 1),
+                score=round(overall_score, 1),
                 skills_match=matched_skills,
                 experience_match=exp_reasoning,
                 location_match=location_match,
@@ -286,7 +341,7 @@ async def match_candidates(request: MatchRequest):
             top_candidates=top_5,
             total_candidates=len(candidates),
             processing_time=round(processing_time, 3),
-            algorithm_version="1.0.0",
+            algorithm_version="2.0.0-semantic" if SEMANTIC_ENABLED else "1.0.0-basic",
             status="success"
         )
         

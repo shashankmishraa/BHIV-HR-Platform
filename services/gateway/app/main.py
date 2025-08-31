@@ -10,6 +10,7 @@ import os
 import httpx
 from typing import Optional
 from .db.schemas import JobCreate, FeedbackCreate, InterviewCreate, OfferCreate, CandidateCreate, BulkCandidatesRequest
+from .client_auth import authenticate_client, create_client_token, verify_client_token
 # from .api import routes_reports  # Temporarily disabled due to pandas issue
 
 # Configure secure logging
@@ -29,9 +30,9 @@ def sanitize_log_input(input_str):
     return input_str.replace('\n', '').replace('\r', '')[:200]
 
 app = FastAPI(
-    title="BHIV HR Platform API Gateway",
-    description="Values-Driven Recruiting Platform with AI-Powered Matching",
-    version="2.0.0"
+    title="BHIV HR Platform API Gateway - Day 3",
+    description="Values-Driven Recruiting Platform with Client Portal Integration",
+    version="3.0.0"
 )
 
 # Add CORS middleware with security
@@ -521,3 +522,49 @@ def get_candidate_stats():
             }
     except Exception as e:
         return {"total_candidates": 0, "total_jobs": 0, "total_feedback": 0, "status": "error"}
+
+# Client Portal Endpoints
+from pydantic import BaseModel
+
+class ClientLoginRequest(BaseModel):
+    client_id: str
+    access_code: str
+
+@app.post("/v1/client/login")
+async def client_login(request: ClientLoginRequest):
+    """Client authentication endpoint"""
+    client_data = authenticate_client(request.client_id, request.access_code)
+    if not client_data:
+        raise HTTPException(status_code=401, detail="Invalid client credentials")
+    
+    token = create_client_token(client_data["client_id"], client_data["client_name"])
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "client_name": client_data["client_name"]
+    }
+
+@app.get("/v1/client/jobs")
+async def get_client_jobs(client_data: dict = Depends(verify_client_token)):
+    """Get jobs for authenticated client"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            query = text("""
+                SELECT id, title, description, created_at, status
+                FROM jobs WHERE client_id = :client_id
+                ORDER BY created_at DESC
+            """)
+            result = connection.execute(query, {"client_id": client_data["client_id"]})
+            jobs = []
+            for row in result:
+                jobs.append({
+                    "id": row[0],
+                    "title": row[1],
+                    "description": row[2],
+                    "created_at": row[3].isoformat() if row[3] else None,
+                    "status": row[4]
+                })
+        return {"jobs": jobs, "count": len(jobs)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
