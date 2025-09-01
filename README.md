@@ -314,11 +314,6 @@ docker-compose -f docker-compose.production.yml logs [service-name]
 - **Database**: Check connection via logs
 - **Processing**: Verify file formats and permissions
 
-## 📖 Build Guide
-
-For step-by-step implementation instructions, see [BUILD_GUIDE.md](BUILD_GUIDE.md) - Complete guide to recreate this platform from scratch in ~2.5 hours.
-
-
 This platform demonstrates exceptional engineering capabilities with:
 - **Technical Excellence**: Advanced semantic AI beyond requirements
 - **Production Quality**: Enterprise-ready Docker and cloud deployment
