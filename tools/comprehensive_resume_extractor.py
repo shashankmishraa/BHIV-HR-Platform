@@ -40,13 +40,20 @@ class ComprehensiveResumeExtractor:
         return ""
     
     def _extract_pdf_text(self, file_path):
-        """Extract text from PDF"""
-        with open(file_path, 'rb') as file:
-            reader = PyPDF2.PdfReader(file)
-            text = ""
-            for page in reader.pages:
-                text += page.extract_text() + "\n"
-            return text
+        """Extract text from PDF with error handling"""
+        try:
+            with open(file_path, 'rb') as file:
+                reader = PyPDF2.PdfReader(file)
+                text = ""
+                for page in reader.pages:
+                    try:
+                        text += page.extract_text() + "\n"
+                    except:
+                        continue
+                return text
+        except Exception as e:
+            print(f"  PDF error: {e}")
+            return ""
     
     def _extract_docx_text(self, file_path):
         """Extract text from DOCX"""
@@ -349,8 +356,8 @@ class ComprehensiveResumeExtractor:
         for i, file_path in enumerate(resume_files, 1):
             filename = file_path.name
             print(f"\n[{i}/{len(resume_files)}] Processing: {filename}")
-            print(f"  File type: {file_path.suffix.upper()}")
-            print(f"  File size: {file_path.stat().st_size} bytes")
+            print(f"  Type: {file_path.suffix.upper()}")
+            print(f"  Size: {file_path.stat().st_size} bytes")
             
             # Extract text content
             text = self.extract_text_content(file_path)
@@ -358,21 +365,21 @@ class ComprehensiveResumeExtractor:
                 print("  - No text content extracted")
                 continue
             
-            print(f"  Text length: {len(text)} characters")
+            print(f"  Text: {len(text)} characters")
             
             # Perform deep content analysis
             candidate_data = self.deep_content_analysis(text, filename)
             candidates.append(candidate_data)
             
             # Show extracted information
-            print(f"  + Name: {candidate_data['name']}")
-            print(f"  + Email: {candidate_data['email'] or 'Not found'}")
-            print(f"  + Phone: {candidate_data['phone'] or 'Not found'}")
-            print(f"  + Location: {candidate_data['location'] or 'Not found'}")
-            print(f"  + Designation: {candidate_data['designation'] or 'Not found'}")
-            print(f"  + Experience: {candidate_data['experience']}")
-            print(f"  + Education: {candidate_data['education']}")
-            print(f"  + Skills: {candidate_data['skills'][:60]}{'...' if len(candidate_data['skills']) > 60 else ''}")
+            print(f"  Name: {candidate_data['name']}")
+            print(f"  Email: {candidate_data['email'] or 'Not found'}")
+            print(f"  Phone: {candidate_data['phone'] or 'Not found'}")
+            print(f"  Location: {candidate_data['location'] or 'Not found'}")
+            print(f"  Designation: {candidate_data['designation'] or 'Not found'}")
+            print(f"  Experience: {candidate_data['experience']}")
+            print(f"  Education: {candidate_data['education']}")
+            print(f"  Skills: {candidate_data['skills'][:60]}{'...' if len(candidate_data['skills']) > 60 else ''}")
         
         if candidates:
             # Save results
@@ -387,11 +394,11 @@ class ComprehensiveResumeExtractor:
             
             # Detailed statistics
             print(f"\nExtraction Statistics:")
-            print(f"- Names: {len(df)} (100%)")
-            print(f"- Emails: {df['email'].astype(bool).sum()} ({df['email'].astype(bool).sum()/len(df)*100:.0f}%)")
-            print(f"- Phones: {df['phone'].astype(bool).sum()} ({df['phone'].astype(bool).sum()/len(df)*100:.0f}%)")
-            print(f"- Locations: {df['location'].astype(bool).sum()} ({df['location'].astype(bool).sum()/len(df)*100:.0f}%)")
-            print(f"- Designations: {df['designation'].astype(bool).sum()} ({df['designation'].astype(bool).sum()/len(df)*100:.0f}%)")
+            print(f"Names: {len(df)} (100%)")
+            print(f"Emails: {df['email'].astype(bool).sum()} ({df['email'].astype(bool).sum()/len(df)*100:.0f}%)")
+            print(f"Phones: {df['phone'].astype(bool).sum()} ({df['phone'].astype(bool).sum()/len(df)*100:.0f}%)")
+            print(f"Locations: {df['location'].astype(bool).sum()} ({df['location'].astype(bool).sum()/len(df)*100:.0f}%)")
+            print(f"Designations: {df['designation'].astype(bool).sum()} ({df['designation'].astype(bool).sum()/len(df)*100:.0f}%)")
             
             return df
         
@@ -400,7 +407,19 @@ class ComprehensiveResumeExtractor:
 
 def main():
     extractor = ComprehensiveResumeExtractor()
-    extractor.process_all_resumes()
+    result = extractor.process_all_resumes()
+    
+    if result is not None:
+        print("\nAuto-syncing to database for real-time portal updates...")
+        try:
+            from database_sync_manager import DatabaseSyncManager
+            sync_manager = DatabaseSyncManager()
+            sync_manager.upload_candidates_to_db(result.to_dict('records'))
+            print("✅ Data successfully synced to database!")
+            print("Both HR Portal (8501) and Client Portal (8502) now have real-time data")
+        except Exception as e:
+            print(f"Auto-sync error: {e}")
+            print("Run: python tools/database_sync_manager.py")
 
 if __name__ == "__main__":
     main()

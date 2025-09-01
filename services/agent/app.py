@@ -17,7 +17,7 @@ try:
     SEMANTIC_ENABLED = True
 except ImportError:
     SEMANTIC_ENABLED = False
-    print("⚠️ Semantic matching not available, using fallback")
+    print("WARNING: Semantic matching not available, using fallback")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -36,7 +36,7 @@ if SEMANTIC_ENABLED:
     try:
         semantic_matcher = SemanticJobMatcher()
         advanced_matcher = AdvancedSemanticMatcher()
-        print("✅ Advanced semantic matching enabled")
+        print("SUCCESS: Advanced semantic matching enabled")
     except Exception as e:
         print(f"Failed to initialize semantic matcher: {e}")
         SEMANTIC_ENABLED = False
@@ -88,8 +88,8 @@ def calculate_skills_match(job_requirements: str, candidate_skills: str) -> tupl
                     'kubernetes', 'machine learning', 'ai', 'data science', 'pandas', 'numpy',
                     'tensorflow', 'pytorch', 'git', 'linux', 'mongodb', 'postgresql']
     
-    job_req_lower = job_requirements.lower()
-    candidate_skills_lower = candidate_skills.lower()
+    job_req_lower = str(job_requirements).lower() if job_requirements else ""
+    candidate_skills_lower = str(candidate_skills).lower() if candidate_skills else ""
     
     for skill in tech_keywords:
         if skill in job_req_lower:
@@ -110,11 +110,11 @@ def calculate_skills_match(job_requirements: str, candidate_skills: str) -> tupl
 
 def calculate_experience_match(job_level: str, candidate_years: int, candidate_level: str) -> tuple:
     """Calculate experience matching score"""
-    if not job_level:
+    if not job_level or job_level.strip() == "":
         return 0.5, "No specific level required"
     
-    job_level_lower = job_level.lower()
-    candidate_level_lower = (candidate_level or "").lower()
+    job_level_lower = str(job_level).lower() if job_level else ""
+    candidate_level_lower = str(candidate_level).lower() if candidate_level else ""
     
     # Experience level mapping
     level_scores = {
@@ -158,8 +158,8 @@ def calculate_location_match(job_location: str, candidate_location: str) -> tupl
     if not job_location or not candidate_location:
         return 0.5, False
     
-    job_loc_lower = job_location.lower()
-    candidate_loc_lower = candidate_location.lower()
+    job_loc_lower = str(job_location).lower() if job_location else ""
+    candidate_loc_lower = str(candidate_location).lower() if candidate_location else ""
     
     # Remote work
     if 'remote' in job_loc_lower:
@@ -198,17 +198,36 @@ def health_check():
         "timestamp": datetime.now().isoformat()
     }
 
+@app.get("/test-db")
+def test_database():
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return {"error": "Connection failed"}
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM candidates")
+        count = cursor.fetchone()[0]
+        cursor.execute("SELECT id, name FROM candidates LIMIT 3")
+        samples = cursor.fetchall()
+        conn.close()
+        return {"candidates_count": count, "samples": samples}
+    except Exception as e:
+        return {"error": str(e)}
+
 @app.post("/match", response_model=MatchResponse)
 async def match_candidates(request: MatchRequest):
     """Advanced AI-powered candidate matching"""
     start_time = datetime.now()
+    logger.info(f"Starting match for job_id: {request.job_id}")
     
     try:
         conn = get_db_connection()
         if not conn:
+            logger.error("Database connection failed")
             raise HTTPException(status_code=500, detail="Database connection failed")
         
         cursor = conn.cursor()
+        logger.info("Database connection successful")
         
         # Get job details
         cursor.execute("""
@@ -229,18 +248,19 @@ async def match_candidates(request: MatchRequest):
         
         job_title, job_desc, job_dept, job_location, job_level, job_requirements = job_data
         
-        # Get all candidates for this job
+        # Get all candidates (dynamic matching)
         cursor.execute("""
             SELECT id, name, email, phone, location, experience_years, 
                    technical_skills, seniority_level, education_level
             FROM candidates 
-            WHERE job_id = %s AND status = 'applied'
             ORDER BY created_at DESC
-        """, (request.job_id,))
+        """)
         
         candidates = cursor.fetchall()
+        logger.info(f"Found {len(candidates)} candidates in database")
         
         if not candidates:
+            logger.warning("No candidates found in database")
             return MatchResponse(
                 job_id=request.job_id,
                 top_candidates=[],

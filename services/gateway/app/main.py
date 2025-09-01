@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Header, Depends
+from fastapi import FastAPI, HTTPException, Header, Depends, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 import time
 from datetime import datetime, timezone
@@ -11,6 +11,14 @@ import httpx
 from typing import Optional
 from .db.schemas import JobCreate, FeedbackCreate, InterviewCreate, OfferCreate, CandidateCreate, BulkCandidatesRequest
 from .client_auth import authenticate_client, create_client_token, verify_client_token
+
+# Semantic processing
+try:
+    from services.semantic_engine.semantic_processor import SemanticProcessor
+    SEMANTIC_ENABLED = True
+except ImportError:
+    SEMANTIC_ENABLED = False
+    SemanticProcessor = None
 # from .api import routes_reports  # Temporarily disabled due to pandas issue
 
 # Configure secure logging
@@ -100,9 +108,28 @@ def health_check():
     return {
         "status": "healthy",
         "service": "BHIV HR Gateway",
-        "version": "2.0.0",
+        "version": "3.0.0-FIXED",
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
+
+@app.get("/test-candidates")
+def test_candidates():
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            result = connection.execute(text("SELECT COUNT(*) FROM candidates"))
+            total = result.fetchone()[0]
+            
+            result = connection.execute(text("SELECT COUNT(*) FROM candidates LIMIT 50"))
+            limited = result.fetchone()[0]
+            
+        return {
+            "total_in_db": total,
+            "limited_query": limited,
+            "message": "Direct database test"
+        }
+    except Exception as e:
+        return {"error": str(e)}
 
 @app.post("/v1/jobs")
 async def create_job(job_data: JobCreate, api_key: str = Depends(get_api_key)):
@@ -159,9 +186,12 @@ async def list_jobs(api_key: str = Depends(get_api_key)):
             query = text("""
                 SELECT id, title, description, client_id, department, location, 
                        experience_level, employment_type, requirements, status, created_at 
-                FROM jobs ORDER BY created_at DESC
+                FROM jobs 
+                WHERE status = 'active'
+                ORDER BY id ASC
             """)
             result = connection.execute(query)
+            
             jobs = []
             for row in result:
                 jobs.append({
@@ -216,8 +246,8 @@ async def get_candidates_by_job(job_id: int, api_key: str = Depends(get_api_key)
 
 @app.get("/v1/candidates/search")
 async def search_candidates(
+    request: Request,
     q: str = "",
-    job_id: int = 1,
     skills: str = "",
     location: str = "",
     experience_min: int = 0,
@@ -226,8 +256,18 @@ async def search_candidates(
     try:
         engine = get_db_engine()
         with engine.connect() as connection:
-            where_conditions = ["job_id = :job_id"]
-            params = {"job_id": job_id}
+            where_conditions = []
+            params = {}
+            
+            # Get job_id from query params manually
+            job_id = None
+            if "job_id" in request.query_params:
+                try:
+                    job_id = int(request.query_params["job_id"])
+                    where_conditions.append("job_id = :job_id")
+                    params["job_id"] = job_id
+                except (ValueError, TypeError):
+                    pass
             
             if q:
                 where_conditions.append("(LOWER(name) LIKE LOWER(:search) OR LOWER(email) LIKE LOWER(:search))")
@@ -245,48 +285,44 @@ async def search_candidates(
                 where_conditions.append("experience_years >= :exp_min")
                 params["exp_min"] = experience_min
             
-            query = text("""
-                SELECT id, name, email, phone, location, experience_years, 
+            where_clause = "WHERE " + " AND ".join(where_conditions) if where_conditions else ""
+            
+            query_str = f"""
+                SELECT DISTINCT id, name, email, phone, location, experience_years, 
                        technical_skills, seniority_level, status
                 FROM candidates 
-                WHERE job_id = :job_id
-                AND (:search IS NULL OR (LOWER(name) LIKE LOWER(:search) OR LOWER(email) LIKE LOWER(:search)))
-                AND (:skills IS NULL OR LOWER(technical_skills) LIKE LOWER(:skills))
-                AND (:location IS NULL OR LOWER(location) LIKE LOWER(:location))
-                AND experience_years >= :exp_min
+                {where_clause}
                 ORDER BY experience_years DESC, name ASC
                 LIMIT 50
-            """)
+            """
             
-            safe_params = {
-                "job_id": job_id,
-                "search": f"%{q}%" if q else None,
-                "skills": f"%{skills}%" if skills else None,
-                "location": f"%{location}%" if location else None,
-                "exp_min": experience_min
-            }
+            query = text(query_str)
+            result = connection.execute(query, params)
             
-            result = connection.execute(query, safe_params)
+            # Remove duplicates based on name+email combination
+            seen = set()
             candidates = []
             for row in result:
-                candidates.append({
-                    "id": row[0],
-                    "name": row[1],
-                    "email": row[2],
-                    "phone": row[3],
-                    "location": row[4],
-                    "experience_years": row[5],
-                    "technical_skills": row[6],
-                    "seniority_level": row[7],
-                    "status": row[8]
-                })
+                key = f"{row[1]}_{row[2]}"  # name_email
+                if key not in seen:
+                    seen.add(key)
+                    candidates.append({
+                        "id": row[0],
+                        "name": row[1],
+                        "email": row[2],
+                        "phone": row[3],
+                        "location": row[4],
+                        "experience_years": row[5],
+                        "technical_skills": row[6],
+                        "seniority_level": row[7],
+                        "status": row[8]
+                    })
             
         return {
-            "search_query": q[:100] if q else "",  # Limit query length
-            "filters": {"job_id": job_id, "skills": skills[:50] if skills else "", "location": location[:50] if location else "", "experience_min": experience_min},
             "candidates": candidates,
             "count": len(candidates),
-            "message": f"Found {len(candidates)} candidates"
+            "message": f"Found {len(candidates)} unique candidates",
+            "filters_applied": {"job_id": job_id, "skills": skills, "location": location, "experience_min": experience_min}
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -294,14 +330,68 @@ async def search_candidates(
 @app.get("/v1/match/{job_id}/top")
 async def get_top_candidates(job_id: int, api_key: str = Depends(get_api_key)):
     try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post("http://agent:9000/match", json={"job_id": job_id})
-            if response.status_code == 200:
-                return response.json()
-            else:
-                return {"job_id": job_id, "top_candidates": [], "status": "agent_error"}
+        # Get job details
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            job_query = text("SELECT requirements, title FROM jobs WHERE id = :job_id")
+            job_result = connection.execute(job_query, {"job_id": job_id})
+            job_row = job_result.fetchone()
+            
+            if not job_row:
+                return {"job_id": job_id, "top_candidates": [], "status": "job_not_found"}
+            
+            job_requirements = job_row[0] or job_row[1]
+            
+            # Get candidates
+            candidates_query = text("""
+                SELECT id, name, email, phone, location, experience_years, technical_skills
+                FROM candidates ORDER BY id LIMIT 50
+            """)
+            candidates_result = connection.execute(candidates_query)
+            
+            candidates = []
+            for row in candidates_result:
+                candidate_data = {
+                    'id': row[0],
+                    'name': row[1],
+                    'email': row[2],
+                    'phone': row[3],
+                    'location': row[4],
+                    'experience_years': row[5],
+                    'technical_skills': row[6]
+                }
+                
+                # Enhanced semantic matching
+                if SEMANTIC_ENABLED:
+                    processor = SemanticProcessor()
+                    match_result = processor.enhanced_matching(candidate_data, job_requirements)
+                    candidate_data.update({
+                        'score': match_result['total_score'],
+                        'semantic_similarity': match_result['semantic_similarity'],
+                        'skills_match': match_result['skills_match'],
+                        'experience_match': match_result['experience_match'],
+                        'explanation': match_result['explanation']
+                    })
+                else:
+                    # Fallback basic scoring
+                    candidate_data.update({
+                        'score': min(100, (candidate_data['experience_years'] * 10) + 50),
+                        'explanation': 'Basic scoring - semantic engine not available'
+                    })
+                
+                candidates.append(candidate_data)
+            
+            # Sort by score
+            candidates.sort(key=lambda x: x['score'], reverse=True)
+            
+        return {
+            "job_id": job_id,
+            "top_candidates": candidates[:10],
+            "status": "success",
+            "semantic_enabled": SEMANTIC_ENABLED
+        }
     except Exception as e:
-        return {"job_id": job_id, "top_candidates": [], "status": "error"}
+        return {"job_id": job_id, "top_candidates": [], "status": "error", "error": str(e)}
 
 @app.post("/v1/feedback")
 async def submit_feedback(feedback_data: FeedbackCreate, api_key: str = Depends(get_api_key)):
@@ -467,34 +557,47 @@ async def upload_candidates_bulk(request: BulkCandidatesRequest, api_key: str = 
             
             inserted_count = 0
             for candidate in request.candidates:
-                query = text("""
-                    INSERT INTO candidates (job_id, name, email, phone, location, cv_url, 
-                                          experience_years, education_level, technical_skills, 
-                                          seniority_level, status, created_at)
-                    VALUES (:job_id, :name, :email, :phone, :location, :cv_url, 
-                            :experience_years, :education_level, :technical_skills, 
-                            :seniority_level, :status, NOW())
+                # Check if candidate already exists
+                check_query = text("""
+                    SELECT COUNT(*) FROM candidates 
+                    WHERE name = :name AND email = :email
                 """)
-                connection.execute(query, {
-                    "job_id": candidate.job_id,
+                result = connection.execute(check_query, {
                     "name": candidate.name,
-                    "email": candidate.email,
-                    "phone": candidate.phone,
-                    "location": candidate.location,
-                    "cv_url": candidate.cv_url,
-                    "experience_years": candidate.experience_years,
-                    "education_level": candidate.education_level,
-                    "technical_skills": candidate.technical_skills,
-                    "seniority_level": candidate.seniority_level,
-                    "status": candidate.status
+                    "email": candidate.email
                 })
-                inserted_count += 1
+                exists = result.fetchone()[0] > 0
+                
+                if not exists:
+                    query = text("""
+                        INSERT INTO candidates (job_id, name, email, phone, location, cv_url, 
+                                              experience_years, education_level, technical_skills, 
+                                              seniority_level, status, created_at)
+                        VALUES (:job_id, :name, :email, :phone, :location, :cv_url, 
+                                :experience_years, :education_level, :technical_skills, 
+                                :seniority_level, :status, NOW())
+                    """)
+                    connection.execute(query, {
+                        "job_id": candidate.job_id,
+                        "name": candidate.name,
+                        "email": candidate.email,
+                        "phone": candidate.phone,
+                        "location": candidate.location,
+                        "cv_url": candidate.cv_url,
+                        "experience_years": candidate.experience_years,
+                        "education_level": candidate.education_level,
+                        "technical_skills": candidate.technical_skills,
+                        "seniority_level": candidate.seniority_level,
+                        "status": candidate.status
+                    })
+                    inserted_count += 1
             
             connection.commit()
         
         return {
-            "message": f"Successfully uploaded {inserted_count} candidates",
+            "message": f"Successfully uploaded {inserted_count} new candidates (duplicates skipped)",
             "count": inserted_count,
+            "total_processed": len(request.candidates),
             "status": "success"
         }
     except Exception as e:
