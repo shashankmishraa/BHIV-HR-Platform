@@ -23,11 +23,34 @@ except ImportError:
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+from fastapi.openapi.utils import get_openapi
+
 app = FastAPI(
-    title="BHIV AI Agent - Day 2 Enhanced",
-    description="Advanced AI-powered candidate matching with detailed semantic analysis",
+    title="BHIV AI Matching Engine",
+    description="Advanced AI-Powered Semantic Candidate Matching Service",
     version="2.1.0"
 )
+
+# Custom OpenAPI schema with organized tags
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title="BHIV AI Matching Engine",
+        version="2.1.0",
+        description="Advanced AI-Powered Semantic Candidate Matching Service",
+        routes=app.routes,
+    )
+    openapi_schema["tags"] = [
+        {"name": "Core API Endpoints", "description": "Service health and system information"},
+        {"name": "AI Matching Engine", "description": "Semantic candidate matching and scoring"},
+        {"name": "Candidate Analysis", "description": "Detailed candidate profile analysis"},
+        {"name": "System Diagnostics", "description": "Database connectivity and testing"}
+    ]
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
 
 # Initialize semantic matchers
 semantic_matcher = None
@@ -177,7 +200,7 @@ def calculate_location_match(job_location: str, candidate_location: str) -> tupl
     
     return 0.3, False
 
-@app.get("/")
+@app.get("/", tags=["Core API Endpoints"], summary="AI Service Information")
 def read_root():
     return {
         "service": "Talah AI Agent",
@@ -189,7 +212,7 @@ def read_root():
         }
     }
 
-@app.get("/health")
+@app.get("/health", tags=["Core API Endpoints"], summary="Health Check")
 def health_check():
     return {
         "status": "healthy",
@@ -198,7 +221,7 @@ def health_check():
         "timestamp": datetime.now().isoformat()
     }
 
-@app.get("/test-db")
+@app.get("/test-db", tags=["System Diagnostics"], summary="Database Connectivity Test")
 def test_database():
     try:
         conn = get_db_connection()
@@ -214,7 +237,7 @@ def test_database():
     except Exception as e:
         return {"error": str(e)}
 
-@app.post("/match", response_model=MatchResponse)
+@app.post("/match", response_model=MatchResponse, tags=["AI Matching Engine"], summary="AI-Powered Candidate Matching")
 async def match_candidates(request: MatchRequest):
     """Advanced AI-powered candidate matching"""
     start_time = datetime.now()
@@ -369,7 +392,7 @@ async def match_candidates(request: MatchRequest):
         logger.error(f"Matching error: {e}")
         raise HTTPException(status_code=500, detail=f"Matching failed: {str(e)}")
 
-@app.get("/analyze/{candidate_id}")
+@app.get("/analyze/{candidate_id}", tags=["Candidate Analysis"], summary="Detailed Candidate Analysis")
 async def analyze_candidate(candidate_id: int):
     """Detailed candidate analysis"""
     try:

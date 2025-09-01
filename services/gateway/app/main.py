@@ -37,11 +37,38 @@ def sanitize_log_input(input_str):
         return str(input_str)
     return input_str.replace('\n', '').replace('\r', '')[:200]
 
+from fastapi import FastAPI, HTTPException, Header, Depends, Query, Request
+from fastapi.openapi.utils import get_openapi
+
 app = FastAPI(
-    title="BHIV HR Platform API Gateway - Day 3",
-    description="Values-Driven Recruiting Platform with Client Portal Integration",
+    title="BHIV HR Platform API Gateway",
+    description="Production-Ready AI-Powered Recruiting Platform with Microservices Architecture",
     version="3.0.0"
 )
+
+# Custom OpenAPI schema with organized tags
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title="BHIV HR Platform API Gateway",
+        version="3.0.0",
+        description="Production-Ready AI-Powered Recruiting Platform",
+        routes=app.routes,
+    )
+    openapi_schema["tags"] = [
+        {"name": "Core API Endpoints", "description": "System health and platform information"},
+        {"name": "Job Management", "description": "Create and manage job postings"},
+        {"name": "Candidate Management", "description": "Search, filter and manage candidates"},
+        {"name": "AI Matching Engine", "description": "Semantic candidate matching and ranking"},
+        {"name": "Assessment & Workflow", "description": "Values assessment and hiring workflow"},
+        {"name": "Analytics & Statistics", "description": "Platform metrics and reporting"},
+        {"name": "Client Portal API", "description": "Client authentication and job management"}
+    ]
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
 
 # Add CORS middleware with security
 allowed_origins = os.getenv("CORS_ORIGINS", "http://localhost:8501,http://localhost:3000").split(",")
@@ -82,7 +109,7 @@ def get_api_key(authorization: Optional[str] = Header(None), x_api_key: Optional
         raise HTTPException(status_code=401, detail="Invalid API key")
     return api_key
 
-@app.get("/")
+@app.get("/", tags=["Core API Endpoints"], summary="API Root Information")
 def read_root():
     return {
         "message": "🎯 BHIV HR Platform API Gateway",
@@ -103,7 +130,7 @@ def read_root():
         }
     }
 
-@app.get("/health")
+@app.get("/health", tags=["Core API Endpoints"], summary="Health Check")
 def health_check():
     return {
         "status": "healthy",
@@ -112,7 +139,7 @@ def health_check():
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
-@app.get("/test-candidates")
+@app.get("/test-candidates", tags=["Core API Endpoints"], summary="Database Connectivity Test")
 def test_candidates():
     try:
         engine = get_db_engine()
@@ -131,7 +158,7 @@ def test_candidates():
     except Exception as e:
         return {"error": str(e)}
 
-@app.post("/v1/jobs")
+@app.post("/v1/jobs", tags=["Job Management"], summary="Create New Job Posting")
 async def create_job(job_data: JobCreate, api_key: str = Depends(get_api_key)):
     try:
         engine = get_db_engine()
@@ -178,7 +205,7 @@ async def create_job(job_data: JobCreate, api_key: str = Depends(get_api_key)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/v1/jobs")
+@app.get("/v1/jobs", tags=["Job Management"], summary="List All Active Jobs")
 async def list_jobs(api_key: str = Depends(get_api_key)):
     try:
         engine = get_db_engine()
@@ -211,7 +238,7 @@ async def list_jobs(api_key: str = Depends(get_api_key)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/v1/candidates/job/{job_id}")
+@app.get("/v1/candidates/job/{job_id}", tags=["Candidate Management"], summary="Get Candidates by Job ID")
 async def get_candidates_by_job(job_id: int, api_key: str = Depends(get_api_key)):
     try:
         engine = get_db_engine()
@@ -244,7 +271,7 @@ async def get_candidates_by_job(job_id: int, api_key: str = Depends(get_api_key)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/v1/candidates/search")
+@app.get("/v1/candidates/search", tags=["Candidate Management"], summary="Search & Filter Candidates")
 async def search_candidates(
     request: Request,
     q: str = "",
@@ -327,7 +354,7 @@ async def search_candidates(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/v1/match/{job_id}/top")
+@app.get("/v1/match/{job_id}/top", tags=["AI Matching Engine"], summary="Get AI-Matched Top Candidates")
 async def get_top_candidates(job_id: int, api_key: str = Depends(get_api_key)):
     try:
         # Get job details
@@ -393,7 +420,7 @@ async def get_top_candidates(job_id: int, api_key: str = Depends(get_api_key)):
     except Exception as e:
         return {"job_id": job_id, "top_candidates": [], "status": "error", "error": str(e)}
 
-@app.post("/v1/feedback")
+@app.post("/v1/feedback", tags=["Assessment & Workflow"], summary="Submit Values Assessment")
 async def submit_feedback(feedback_data: FeedbackCreate, api_key: str = Depends(get_api_key)):
     try:
         from .services.values_scoring import ValuesScoring
@@ -459,7 +486,7 @@ async def submit_feedback(feedback_data: FeedbackCreate, api_key: str = Depends(
         logger.error(f"Feedback submission error: {sanitize_log_input(str(e))}")
         raise HTTPException(status_code=500, detail="Failed to submit feedback")
 
-@app.post("/v1/interviews")
+@app.post("/v1/interviews", tags=["Assessment & Workflow"], summary="Schedule Interview")
 async def schedule_interview(interview_data: InterviewCreate, api_key: str = Depends(get_api_key)):
     try:
         engine = get_db_engine()
@@ -495,7 +522,7 @@ async def schedule_interview(interview_data: InterviewCreate, api_key: str = Dep
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/v1/offers")
+@app.post("/v1/offers", tags=["Assessment & Workflow"], summary="Create Job Offer")
 async def make_offer(offer_data: OfferCreate, api_key: str = Depends(get_api_key)):
     try:
         engine = get_db_engine()
@@ -531,7 +558,7 @@ async def make_offer(offer_data: OfferCreate, api_key: str = Depends(get_api_key
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/v1/candidates/bulk")
+@app.post("/v1/candidates/bulk", tags=["Candidate Management"], summary="Bulk Upload Candidates")
 async def upload_candidates_bulk(request: BulkCandidatesRequest, api_key: str = Depends(get_api_key)):
     try:
         engine = get_db_engine()
@@ -603,7 +630,7 @@ async def upload_candidates_bulk(request: BulkCandidatesRequest, api_key: str = 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to upload candidates: {str(e)}")
 
-@app.get("/candidates/stats")
+@app.get("/candidates/stats", tags=["Analytics & Statistics"], summary="Platform Statistics")
 def get_candidate_stats():
     try:
         engine = get_db_engine()
@@ -633,7 +660,7 @@ class ClientLoginRequest(BaseModel):
     client_id: str
     access_code: str
 
-@app.post("/v1/client/login")
+@app.post("/v1/client/login", tags=["Client Portal API"], summary="Client Authentication")
 async def client_login(request: ClientLoginRequest):
     """Client authentication endpoint"""
     client_data = authenticate_client(request.client_id, request.access_code)
@@ -647,7 +674,7 @@ async def client_login(request: ClientLoginRequest):
         "client_name": client_data["client_name"]
     }
 
-@app.get("/v1/client/jobs")
+@app.get("/v1/client/jobs", tags=["Client Portal API"], summary="Get Client Jobs")
 async def get_client_jobs(client_data: dict = Depends(verify_client_token)):
     """Get jobs for authenticated client"""
     try:
