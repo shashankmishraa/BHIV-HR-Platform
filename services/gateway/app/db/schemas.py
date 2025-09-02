@@ -40,7 +40,6 @@ class CandidateCreate(BaseModel):
     phone: str = ""
     experience_years: int = 0
     status: str = "applied"
-    job_id: int
     location: str = ""
     education_level: str = ""
     technical_skills: str = ""

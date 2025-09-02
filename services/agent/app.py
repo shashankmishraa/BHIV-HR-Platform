@@ -101,35 +101,54 @@ def get_db_connection():
         return None
 
 def calculate_skills_match(job_requirements: str, candidate_skills: str) -> tuple:
-    """Calculate skills matching score"""
+    """Enhanced skills matching with dynamic keyword extraction"""
     if not job_requirements or not candidate_skills:
         return 0.0, []
     
-    # Extract key skills from job requirements
-    job_skills = set()
-    tech_keywords = ['python', 'java', 'javascript', 'react', 'node', 'sql', 'aws', 'docker', 
-                    'kubernetes', 'machine learning', 'ai', 'data science', 'pandas', 'numpy',
-                    'tensorflow', 'pytorch', 'git', 'linux', 'mongodb', 'postgresql']
+    # Expanded tech keywords with categories
+    tech_keywords = {
+        'programming': ['python', 'java', 'javascript', 'c++', 'c#', 'go', 'rust', 'php', 'ruby'],
+        'web_frontend': ['react', 'angular', 'vue', 'html', 'css', 'bootstrap', 'jquery'],
+        'web_backend': ['node', 'express', 'django', 'flask', 'spring', 'laravel'],
+        'database': ['sql', 'mysql', 'postgresql', 'mongodb', 'redis', 'elasticsearch'],
+        'cloud': ['aws', 'azure', 'gcp', 'docker', 'kubernetes', 'terraform'],
+        'data_science': ['machine learning', 'ai', 'data science', 'pandas', 'numpy', 'tensorflow', 'pytorch'],
+        'tools': ['git', 'jenkins', 'jira', 'linux', 'unix', 'bash'],
+        'mobile': ['android', 'ios', 'react native', 'flutter', 'swift', 'kotlin']
+    }
     
     job_req_lower = str(job_requirements).lower() if job_requirements else ""
     candidate_skills_lower = str(candidate_skills).lower() if candidate_skills else ""
     
-    for skill in tech_keywords:
-        if skill in job_req_lower:
-            job_skills.add(skill)
+    # Extract required skills from job requirements
+    required_skills = set()
+    for category, skills in tech_keywords.items():
+        for skill in skills:
+            if skill in job_req_lower:
+                required_skills.add(skill)
     
     # Find matching skills
     matched_skills = []
-    for skill in job_skills:
+    for skill in required_skills:
         if skill in candidate_skills_lower:
             matched_skills.append(skill.title())
     
-    # Calculate score
-    if not job_skills:
+    # Calculate score with bonus for multiple category matches
+    if not required_skills:
         return 0.5, matched_skills  # Neutral score if no specific skills required
     
-    score = len(matched_skills) / len(job_skills)
-    return min(score, 1.0), matched_skills
+    base_score = len(matched_skills) / len(required_skills)
+    
+    # Bonus for diverse skill matching across categories
+    matched_categories = set()
+    for category, skills in tech_keywords.items():
+        if any(skill in candidate_skills_lower for skill in skills):
+            matched_categories.add(category)
+    
+    category_bonus = min(0.2, len(matched_categories) * 0.05)
+    final_score = min(1.0, base_score + category_bonus)
+    
+    return final_score, matched_skills
 
 def calculate_experience_match(job_level: str, candidate_years: int, candidate_level: str) -> tuple:
     """Calculate experience matching score"""
@@ -239,9 +258,9 @@ def test_database():
 
 @app.post("/match", response_model=MatchResponse, tags=["AI Matching Engine"], summary="AI-Powered Candidate Matching")
 async def match_candidates(request: MatchRequest):
-    """Advanced AI-powered candidate matching"""
+    """Dynamic AI-powered candidate matching based on job requirements"""
     start_time = datetime.now()
-    logger.info(f"Starting match for job_id: {request.job_id}")
+    logger.info(f"Starting dynamic match for job_id: {request.job_id}")
     
     try:
         conn = get_db_connection()
@@ -252,7 +271,7 @@ async def match_candidates(request: MatchRequest):
         cursor = conn.cursor()
         logger.info("Database connection successful")
         
-        # Get job details
+        # Get job details with enhanced requirements parsing
         cursor.execute("""
             SELECT title, description, department, location, experience_level, requirements
             FROM jobs WHERE id = %s
@@ -265,13 +284,14 @@ async def match_candidates(request: MatchRequest):
                 top_candidates=[],
                 total_candidates=0,
                 processing_time=0.0,
-                algorithm_version="1.0.0",
+                algorithm_version="2.0.0-dynamic",
                 status="job_not_found"
             )
         
         job_title, job_desc, job_dept, job_location, job_level, job_requirements = job_data
+        logger.info(f"Processing job: {job_title} with requirements: {job_requirements[:100]}...")
         
-        # Get all candidates (dynamic matching)
+        # Get ALL candidates globally (no job_id filtering for dynamic matching)
         cursor.execute("""
             SELECT id, name, email, phone, location, experience_years, 
                    technical_skills, seniority_level, education_level
@@ -280,7 +300,7 @@ async def match_candidates(request: MatchRequest):
         """)
         
         candidates = cursor.fetchall()
-        logger.info(f"Found {len(candidates)} candidates in database")
+        logger.info(f"Found {len(candidates)} global candidates for dynamic matching to job {request.job_id}")
         
         if not candidates:
             logger.warning("No candidates found in database")
@@ -289,108 +309,129 @@ async def match_candidates(request: MatchRequest):
                 top_candidates=[],
                 total_candidates=0,
                 processing_time=0.0,
-                algorithm_version="1.0.0",
+                algorithm_version="2.0.0-dynamic",
                 status="no_candidates"
             )
         
-        # Score each candidate using advanced semantic matching
+        # Dynamic scoring based on job-specific requirements
         scored_candidates = []
         
-        # Prepare job data for semantic matching
-        job_data = {
-            'title': job_title,
-            'description': job_desc,
-            'required_skills': job_requirements,
-            'experience_required': job_level,
-            'location': job_location
+        # Extract job-specific keywords for dynamic matching
+        job_text = f"{job_title} {job_desc} {job_requirements}".lower()
+        
+        # Dynamic skill extraction based on job requirements
+        tech_skills_map = {
+            'python': ['python', 'django', 'flask', 'pandas', 'numpy'],
+            'java': ['java', 'spring', 'hibernate', 'maven', 'gradle'],
+            'javascript': ['javascript', 'js', 'react', 'node', 'angular', 'vue'],
+            'data science': ['data science', 'machine learning', 'ai', 'tensorflow', 'pytorch'],
+            'cloud': ['aws', 'azure', 'gcp', 'docker', 'kubernetes'],
+            'database': ['sql', 'mysql', 'postgresql', 'mongodb', 'redis'],
+            'web': ['html', 'css', 'react', 'angular', 'vue', 'bootstrap'],
+            'mobile': ['android', 'ios', 'react native', 'flutter', 'swift'],
+            'devops': ['docker', 'kubernetes', 'jenkins', 'ci/cd', 'terraform']
         }
+        
+        # Identify required skills from job description
+        required_skill_categories = []
+        for category, skills in tech_skills_map.items():
+            if any(skill in job_text for skill in skills):
+                required_skill_categories.append(category)
+        
+        logger.info(f"Identified required skill categories: {required_skill_categories}")
         
         for candidate in candidates:
             cand_id, name, email, phone, location, exp_years, skills, seniority, education = candidate
             
-            # Prepare candidate data
-            candidate_data = {
-                'name': name,
-                'email': email,
-                'skills': skills or '',
-                'experience': str(exp_years) if exp_years else 'Fresher',
-                'designation': seniority or '',
-                'location': location or ''
-            }
+            candidate_skills_lower = (skills or '').lower()
             
-            # Use advanced semantic matching if available
-            if SEMANTIC_ENABLED and advanced_matcher:
-                try:
-                    match_result = advanced_matcher.calculate_detailed_match(candidate_data, job_data)
-                    overall_score = match_result['total_score'] * 100
-                    
-                    # Extract detailed information
-                    skills_breakdown = match_result['breakdown']['skills']['details']
-                    matched_skills = skills_breakdown.get('matched', [])
-                    exp_reasoning = match_result['breakdown']['experience']['details'].get('status', 'Unknown')
-                    location_match = match_result['breakdown']['location']['details'].get('status') != 'Different location'
-                    
-                    reasoning = f"{match_result['recommendation']}; {'; '.join(match_result['strengths'])}"
-                    
-                except Exception as e:
-                    logger.warning(f"Semantic matching failed for candidate {cand_id}: {e}")
-                    # Fallback to basic matching
-                    skills_score, matched_skills = calculate_skills_match(
-                        job_requirements or job_desc, skills or ""
-                    )
-                    exp_score, exp_reasoning = calculate_experience_match(
-                        job_level or "", exp_years or 0, seniority or ""
-                    )
-                    location_score, location_match = calculate_location_match(
-                        job_location or "", location or ""
-                    )
-                    overall_score = (skills_score * 0.5 + exp_score * 0.3 + location_score * 0.2) * 100
-                    reasoning = f"Skills: {', '.join(matched_skills)}; Experience: {exp_reasoning}"
+            # Dynamic skills matching based on job requirements
+            skills_score = 0.0
+            matched_skills = []
+            
+            if required_skill_categories:
+                category_matches = 0
+                for category in required_skill_categories:
+                    category_skills = tech_skills_map[category]
+                    category_match = False
+                    for skill in category_skills:
+                        if skill in candidate_skills_lower:
+                            matched_skills.append(skill.title())
+                            category_match = True
+                    if category_match:
+                        category_matches += 1
+                
+                skills_score = category_matches / len(required_skill_categories)
             else:
-                # Basic matching fallback
+                # Fallback to general skill matching
                 skills_score, matched_skills = calculate_skills_match(
                     job_requirements or job_desc, skills or ""
                 )
-                exp_score, exp_reasoning = calculate_experience_match(
-                    job_level or "", exp_years or 0, seniority or ""
-                )
-                location_score, location_match = calculate_location_match(
-                    job_location or "", location or ""
-                )
+            
+            # Dynamic experience matching
+            exp_score, exp_reasoning = calculate_experience_match(
+                job_level or "", exp_years or 0, seniority or ""
+            )
+            
+            # Location matching
+            location_score, location_match = calculate_location_match(
+                job_location or "", location or ""
+            )
+            
+            # Dynamic weighting based on job type
+            if 'senior' in job_text or 'lead' in job_text:
+                # Experience-heavy weighting for senior roles
+                overall_score = (skills_score * 0.4 + exp_score * 0.5 + location_score * 0.1) * 100
+            elif 'data' in job_text or 'ai' in job_text or 'machine learning' in job_text:
+                # Skills-heavy weighting for technical roles
+                overall_score = (skills_score * 0.6 + exp_score * 0.3 + location_score * 0.1) * 100
+            else:
+                # Balanced weighting for general roles
                 overall_score = (skills_score * 0.5 + exp_score * 0.3 + location_score * 0.2) * 100
-                reasoning = f"Skills: {', '.join(matched_skills)}; Experience: {exp_reasoning}"
+            
+            # Enhanced reasoning with job-specific context
+            reasoning_parts = []
+            if matched_skills:
+                reasoning_parts.append(f"Skills match: {', '.join(matched_skills[:3])}")
+            reasoning_parts.append(f"Experience: {exp_reasoning}")
+            if location_match:
+                reasoning_parts.append("Location compatible")
+            
+            reasoning = "; ".join(reasoning_parts)
             
             scored_candidates.append(CandidateScore(
                 candidate_id=cand_id,
                 name=name,
                 email=email,
                 score=round(overall_score, 1),
-                skills_match=matched_skills,
+                skills_match=matched_skills[:5],  # Top 5 matched skills
                 experience_match=exp_reasoning,
                 location_match=location_match,
                 reasoning=reasoning
             ))
         
-        # Sort by score and get top 5
+        # Sort by score and get top candidates
         scored_candidates.sort(key=lambda x: x.score, reverse=True)
-        top_5 = scored_candidates[:5]
+        top_candidates = scored_candidates[:10]  # Return top 10 for better selection
         
         processing_time = (datetime.now() - start_time).total_seconds()
         
         conn.close()
         
+        logger.info(f"Dynamic matching completed: {len(top_candidates)} top candidates found")
+        
         return MatchResponse(
             job_id=request.job_id,
-            top_candidates=top_5,
+            top_candidates=top_candidates,
             total_candidates=len(candidates),
             processing_time=round(processing_time, 3),
-            algorithm_version="2.0.0-semantic" if SEMANTIC_ENABLED else "1.0.0-basic",
+            algorithm_version="2.0.0-dynamic",
             status="success"
         )
         
     except Exception as e:
-        logger.error(f"Matching error: {e}")
-        raise HTTPException(status_code=500, detail=f"Matching failed: {str(e)}")
+        logger.error(f"Dynamic matching error: {e}")
+        raise HTTPException(status_code=500, detail=f"Dynamic matching failed: {str(e)}")
 
 @app.get("/analyze/{candidate_id}", tags=["Candidate Analysis"], summary="Detailed Candidate Analysis")
 async def analyze_candidate(candidate_id: int):

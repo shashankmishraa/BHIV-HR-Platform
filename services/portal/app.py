@@ -13,11 +13,36 @@ API_KEY = os.getenv("API_KEY_SECRET", "myverysecureapikey123")
 headers = {"Authorization": f"Bearer {API_KEY}"}
 
 # Header
-st.title("🎯 BHIV HR Client Portal")
-st.markdown("**Values-Driven Recruiting Platform with MDVP Compliance**")
+st.title("🎯 BHIV HR Portal")
+st.markdown("**Values-Driven Recruiting Platform - HR Dashboard with Real-time Client Integration**")
+st.info("🔄 Connected to Client Portal (8502) for real-time job postings and candidate workflow")
 
-# Sidebar
-st.sidebar.title("🧭 Navigation")
+# Sidebar with real-time updates
+st.sidebar.title("🧭 HR Navigation")
+
+# Show real-time stats
+try:
+    jobs_response = httpx.get(f"{API_BASE}/v1/jobs", headers=headers, timeout=5.0)
+    if jobs_response.status_code == 200:
+        jobs_data = jobs_response.json()
+        jobs = jobs_data.get('jobs', [])
+        st.sidebar.success(f"📊 Total Jobs: {len(jobs)}")
+        
+        # Show client breakdown
+        client_counts = {}
+        for job in jobs:
+            client_id = job.get('client_id', 'Unknown')
+            client_counts[client_id] = client_counts.get(client_id, 0) + 1
+        
+        st.sidebar.write("🏢 **Jobs by Client:**")
+        for client_id, count in sorted(client_counts.items()):
+            st.sidebar.write(f"• Client {client_id}: {count} jobs")
+    else:
+        st.sidebar.info("📊 Jobs: Loading...")
+except:
+    st.sidebar.warning("📊 Jobs: Offline")
+
+st.sidebar.markdown("---")
 menu = st.sidebar.selectbox("Select Option", [
     "🏢 Create Job",
     "🔍 Search & Filter Candidates",
@@ -26,8 +51,13 @@ menu = st.sidebar.selectbox("Select Option", [
     "🎯 View Top-5 Shortlist",
     "📤 Upload Candidates",
     "📁 Batch Upload",
-    "📅 Interview Management"
+    "📅 Interview Management",
+    "🔄 Live Client Jobs"
 ])
+
+# Real-time refresh button
+if st.sidebar.button("🔄 Refresh All Data"):
+    st.rerun()
 
 # API Connection Status
 with st.sidebar:
@@ -310,6 +340,7 @@ elif menu == "📊 Submit Values Feedback":
 
 elif menu == "📈 View Dashboard":
     st.header("HR Analytics Dashboard")
+    st.info("🔄 Real-time data from all client portals and job postings")
     
     # Get real data from database via API
     try:
@@ -330,6 +361,22 @@ elif menu == "📈 View Dashboard":
             jobs_data = jobs_response.json()
             jobs = jobs_data.get('jobs', []) if isinstance(jobs_data, dict) else (jobs_data if isinstance(jobs_data, list) else [])
             total_jobs = len(jobs) if jobs else 13
+            
+            # Show client breakdown
+            if jobs:
+                st.subheader("🏢 Jobs by Client (Real-time)")
+                client_jobs = {}
+                for job in jobs:
+                    client_id = job.get('client_id', 'Unknown')
+                    if client_id not in client_jobs:
+                        client_jobs[client_id] = []
+                    client_jobs[client_id].append(job)
+                
+                for client_id, client_job_list in client_jobs.items():
+                    with st.expander(f"🏢 Client {client_id} - {len(client_job_list)} jobs"):
+                        for job in client_job_list:
+                            st.write(f"• **{job.get('title', 'Untitled')}** - {job.get('department', 'N/A')} | {job.get('location', 'N/A')}")
+                            st.caption(f"Posted: {job.get('created_at', 'Unknown')} | Status: {job.get('status', 'active')}")
             
     except Exception as e:
         total_candidates = 29
@@ -733,6 +780,78 @@ elif menu == "🎯 View Top-5 Shortlist":
                         st.rerun()
             else:
                 st.info("📊 No candidates returned from AI analysis. Try uploading candidates first.")
+
+elif menu == "🔄 Live Client Jobs":
+    st.header("🔄 Live Client Job Postings")
+    st.info("📊 Real-time view of all jobs posted by clients across the platform")
+    
+    try:
+        response = httpx.get(f"{API_BASE}/v1/jobs", headers=headers, timeout=10.0)
+        if response.status_code == 200:
+            jobs_data = response.json()
+            jobs = jobs_data.get('jobs', [])
+            
+            if jobs:
+                # Group jobs by client
+                client_jobs = {}
+                for job in jobs:
+                    client_id = job.get('client_id', 'Unknown')
+                    if client_id not in client_jobs:
+                        client_jobs[client_id] = []
+                    client_jobs[client_id].append(job)
+                
+                # Display summary
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Total Jobs", len(jobs))
+                with col2:
+                    st.metric("Active Clients", len(client_jobs))
+                with col3:
+                    recent_jobs = sum(1 for job in jobs if job.get('created_at', '').startswith('2025'))
+                    st.metric("Recent Jobs", recent_jobs)
+                
+                st.markdown("---")
+                
+                # Display jobs by client
+                for client_id, job_list in sorted(client_jobs.items()):
+                    st.subheader(f"🏢 Client {client_id} ({len(job_list)} jobs)")
+                    
+                    for job in job_list:
+                        with st.expander(f"💼 {job.get('title', 'Untitled Job')} - {job.get('department', 'N/A')}"):
+                            col1, col2 = st.columns(2)
+                            
+                            with col1:
+                                st.write(f"**Job ID:** {job.get('id', 'N/A')}")
+                                st.write(f"**Department:** {job.get('department', 'N/A')}")
+                                st.write(f"**Location:** {job.get('location', 'N/A')}")
+                                st.write(f"**Experience:** {job.get('experience_level', 'N/A')}")
+                            
+                            with col2:
+                                st.write(f"**Type:** {job.get('employment_type', 'N/A')}")
+                                st.write(f"**Status:** {job.get('status', 'active')}")
+                                st.write(f"**Posted:** {job.get('created_at', 'Unknown')}")
+                            
+                            if job.get('description'):
+                                st.write("**Description:**")
+                                st.write(job.get('description', '')[:300] + "...")
+                            
+                            # Action buttons
+                            btn_col1, btn_col2, btn_col3 = st.columns(3)
+                            with btn_col1:
+                                if st.button(f"🎯 Get AI Matches", key=f"match_{job.get('id')}"):
+                                    st.info(f"Getting AI matches for Job {job.get('id')}...")
+                            with btn_col2:
+                                if st.button(f"👥 View Candidates", key=f"candidates_{job.get('id')}"):
+                                    st.info(f"Viewing candidates for Job {job.get('id')}...")
+                            with btn_col3:
+                                if st.button(f"📊 Analytics", key=f"analytics_{job.get('id')}"):
+                                    st.info(f"Loading analytics for Job {job.get('id')}...")
+            else:
+                st.info("📊 No jobs found. Clients haven't posted any jobs yet.")
+        else:
+            st.error(f"❌ Failed to load jobs: {response.status_code}")
+    except Exception as e:
+        st.error(f"❌ Error loading jobs: {str(e)}")
 
 elif menu == "📅 Interview Management":
     st.header("Interview Management System")

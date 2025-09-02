@@ -271,43 +271,21 @@ def show_candidate_review():
                         job_id = job_options[selected_job]
                         job_details = unique_jobs[job_id]
                         
-                        # Use AI agent directly for dynamic matching
-                        st.info(f"Connecting to AI agent for job {job_id}...")
+                        # Use AI matching API instead of manual matching
                         try:
-                            # Call AI agent service directly
-                            agent_response = requests.post(
-                                "http://localhost:9000/match", 
-                                json={"job_id": job_id}, 
-                                timeout=15
-                            )
-                            st.info(f"AI agent response: {agent_response.status_code}")
-                            
-                            if agent_response.status_code == 200:
-                                agent_data = agent_response.json()
-                                
-                                # Transform AI agent response
-                                candidates = []
-                                for candidate in agent_data.get('top_candidates', []):
-                                    candidates.append({
-                                        'name': candidate.get('name'),
-                                        'email': candidate.get('email'),
-                                        'phone': candidate.get('phone', 'N/A'),
-                                        'score': candidate.get('score'),
-                                        'skills_match': candidate.get('skills_match', []),
-                                        'experience_match': candidate.get('experience_match'),
-                                        'location': candidate.get('location', 'N/A'),
-                                        'values_alignment': min(5.0, candidate.get('score', 0) / 20),
-                                        'recommendation_strength': 'Strong' if candidate.get('score', 0) >= 80 else 'Moderate' if candidate.get('score', 0) >= 60 else 'Weak'
-                                    })
+                            match_response = requests.get(f"{API_BASE_URL}/v1/match/{job_id}/top", headers=headers, timeout=15)
+                            if match_response.status_code == 200:
+                                match_data = match_response.json()
+                                candidates = match_data.get('top_candidates', [])
                                 
                                 if candidates:
-                                    st.success(f"Found {len(candidates)} AI-matched candidates (Dynamic Matching)")
-                                    st.info(f"Job: {job_details.get('title')} | Algorithm: {agent_data.get('algorithm_version', 'Dynamic AI')}")
+                                    st.success(f"Found {len(candidates)} AI-matched candidates")
+                                    st.info(f"Job: {job_details.get('title')} | AI Scoring Active")
                                     
                                     for i, candidate in enumerate(candidates[:10]):
                                         if isinstance(candidate, dict) and candidate.get('name'):
                                             ai_score = candidate.get('score', 0)
-                                            with st.expander(f"Candidate: {candidate.get('name')} (AI Score: {ai_score}/100)"):
+                                            with st.expander(f"👤 {candidate.get('name')} (AI Score: {ai_score}/100)"):
                                                 col1, col2, col3 = st.columns(3)
                                                 
                                                 with col1:
@@ -335,44 +313,9 @@ def show_candidate_review():
                                 else:
                                     st.warning("No AI matches found for this job")
                             else:
-                                st.error(f"AI agent failed: {agent_response.status_code}")
-                                st.text(f"Response: {agent_response.text[:200]}")
-                                # Fallback to gateway API
-                                try:
-                                    match_response = requests.get(f"{API_BASE_URL}/v1/match/{job_id}/top", headers=headers, timeout=15)
-                                    if match_response.status_code == 200:
-                                        match_data = match_response.json()
-                                        candidates = match_data.get('top_candidates', [])
-                                        if candidates:
-                                            st.info("Using fallback matching system")
-                                            # Process fallback candidates
-                                            for i, candidate in enumerate(candidates[:10]):
-                                                if isinstance(candidate, dict) and candidate.get('name'):
-                                                    with st.expander(f"Candidate: {candidate.get('name')} (Score: {candidate.get('score', 0)})"):
-                                                        st.write(f"Email: {candidate.get('email', 'N/A')}")
-                                                        st.write(f"Phone: {candidate.get('phone', 'N/A')}")
-                                                        st.write(f"Score: {candidate.get('score', 0)}")
-                                except Exception as gateway_error:
-                                    st.error(f"Gateway fallback failed: {str(gateway_error)}")
+                                st.error(f"AI matching failed: {match_response.status_code}")
                         except Exception as e:
-                            st.error(f"AI matching error: {str(e)}")
-                            st.info("Attempting fallback to gateway API...")
-                            try:
-                                match_response = requests.get(f"{API_BASE_URL}/v1/match/{job_id}/top", headers=headers, timeout=15)
-                                if match_response.status_code == 200:
-                                    match_data = match_response.json()
-                                    candidates = match_data.get('top_candidates', [])
-                                    if candidates:
-                                        st.info("Using fallback matching system")
-                                        # Process fallback candidates
-                                        for i, candidate in enumerate(candidates[:10]):
-                                            if isinstance(candidate, dict) and candidate.get('name'):
-                                                with st.expander(f"Candidate: {candidate.get('name')} (Score: {candidate.get('score', 0)})"):
-                                                    st.write(f"Email: {candidate.get('email', 'N/A')}")
-                                                    st.write(f"Phone: {candidate.get('phone', 'N/A')}")
-                                                    st.write(f"Score: {candidate.get('score', 0)}")
-                            except Exception as fallback_error:
-                                st.error(f"Fallback also failed: {str(fallback_error)}")
+                            st.error(f"AI matching error: {e}")
                 else:
                     st.info("No valid jobs found")
             else:
@@ -411,35 +354,17 @@ def show_match_results():
                     if st.button("🤖 Get AI Matches", use_container_width=True):
                         job_id = job_map[selected_job]
                         
-                        with st.spinner("🤖 AI is dynamically analyzing candidates..."):
+                        with st.spinner("🔄 AI is analyzing candidates..."):
                             try:
-                                # Call AI agent directly for dynamic matching
-                                response = requests.post(
-                                    "http://localhost:9000/match", 
-                                    json={"job_id": job_id}, 
-                                    timeout=20
-                                )
+                                response = requests.get(f"{API_BASE_URL}/v1/match/{job_id}/top", headers=headers, timeout=15)
                                 if response.status_code == 200:
                                     data = response.json()
-                                    
-                                    # Transform AI agent response
-                                    matches = []
-                                    for candidate in data.get('top_candidates', []):
-                                        matches.append({
-                                            'name': candidate.get('name'),
-                                            'email': candidate.get('email'),
-                                            'phone': candidate.get('phone', 'N/A'),
-                                            'score': candidate.get('score'),
-                                            'skills_match': candidate.get('skills_match', []),
-                                            'experience_match': candidate.get('experience_match'),
-                                            'location': candidate.get('location', 'N/A')
-                                        })
+                                    matches = data.get('top_candidates', [])
                                     
                                     if matches:
-                                        st.success(f"✅ Found {len(matches)} dynamically matched candidates")
-                                        st.info(f"📊 Algorithm: {data.get('algorithm_version', 'Dynamic AI')} | Processing: {data.get('processing_time', 0):.3f}s")
+                                        st.success(f"✅ Found {len(matches)} AI-matched candidates")
                                         
-                                        # Display dynamic matches in clean format
+                                        # Display matches in clean format
                                         for i, match in enumerate(matches, 1):
                                             if isinstance(match, dict) and match.get('name'):
                                                 score = match.get('score', 0)
@@ -466,11 +391,7 @@ def show_match_results():
                                                     
                                                     with col2:
                                                         st.write(f"**Experience:** {match.get('experience_match', 'N/A')}")
-                                                        skills_list = match.get('skills_match', [])
-                                                        if isinstance(skills_list, list) and skills_list:
-                                                            st.write(f"**Skills Match:** {', '.join(skills_list[:3])}")
-                                                        else:
-                                                            st.write(f"**Skills Match:** {skills_list}")
+                                                        st.write(f"**Skills Match:** {match.get('skills_match', 0):.1f}%")
                                                     
                                                     with col3:
                                                         st.metric("AI Score", f"{score}/100")
@@ -481,11 +402,9 @@ def show_match_results():
                                         st.warning("⚠️ No AI matches found for this job")
                                         st.info("💡 Ensure candidates are uploaded and try again")
                                 else:
-                                    st.error(f"❌ AI agent failed: {response.status_code}")
-                                    st.info("Attempting fallback matching...")
+                                    st.error(f"❌ AI matching failed: {response.status_code}")
                             except Exception as e:
-                                st.error(f"❌ Dynamic matching error: {str(e)}")
-                                st.info("AI agent may be unavailable - check system status")
+                                st.error(f"❌ AI matching error: {str(e)}")
                 else:
                     st.info("No valid jobs available for matching")
             else:

@@ -168,7 +168,6 @@ class DatabaseSyncManager:
                 "seniority_level": "Entry-level" if exp_years == 0 else ("Senior" if exp_years >= 3 else "Junior"),
                 "education_level": candidate.get('education', ''),
                 "designation": candidate.get('designation', ''),
-                "job_id": 1,
                 "status": "applied"
             }
             db_candidates.append(db_candidate)
@@ -195,7 +194,7 @@ class DatabaseSyncManager:
             except Exception as e:
                 print(f"  Batch {i//batch_size + 1}: Error - {str(e)}")
         
-        print(f"Uploaded {total_uploaded} new candidates to database")
+        print(f"Uploaded {total_uploaded} new candidates to global pool (no job_id pre-allocation)")
     
     def full_sync(self):
         """Perform complete database synchronization"""
