@@ -4,13 +4,15 @@ WORKDIR /app
 
 # Copy requirements first for better caching
 COPY requirements.txt .
+
+# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code (adjust this line based on your actual structure)
+# Copy all application files
 COPY . .
 
 # Expose port
 EXPOSE 9000
 
-# Run the application
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-9000}"]
+# Start the application with PORT environment variable for Render
+CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT:-9000}"]
