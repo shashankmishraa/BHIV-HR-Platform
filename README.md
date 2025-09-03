@@ -442,6 +442,18 @@ python tools/database_sync_manager.py
 # Restart specific service
 docker-compose -f docker-compose.production.yml restart gateway
 
+# Combined Recommended Workflow
+#Step1: 
+docker-compose -f docker-compose.production.yml down 
+#Step2:
+docker builder prune -af
+#Step3:
+docker-compose -f docker-compose.production.yml build --no-cache
+#step4:
+docker-compose -f docker-compose.production.yml up -d
+#Step5:
+docker-compose -f docker-compose.production.yml ps
+
 # Rebuild and restart all services
 docker-compose -f docker-compose.production.yml up -d --build
 ```
