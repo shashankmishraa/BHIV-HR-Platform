@@ -50,30 +50,73 @@ async def metrics_dashboard():
         "system_metrics": monitor.collect_system_metrics()
     }
 
-# Rate limiting middleware
+# Enhanced Granular Rate Limiting
 from collections import defaultdict
 from fastapi import Request
+import psutil
 
 rate_limit_storage = defaultdict(list)
+
+# Granular rate limits by endpoint and user tier
+RATE_LIMITS = {
+    "default": {
+        "/v1/jobs": 100,
+        "/v1/candidates/search": 50,
+        "/v1/match": 20,
+        "/v1/candidates/bulk": 5,
+        "default": 60
+    },
+    "premium": {
+        "/v1/jobs": 500,
+        "/v1/candidates/search": 200,
+        "/v1/match": 100,
+        "/v1/candidates/bulk": 25,
+        "default": 300
+    }
+}
+
+def get_dynamic_rate_limit(endpoint: str, user_tier: str = "default") -> int:
+    """Dynamic rate limiting based on system load"""
+    cpu_usage = psutil.cpu_percent()
+    base_limit = RATE_LIMITS[user_tier].get(endpoint, RATE_LIMITS[user_tier]["default"])
+    
+    if cpu_usage > 80:
+        return int(base_limit * 0.5)  # Reduce by 50% during high load
+    elif cpu_usage < 30:
+        return int(base_limit * 1.5)  # Increase by 50% during low load
+    return base_limit
 
 async def rate_limit_middleware(request: Request, call_next):
     client_ip = request.client.host
     current_time = time.time()
+    endpoint_path = request.url.path
+    
+    # Determine user tier (simplified - in production, get from JWT/database)
+    user_tier = "premium" if "enterprise" in request.headers.get("user-agent", "").lower() else "default"
+    
+    # Get dynamic rate limit for this endpoint
+    rate_limit = get_dynamic_rate_limit(endpoint_path, user_tier)
     
     # Clean old requests (older than 1 minute)
-    rate_limit_storage[client_ip] = [
-        req_time for req_time in rate_limit_storage[client_ip] 
+    key = f"{client_ip}:{endpoint_path}"
+    rate_limit_storage[key] = [
+        req_time for req_time in rate_limit_storage[key] 
         if current_time - req_time < 60
     ]
     
-    # Check rate limit (60 requests per minute)
-    if len(rate_limit_storage[client_ip]) >= 60:
-        raise HTTPException(status_code=429, detail="Rate limit exceeded")
+    # Check granular rate limit
+    if len(rate_limit_storage[key]) >= rate_limit:
+        raise HTTPException(
+            status_code=429, 
+            detail=f"Rate limit exceeded for {endpoint_path}. Limit: {rate_limit}/min"
+        )
     
     # Record this request
-    rate_limit_storage[client_ip].append(current_time)
+    rate_limit_storage[key].append(current_time)
     
     response = await call_next(request)
+    response.headers["X-RateLimit-Limit"] = str(rate_limit)
+    response.headers["X-RateLimit-Remaining"] = str(rate_limit - len(rate_limit_storage[key]))
     return response
 
 app.middleware("http")(rate_limit_middleware)
