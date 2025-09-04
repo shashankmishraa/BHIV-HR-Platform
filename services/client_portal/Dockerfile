@@ -1,12 +1,12 @@
-FROM python:3.9-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
 EXPOSE 8502
 
-CMD ["streamlit", "run", "app.py", "--server.port=8502", "--server.address=0.0.0.0"]
+CMD ["sh", "-c", "streamlit run app.py --server.port ${PORT:-8502} --server.address 0.0.0.0"]

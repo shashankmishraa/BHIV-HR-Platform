@@ -2,14 +2,17 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install curl for health checks
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-
+# Copy requirements first for better caching
 COPY requirements.txt .
+
+# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app.py .
+# Copy all application files
+COPY . .
 
+# Expose port
 EXPOSE 9000
 
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "9000"]
+# Start the application with PORT environment variable for Render
+CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT:-9000}"]

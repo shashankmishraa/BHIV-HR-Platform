@@ -1,3 +1,7 @@
+# BHIV HR Platform - Docker Compose Configuration
+# This file is for LOCAL DEVELOPMENT only
+# Production deployment is on Render: https://bhiv-hr-gateway.onrender.com
+
 services:
   db:
     image: postgres:15-alpine
@@ -35,6 +39,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    # Production URL: https://bhiv-hr-gateway.onrender.com
 
   agent:
     build: ./services/agent
@@ -52,6 +57,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    # Production URL: https://bhiv-hr-agent.onrender.com
 
   portal:
     build: ./services/portal
@@ -64,6 +70,7 @@ services:
       gateway:
         condition: service_healthy
     restart: unless-stopped
+    # Production URL: https://bhiv-hr-portal.onrender.com
 
   client_portal:
     build: ./services/client_portal
@@ -76,6 +83,7 @@ services:
       gateway:
         condition: service_healthy
     restart: unless-stopped
+    # Production URL: https://bhiv-hr-client-portal.onrender.com
 
 volumes:
   postgres_data:

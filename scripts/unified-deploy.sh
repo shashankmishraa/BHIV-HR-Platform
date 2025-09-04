@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # BHIV HR Platform - Unified Deployment Script
-# Consolidates deploy.sh and deploy-cloud.sh functionality
-# Supports local, AWS, and GCP deployments
+# Supports local development and production (Render) deployments
 
 set -e
 
@@ -43,9 +42,7 @@ show_usage() {
     echo ""
     echo "Environments:"
     echo "  local       Deploy locally using Docker Compose"
-    echo "  aws         Deploy to AWS using ECS/ECR"
-    echo "  gcp         Deploy to Google Cloud using Cloud Run"
-    echo "  production  Production deployment (auto-detect cloud)"
+    echo "  production  Production deployment (Render cloud platform)"
     echo ""
     echo "Options:"
     echo "  --build     Force rebuild of Docker images"
@@ -56,8 +53,8 @@ show_usage() {
     echo ""
     echo "Examples:"
     echo "  $0 local --build --logs"
-    echo "  $0 aws --clean --health"
     echo "  $0 production --build"
+    echo "  $0 local --clean --health"
 }
 
 # Check prerequisites
@@ -134,111 +131,30 @@ deploy_local() {
     echo "└── Database: localhost:5432"
 }
 
-# Deploy to AWS
-deploy_aws() {
-    print_status "Deploying to AWS..."
+# Deploy to production (Render)
+deploy_production() {
+    print_status "Production deployment on Render..."
     
-    # Check AWS CLI
-    if ! command -v aws &> /dev/null; then
-        print_error "AWS CLI is not installed"
-        exit 1
-    fi
-    
-    # Get AWS account ID
-    AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-    AWS_REGION=${AWS_DEFAULT_REGION:-us-east-1}
-    ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-    
-    print_status "AWS Account: $AWS_ACCOUNT_ID"
-    print_status "AWS Region: $AWS_REGION"
-    
-    # Login to ECR
-    aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
-    
-    # Create ECR repositories if they don't exist
-    services=("gateway" "agent" "portal" "client-portal")
-    for service in "${services[@]}"; do
-        aws ecr describe-repositories --repository-names "${PROJECT_NAME}-${service}" --region $AWS_REGION 2>/dev/null || \
-        aws ecr create-repository --repository-name "${PROJECT_NAME}-${service}" --region $AWS_REGION
-    done
-    
-    # Build and push images
-    for service in "${services[@]}"; do
-        print_status "Building and pushing ${service}..."
-        
-        # Build image
-        docker build -t "${PROJECT_NAME}-${service}:${VERSION}" "./services/${service//-/_}"
-        
-        # Tag for ECR
-        docker tag "${PROJECT_NAME}-${service}:${VERSION}" "${ECR_REGISTRY}/${PROJECT_NAME}-${service}:${VERSION}"
-        docker tag "${PROJECT_NAME}-${service}:${VERSION}" "${ECR_REGISTRY}/${PROJECT_NAME}-${service}:latest"
-        
-        # Push to ECR
-        docker push "${ECR_REGISTRY}/${PROJECT_NAME}-${service}:${VERSION}"
-        docker push "${ECR_REGISTRY}/${PROJECT_NAME}-${service}:latest"
-    done
-    
-    print_success "AWS deployment completed"
-    
-    # Display AWS resources
     echo ""
-    echo "🎯 AWS Resources Created:"
-    echo "├── ECR Repositories: ${#services[@]} repositories"
-    echo "├── Docker Images: ${#services[@]} images pushed"
-    echo "└── Region: $AWS_REGION"
+    echo "🎯 BHIV HR Platform - Production Deployment"
+    echo "├── Platform: Render Cloud"
+    echo "├── Region: Oregon (US West)"
+    echo "├── API Gateway: https://bhiv-hr-gateway.onrender.com"
+    echo "├── AI Agent: https://bhiv-hr-agent.onrender.com"
+    echo "├── HR Portal: https://bhiv-hr-portal.onrender.com"
+    echo "├── Client Portal: https://bhiv-hr-client-portal.onrender.com"
+    echo "└── Status: ✅ Live & Operational"
+    echo ""
+    echo "📋 Deployment Instructions:"
+    echo "1. Services are already deployed on Render"
+    echo "2. Auto-deployment enabled via GitHub integration"
+    echo "3. Push code changes to trigger automatic deployment"
+    echo "4. Monitor deployment status in Render dashboard"
+    echo ""
+    print_success "Production deployment information displayed"
 }
 
-# Deploy to GCP
-deploy_gcp() {
-    print_status "Deploying to Google Cloud Platform..."
-    
-    # Check gcloud CLI
-    if ! command -v gcloud &> /dev/null; then
-        print_error "Google Cloud CLI is not installed"
-        exit 1
-    fi
-    
-    # Get GCP project ID
-    GCP_PROJECT_ID=$(gcloud config get-value project)
-    GCP_REGION=${GCP_REGION:-us-central1}
-    
-    if [ -z "$GCP_PROJECT_ID" ]; then
-        print_error "GCP project not set. Run: gcloud config set project YOUR_PROJECT_ID"
-        exit 1
-    fi
-    
-    print_status "GCP Project: $GCP_PROJECT_ID"
-    print_status "GCP Region: $GCP_REGION"
-    
-    # Configure Docker for GCR
-    gcloud auth configure-docker
-    
-    # Build and push images
-    services=("gateway" "agent" "portal" "client-portal")
-    for service in "${services[@]}"; do
-        print_status "Building and pushing ${service} to GCR..."
-        
-        # Build image
-        docker build -t "${PROJECT_NAME}-${service}:${VERSION}" "./services/${service//-/_}"
-        
-        # Tag for GCR
-        docker tag "${PROJECT_NAME}-${service}:${VERSION}" "gcr.io/${GCP_PROJECT_ID}/${PROJECT_NAME}-${service}:${VERSION}"
-        docker tag "${PROJECT_NAME}-${service}:${VERSION}" "gcr.io/${GCP_PROJECT_ID}/${PROJECT_NAME}-${service}:latest"
-        
-        # Push to GCR
-        docker push "gcr.io/${GCP_PROJECT_ID}/${PROJECT_NAME}-${service}:${VERSION}"
-        docker push "gcr.io/${GCP_PROJECT_ID}/${PROJECT_NAME}-${service}:latest"
-    done
-    
-    print_success "GCP deployment completed"
-    
-    # Display GCP resources
-    echo ""
-    echo "🎯 GCP Resources Created:"
-    echo "├── Container Registry: ${#services[@]} images"
-    echo "├── Project: $GCP_PROJECT_ID"
-    echo "└── Region: $GCP_REGION"
-}
+
 
 # Run health checks
 run_health_checks() {
@@ -314,7 +230,7 @@ main() {
     # Parse arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
-            local|aws|gcp|production)
+            local|production)
                 environment="$1"
                 shift
                 ;;
@@ -382,22 +298,8 @@ main() {
             deploy_local
             process_data
             ;;
-        aws)
-            deploy_aws
-            ;;
-        gcp)
-            deploy_gcp
-            ;;
         production)
-            # Auto-detect cloud environment or default to local
-            if command -v aws &> /dev/null && [ -n "$AWS_DEFAULT_REGION" ]; then
-                deploy_aws
-            elif command -v gcloud &> /dev/null && [ -n "$(gcloud config get-value project)" ]; then
-                deploy_gcp
-            else
-                deploy_local
-                process_data
-            fi
+            deploy_production
             ;;
         *)
             print_error "Unknown environment: $environment"
