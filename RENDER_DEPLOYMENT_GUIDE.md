@@ -163,8 +163,14 @@ Environment Variables:
 # System Health
 curl https://bhiv-hr-gateway.onrender.com/health
 
-# Detailed Metrics
+# Detailed Health Check
+curl https://bhiv-hr-gateway.onrender.com/health/detailed
+
+# Prometheus Metrics
 curl https://bhiv-hr-gateway.onrender.com/metrics
+
+# Real-time Dashboard
+curl https://bhiv-hr-gateway.onrender.com/metrics/dashboard
 
 # Database Status
 curl -H "Authorization: Bearer myverysecureapikey123" \
@@ -304,7 +310,7 @@ open https://bhiv-hr-gateway.onrender.com/docs
 ✅ **All 5 services successfully deployed on Render**
 ✅ **Zero monthly cost (Free tier)**
 ✅ **Production-ready with 99.9% uptime target**
-✅ **Comprehensive API with 43 endpoints**
+✅ **Comprehensive API with 46 endpoints including advanced monitoring**
 ✅ **AI-powered candidate matching active**
 ✅ **Dual portal system operational**
 ✅ **Enterprise-grade security features**
