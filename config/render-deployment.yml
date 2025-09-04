@@ -28,7 +28,7 @@ services:
     start_command: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     public_url: https://bhiv-hr-gateway.onrender.com
     docs_url: https://bhiv-hr-gateway.onrender.com/docs
-    status: 🔄 Deploying
+    status: ✅ Active
     environment_variables:
       - DATABASE_URL: [Internal Database URL]
       - API_KEY_SECRET: myverysecureapikey123
