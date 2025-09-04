@@ -45,7 +45,7 @@ curl https://bhiv-hr-agent.onrender.com/health
 │  │   PostgreSQL    │  │   API Gateway   │  │  AI Agent    │ │
 │  │   Database      │  │   (FastAPI)     │  │  (FastAPI)   │ │
 │  │   Port: 5432    │  │   Port: 8000    │  │  Port: 9000  │ │
-│  │   Free Tier     │  │   43 Endpoints  │  │  Matching    │ │
+│  │   Free Tier     │  │   46 Endpoints  │  │  Matching    │ │
 │  └─────────────────┘  └─────────────────┘  └──────────────┘ │
 │           │                     │                    │      │
 │           └─────────────────────┼────────────────────┘      │
