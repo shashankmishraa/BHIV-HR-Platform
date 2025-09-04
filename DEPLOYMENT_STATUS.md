@@ -14,7 +14,7 @@
 
 | Service | URL | Status | Response Time | Features |
 |---------|-----|--------|---------------|----------|
-| **API Gateway** | https://bhiv-hr-gateway.onrender.com | 🟢 Live | <100ms | 43 Endpoints, Security, 2FA |
+| **API Gateway** | https://bhiv-hr-gateway.onrender.com | 🟢 Live | <100ms | 46 Endpoints, Security, 2FA, Monitoring |
 | **AI Matching** | https://bhiv-hr-agent.onrender.com | 🟢 Live | <50ms | Real-time Matching, Bias Mitigation |
 | **HR Portal** | https://bhiv-hr-portal.onrender.com | 🟢 Live | <200ms | Dashboard, Analytics, Job Management |
 | **Client Portal** | https://bhiv-hr-client-portal.onrender.com | 🟢 Live | <200ms | Client Auth, Job Posting, Reviews |
@@ -25,7 +25,7 @@
 ## 📊 Key Metrics
 
 - **Total Services**: 5 (Database + 4 Web Services)
-- **API Endpoints**: 43 interactive endpoints
+- **API Endpoints**: 46 interactive endpoints
 - **Monthly Cost**: $0 (Free Tier)
 - **Uptime Target**: 99.9%
 - **Global Access**: ✅ HTTPS Enabled
@@ -73,6 +73,13 @@ curl -H "Authorization: Bearer myverysecureapikey123" \
 - **AI Matching**: <0.02 seconds
 - **Cold Start**: 30-60 seconds (free tier)
 - **Concurrent Users**: Multi-user support
+
+### Monitoring & Analytics
+- **Prometheus Metrics**: Real-time system monitoring
+- **Health Checks**: Comprehensive service health tracking
+- **Performance Analytics**: Response times, error rates, resource usage
+- **Business Metrics**: Job postings, matches, user activity
+- **Documentation**: Daily reflections, bias analysis, architecture guides
 
 ---
 
