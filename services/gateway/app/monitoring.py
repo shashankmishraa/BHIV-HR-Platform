@@ -1,244 +1,330 @@
-from fastapi import FastAPI, HTTPException
-from datetime import datetime, timezone
-import psutil
-import time
-import logging
-from typing import Dict, List
-import asyncio
+# Advanced Monitoring System for BHIV HR Platform
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+import logging
+import time
+from datetime import datetime, timedelta
+from collections import defaultdict, deque
+from typing import Dict, List, Optional
+import json
+import asyncio
+from prometheus_client import Counter, Histogram, Gauge, generate_latest
+from dataclasses import dataclass
+import psutil
+import requests
+
+# Configure structured logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('logs/bhiv_hr_platform.log'),
+        logging.StreamHandler()
+    ]
+)
+
 logger = logging.getLogger(__name__)
 
-class SystemMonitor:
+# Prometheus Metrics
+resume_processed_total = Counter('resumes_processed_total', 'Total resumes processed', ['status'])
+api_response_time = Histogram('api_response_seconds', 'API response time', ['endpoint', 'method'])
+active_users = Gauge('active_users_current', 'Current active users')
+database_connections = Gauge('database_connections_active', 'Active database connections')
+match_success_rate = Gauge('match_success_rate', 'AI matching success rate')
+error_rate = Counter('errors_total', 'Total errors', ['error_type', 'service'])
+
+# Business Metrics
+job_postings_created = Counter('job_postings_created_total', 'Total job postings created')
+candidate_matches_generated = Counter('candidate_matches_total', 'Total candidate matches generated')
+portal_page_views = Counter('portal_page_views_total', 'Portal page views', ['portal_type', 'page'])
+user_sessions = Counter('user_sessions_total', 'User sessions', ['session_type'])
+
+@dataclass
+class PerformanceMetric:
+    """Performance metric data structure"""
+    timestamp: datetime
+    metric_name: str
+    value: float
+    metadata: Dict
+
+class AdvancedMonitor:
+    """Advanced monitoring and metrics collection system"""
+    
     def __init__(self):
-        self.start_time = time.time()
-        self.request_count = 0
-        self.error_count = 0
-        self.response_times = []
-        self.api_latency = []
-        self.resume_processing_errors = []
+        self.metrics_buffer = deque(maxlen=10000)
+        self.error_buffer = deque(maxlen=1000)
+        self.performance_history = defaultdict(list)
+        self.alert_thresholds = {
+            'api_response_time': 2.0,  # seconds
+            'error_rate': 0.05,        # 5%
+            'database_connections': 50,
+            'memory_usage': 0.85       # 85%
+        }
+        self.start_time = datetime.now()
         
-    def record_request(self, response_time: float, status_code: int):
-        """Record API request metrics"""
-        self.request_count += 1
-        self.response_times.append(response_time)
-        self.api_latency.append(response_time)
+    def log_resume_processing(self, status: str, processing_time: float, file_size: int):
+        """Log resume processing metrics"""
+        resume_processed_total.labels(status=status).inc()
+        
+        metric = PerformanceMetric(
+            timestamp=datetime.now(),
+            metric_name='resume_processing',
+            value=processing_time,
+            metadata={
+                'status': status,
+                'file_size': file_size,
+                'processing_rate': file_size / processing_time if processing_time > 0 else 0
+            }
+        )
+        self.metrics_buffer.append(metric)
+        
+        logger.info(f"Resume processed: status={status}, time={processing_time:.2f}s, size={file_size}b")
+    
+    def log_api_request(self, endpoint: str, method: str, response_time: float, status_code: int):
+        """Log API request metrics"""
+        api_response_time.labels(endpoint=endpoint, method=method).observe(response_time)
         
         if status_code >= 400:
-            self.error_count += 1
+            error_rate.labels(error_type=f"http_{status_code}", service="gateway").inc()
             
-        # Keep only last 1000 entries
-        if len(self.response_times) > 1000:
-            self.response_times = self.response_times[-1000:]
-        if len(self.api_latency) > 1000:
-            self.api_latency = self.api_latency[-1000:]
+        metric = PerformanceMetric(
+            timestamp=datetime.now(),
+            metric_name='api_request',
+            value=response_time,
+            metadata={
+                'endpoint': endpoint,
+                'method': method,
+                'status_code': status_code
+            }
+        )
+        self.metrics_buffer.append(metric)
     
-    def record_resume_error(self, error: str, file_name: str):
-        """Record resume processing errors"""
-        self.resume_processing_errors.append({
-            'timestamp': datetime.now(timezone.utc).isoformat(),
-            'error': error,
-            'file_name': file_name
-        })
+    def log_matching_performance(self, job_id: int, candidates_processed: int, 
+                               matches_found: int, processing_time: float):
+        """Log AI matching performance"""
+        success_rate = matches_found / candidates_processed if candidates_processed > 0 else 0
+        match_success_rate.set(success_rate)
+        candidate_matches_generated.inc(matches_found)
         
-        # Keep only last 100 errors
-        if len(self.resume_processing_errors) > 100:
-            self.resume_processing_errors = self.resume_processing_errors[-100:]
+        metric = PerformanceMetric(
+            timestamp=datetime.now(),
+            metric_name='ai_matching',
+            value=processing_time,
+            metadata={
+                'job_id': job_id,
+                'candidates_processed': candidates_processed,
+                'matches_found': matches_found,
+                'success_rate': success_rate
+            }
+        )
+        self.metrics_buffer.append(metric)
+        
+        logger.info(f"AI matching completed: job_id={job_id}, "
+                   f"processed={candidates_processed}, matches={matches_found}, "
+                   f"time={processing_time:.2f}s, success_rate={success_rate:.2%}")
     
-    def get_metrics(self) -> Dict:
-        """Get current system metrics"""
-        uptime = time.time() - self.start_time
+    def log_user_activity(self, user_id: str, action: str, portal_type: str, page: str = None):
+        """Log user activity and engagement"""
+        user_sessions.labels(session_type=portal_type).inc()
         
-        # Calculate averages
-        avg_response_time = sum(self.response_times) / len(self.response_times) if self.response_times else 0
-        avg_api_latency = sum(self.api_latency) / len(self.api_latency) if self.api_latency else 0
+        if page:
+            portal_page_views.labels(portal_type=portal_type, page=page).inc()
         
-        # System metrics
+        logger.info(f"User activity: user_id={user_id}, action={action}, "
+                   f"portal={portal_type}, page={page}")
+    
+    def log_error(self, error_type: str, service: str, error_message: str, 
+                  stack_trace: str = None, metadata: Dict = None):
+        """Log errors with structured information"""
+        error_rate.labels(error_type=error_type, service=service).inc()
+        
+        error_data = {
+            'timestamp': datetime.now().isoformat(),
+            'error_type': error_type,
+            'service': service,
+            'message': error_message,
+            'stack_trace': stack_trace,
+            'metadata': metadata or {}
+        }
+        
+        self.error_buffer.append(error_data)
+        
+        logger.error(f"Error logged: {error_type} in {service} - {error_message}")
+    
+    def collect_system_metrics(self):
+        """Collect system-level performance metrics"""
+        # CPU and Memory
         cpu_percent = psutil.cpu_percent(interval=1)
         memory = psutil.virtual_memory()
         disk = psutil.disk_usage('/')
         
-        return {
-            'system': {
-                'uptime_seconds': round(uptime, 2),
-                'cpu_percent': cpu_percent,
-                'memory_percent': memory.percent,
-                'memory_used_gb': round(memory.used / (1024**3), 2),
-                'memory_total_gb': round(memory.total / (1024**3), 2),
-                'disk_percent': disk.percent,
-                'disk_used_gb': round(disk.used / (1024**3), 2),
-                'disk_total_gb': round(disk.total / (1024**3), 2)
-            },
-            'api': {
-                'total_requests': self.request_count,
-                'error_count': self.error_count,
-                'error_rate': round((self.error_count / self.request_count * 100) if self.request_count > 0 else 0, 2),
-                'avg_response_time_ms': round(avg_response_time * 1000, 2),
-                'avg_api_latency_ms': round(avg_api_latency * 1000, 2),
-                'requests_per_minute': round((self.request_count / (uptime / 60)) if uptime > 0 else 0, 2)
-            },
-            'resume_processing': {
-                'total_errors': len(self.resume_processing_errors),
-                'recent_errors': self.resume_processing_errors[-10:] if self.resume_processing_errors else []
-            },
-            'timestamp': datetime.now(timezone.utc).isoformat()
+        # Database connections (mock - replace with actual DB monitoring)
+        db_connections = self._get_database_connections()
+        database_connections.set(db_connections)
+        
+        # Active users (mock - replace with actual session tracking)
+        active_user_count = self._get_active_users()
+        active_users.set(active_user_count)
+        
+        system_metrics = {
+            'cpu_percent': cpu_percent,
+            'memory_percent': memory.percent,
+            'memory_available': memory.available,
+            'disk_percent': disk.percent,
+            'database_connections': db_connections,
+            'active_users': active_user_count
         }
+        
+        # Check for alerts
+        self._check_system_alerts(system_metrics)
+        
+        return system_metrics
+    
+    def _get_database_connections(self) -> int:
+        """Get current database connection count"""
+        # Mock implementation - replace with actual database monitoring
+        return len(self.metrics_buffer) % 20 + 5
+    
+    def _get_active_users(self) -> int:
+        """Get current active user count"""
+        # Mock implementation - replace with actual session tracking
+        recent_activity = [m for m in self.metrics_buffer 
+                          if m.timestamp > datetime.now() - timedelta(minutes=15)]
+        return len(set(m.metadata.get('user_id') for m in recent_activity 
+                      if m.metadata.get('user_id')))
+    
+    def _check_system_alerts(self, metrics: Dict):
+        """Check system metrics against alert thresholds"""
+        alerts = []
+        
+        if metrics['memory_percent'] > self.alert_thresholds['memory_usage'] * 100:
+            alerts.append({
+                'type': 'HIGH_MEMORY_USAGE',
+                'severity': 'WARNING',
+                'message': f"Memory usage at {metrics['memory_percent']:.1f}%",
+                'threshold': f"{self.alert_thresholds['memory_usage'] * 100}%"
+            })
+        
+        if metrics['database_connections'] > self.alert_thresholds['database_connections']:
+            alerts.append({
+                'type': 'HIGH_DB_CONNECTIONS',
+                'severity': 'WARNING',
+                'message': f"Database connections: {metrics['database_connections']}",
+                'threshold': self.alert_thresholds['database_connections']
+            })
+        
+        for alert in alerts:
+            logger.warning(f"ALERT: {alert['type']} - {alert['message']}")
+    
+    def get_performance_summary(self, hours: int = 24) -> Dict:
+        """Get performance summary for the last N hours"""
+        cutoff_time = datetime.now() - timedelta(hours=hours)
+        recent_metrics = [m for m in self.metrics_buffer if m.timestamp > cutoff_time]
+        
+        summary = {
+            'time_period': f"Last {hours} hours",
+            'total_requests': len([m for m in recent_metrics if m.metric_name == 'api_request']),
+            'avg_response_time': 0,
+            'error_count': len([m for m in recent_metrics if 'error' in m.metadata.get('status', '')]),
+            'resumes_processed': len([m for m in recent_metrics if m.metric_name == 'resume_processing']),
+            'matches_generated': sum(m.metadata.get('matches_found', 0) 
+                                   for m in recent_metrics if m.metric_name == 'ai_matching'),
+            'uptime_hours': (datetime.now() - self.start_time).total_seconds() / 3600
+        }
+        
+        # Calculate average response time
+        api_metrics = [m for m in recent_metrics if m.metric_name == 'api_request']
+        if api_metrics:
+            summary['avg_response_time'] = sum(m.value for m in api_metrics) / len(api_metrics)
+        
+        return summary
+    
+    def get_business_metrics(self) -> Dict:
+        """Get business-specific metrics"""
+        return {
+            'total_job_postings': job_postings_created._value._value,
+            'total_matches_generated': candidate_matches_generated._value._value,
+            'total_resumes_processed': resume_processed_total._value._value,
+            'current_active_users': active_users._value._value,
+            'platform_uptime_hours': (datetime.now() - self.start_time).total_seconds() / 3600
+        }
+    
+    def export_prometheus_metrics(self) -> str:
+        """Export metrics in Prometheus format"""
+        return generate_latest()
+    
+    def health_check(self) -> Dict:
+        """Comprehensive health check"""
+        system_metrics = self.collect_system_metrics()
+        performance_summary = self.get_performance_summary(1)  # Last hour
+        
+        health_status = {
+            'status': 'healthy',
+            'timestamp': datetime.now().isoformat(),
+            'system': {
+                'cpu_percent': system_metrics['cpu_percent'],
+                'memory_percent': system_metrics['memory_percent'],
+                'disk_percent': system_metrics['disk_percent']
+            },
+            'application': {
+                'uptime_hours': performance_summary['uptime_hours'],
+                'avg_response_time': performance_summary['avg_response_time'],
+                'error_rate': performance_summary['error_count'] / max(performance_summary['total_requests'], 1)
+            },
+            'database': {
+                'connections': system_metrics['database_connections'],
+                'status': 'connected'
+            }
+        }
+        
+        # Determine overall health status
+        if (system_metrics['memory_percent'] > 90 or 
+            performance_summary['avg_response_time'] > 5.0 or
+            health_status['application']['error_rate'] > 0.1):
+            health_status['status'] = 'degraded'
+        
+        return health_status
 
 # Global monitor instance
-monitor = SystemMonitor()
+monitor = AdvancedMonitor()
 
-def add_monitoring_endpoints(app: FastAPI):
-    """Add monitoring endpoints to FastAPI app"""
+# Middleware for automatic request monitoring
+class MonitoringMiddleware:
+    """FastAPI middleware for automatic monitoring"""
     
-    @app.get("/metrics", tags=["Monitoring"])
-    async def get_metrics():
-        """Get comprehensive system metrics"""
-        return monitor.get_metrics()
+    def __init__(self, app):
+        self.app = app
     
-    @app.get("/metrics/dashboard", tags=["Monitoring"])
-    async def get_dashboard_metrics():
-        """Get metrics formatted for dashboard display"""
-        metrics = monitor.get_metrics()
-        
-        return {
-            'status': 'healthy' if metrics['system']['cpu_percent'] < 80 and metrics['system']['memory_percent'] < 80 else 'warning',
-            'uptime': f"{metrics['system']['uptime_seconds']:.0f}s",
-            'performance': {
-                'cpu': f"{metrics['system']['cpu_percent']:.1f}%",
-                'memory': f"{metrics['system']['memory_percent']:.1f}%",
-                'disk': f"{metrics['system']['disk_percent']:.1f}%"
-            },
-            'api_health': {
-                'requests': metrics['api']['total_requests'],
-                'errors': metrics['api']['error_count'],
-                'error_rate': f"{metrics['api']['error_rate']:.1f}%",
-                'avg_latency': f"{metrics['api']['avg_response_time_ms']:.1f}ms"
-            },
-            'alerts': generate_alerts(metrics)
-        }
-    
-    @app.get("/health/detailed", tags=["Monitoring"])
-    async def detailed_health_check():
-        """Detailed health check with component status"""
-        metrics = monitor.get_metrics()
-        
-        # Component health checks
-        components = {
-            'api_server': 'healthy',
-            'database': check_database_health(),
-            'ai_agent': check_ai_agent_health(),
-            'file_system': 'healthy' if metrics['system']['disk_percent'] < 90 else 'warning',
-            'memory': 'healthy' if metrics['system']['memory_percent'] < 80 else 'warning',
-            'cpu': 'healthy' if metrics['system']['cpu_percent'] < 80 else 'warning'
-        }
-        
-        overall_status = 'healthy' if all(status == 'healthy' for status in components.values()) else 'degraded'
-        
-        return {
-            'overall_status': overall_status,
-            'components': components,
-            'metrics': metrics,
-            'timestamp': datetime.now(timezone.utc).isoformat()
-        }
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            start_time = time.time()
+            
+            # Process request
+            await self.app(scope, receive, send)
+            
+            # Log metrics
+            response_time = time.time() - start_time
+            endpoint = scope.get("path", "unknown")
+            method = scope.get("method", "unknown")
+            
+            monitor.log_api_request(endpoint, method, response_time, 200)  # Assume 200 for now
+        else:
+            await self.app(scope, receive, send)
 
-def generate_alerts(metrics: Dict) -> List[Dict]:
-    """Generate alerts based on metrics"""
-    alerts = []
-    
-    # CPU alert
-    if metrics['system']['cpu_percent'] > 80:
-        alerts.append({
-            'type': 'warning',
-            'component': 'cpu',
-            'message': f"High CPU usage: {metrics['system']['cpu_percent']:.1f}%",
-            'threshold': '80%'
-        })
-    
-    # Memory alert
-    if metrics['system']['memory_percent'] > 80:
-        alerts.append({
-            'type': 'warning',
-            'component': 'memory',
-            'message': f"High memory usage: {metrics['system']['memory_percent']:.1f}%",
-            'threshold': '80%'
-        })
-    
-    # Disk alert
-    if metrics['system']['disk_percent'] > 85:
-        alerts.append({
-            'type': 'warning',
-            'component': 'disk',
-            'message': f"High disk usage: {metrics['system']['disk_percent']:.1f}%",
-            'threshold': '85%'
-        })
-    
-    # Error rate alert
-    if metrics['api']['error_rate'] > 5:
-        alerts.append({
-            'type': 'error',
-            'component': 'api',
-            'message': f"High error rate: {metrics['api']['error_rate']:.1f}%",
-            'threshold': '5%'
-        })
-    
-    # Response time alert
-    if metrics['api']['avg_response_time_ms'] > 500:
-        alerts.append({
-            'type': 'warning',
-            'component': 'api',
-            'message': f"Slow response time: {metrics['api']['avg_response_time_ms']:.1f}ms",
-            'threshold': '500ms'
-        })
-    
-    return alerts
+# Utility functions for easy integration
+def log_resume_processing(status: str, processing_time: float, file_size: int):
+    """Convenience function for logging resume processing"""
+    monitor.log_resume_processing(status, processing_time, file_size)
 
-def check_database_health() -> str:
-    """Check database connectivity"""
-    try:
-        import psycopg2
-        import os
-        
-        conn = psycopg2.connect(
-            host=os.getenv("DB_HOST", "db"),
-            database=os.getenv("DB_NAME", "bhiv_hr"),
-            user=os.getenv("DB_USER", "bhiv_user"),
-            password=os.getenv("DB_PASSWORD", "bhiv_pass"),
-            port=os.getenv("DB_PORT", "5432"),
-            connect_timeout=5
-        )
-        cursor = conn.cursor()
-        cursor.execute("SELECT 1")
-        conn.close()
-        return 'healthy'
-    except Exception:
-        return 'unhealthy'
+def log_matching_performance(job_id: int, candidates_processed: int, 
+                           matches_found: int, processing_time: float):
+    """Convenience function for logging matching performance"""
+    monitor.log_matching_performance(job_id, candidates_processed, matches_found, processing_time)
 
-def check_ai_agent_health() -> str:
-    """Check AI agent connectivity"""
-    try:
-        import httpx
-        response = httpx.get("http://agent:9000/health", timeout=5)
-        return 'healthy' if response.status_code == 200 else 'unhealthy'
-    except Exception:
-        return 'unhealthy'
+def log_user_activity(user_id: str, action: str, portal_type: str, page: str = None):
+    """Convenience function for logging user activity"""
+    monitor.log_user_activity(user_id, action, portal_type, page)
 
-# Middleware for request monitoring
-async def monitoring_middleware(request, call_next):
-    """Middleware to monitor API requests"""
-    start_time = time.time()
-    
-    try:
-        response = await call_next(request)
-        process_time = time.time() - start_time
-        monitor.record_request(process_time, response.status_code)
-        
-        # Add performance headers
-        response.headers["X-Process-Time"] = str(round(process_time * 1000, 2))
-        return response
-        
-    except Exception as e:
-        process_time = time.time() - start_time
-        monitor.record_request(process_time, 500)
-        logger.error(f"Request failed: {str(e)}")
-        raise
+def log_error(error_type: str, service: str, error_message: str, 
+              stack_trace: str = None, metadata: Dict = None):
+    """Convenience function for logging errors"""
+    monitor.log_error(error_type, service, error_message, stack_trace, metadata)
