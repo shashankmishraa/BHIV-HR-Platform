@@ -1,0 +1,80 @@
+services:
+  # PostgreSQL Database
+  - type: pserv
+    name: bhiv-hr-database
+    env: docker
+    plan: free
+    dockerfilePath: ./services/db/Dockerfile
+    envVars:
+      - key: POSTGRES_DB
+        value: bhiv_hr
+      - key: POSTGRES_USER
+        value: bhiv_user
+      - key: POSTGRES_PASSWORD
+        generateValue: true
+
+  # API Gateway Service
+  - type: web
+    name: bhiv-hr-gateway
+    env: docker
+    plan: free
+    dockerfilePath: ./services/gateway/Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromService:
+          type: pserv
+          name: bhiv-hr-database
+          property: connectionString
+      - key: API_KEY_SECRET
+        generateValue: true
+      - key: PORT
+        value: 8000
+
+  # AI Agent Service
+  - type: web
+    name: bhiv-hr-agent
+    env: docker
+    plan: free
+    dockerfilePath: ./services/agent/Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromService:
+          type: pserv
+          name: bhiv-hr-database
+          property: connectionString
+      - key: PORT
+        value: 9000
+
+  # HR Portal
+  - type: web
+    name: bhiv-hr-portal
+    env: docker
+    plan: free
+    dockerfilePath: ./services/portal/Dockerfile
+    envVars:
+      - key: GATEWAY_URL
+        fromService:
+          type: web
+          name: bhiv-hr-gateway
+          property: host
+      - key: API_KEY_SECRET
+        sync: false
+      - key: PORT
+        value: 8501
+
+  # Client Portal
+  - type: web
+    name: bhiv-hr-client-portal
+    env: docker
+    plan: free
+    dockerfilePath: ./services/client_portal/Dockerfile
+    envVars:
+      - key: GATEWAY_URL
+        fromService:
+          type: web
+          name: bhiv-hr-gateway
+          property: host
+      - key: API_KEY_SECRET
+        sync: false
+      - key: PORT
+        value: 8502
