@@ -1,9 +1,0 @@
-logs/
-*.log
-__pycache__/
-*.pyc
-.env
-.DS_Store
-node_modules/
-dist/
-build/
