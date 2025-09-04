@@ -12,7 +12,7 @@ from sqlalchemy import create_engine, text
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
 import time
-# from .monitoring import add_monitoring_endpoints, monitoring_middleware, monitor
+from monitoring import monitor, log_resume_processing, log_matching_performance, log_user_activity, log_error
 
 security = HTTPBearer()
 
@@ -30,11 +30,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Add monitoring middleware
-# app.middleware("http")(monitoring_middleware)
-
 # Add monitoring endpoints
-# add_monitoring_endpoints(app)
+@app.get("/metrics", tags=["Monitoring"])
+async def get_prometheus_metrics():
+    """Prometheus Metrics Export"""
+    return Response(content=monitor.export_prometheus_metrics(), media_type="text/plain")
+
+@app.get("/health/detailed", tags=["Monitoring"])
+async def detailed_health_check():
+    """Detailed Health Check with Metrics"""
+    return monitor.health_check()
+
+@app.get("/metrics/dashboard", tags=["Monitoring"])
+async def metrics_dashboard():
+    """Metrics Dashboard Data"""
+    return {
+        "performance_summary": monitor.get_performance_summary(24),
+        "business_metrics": monitor.get_business_metrics(),
+        "system_metrics": monitor.collect_system_metrics()
+    }
 
 # Rate limiting middleware
 from collections import defaultdict
