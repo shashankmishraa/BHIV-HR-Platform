@@ -155,7 +155,11 @@ class AdvancedMonitor:
         # CPU and Memory
         cpu_percent = psutil.cpu_percent(interval=1)
         memory = psutil.virtual_memory()
-        disk = psutil.disk_usage('/')
+        try:
+            disk = psutil.disk_usage('/')
+        except:
+            # Windows fallback
+            disk = psutil.disk_usage('C:\\')
         
         # Database connections (mock - replace with actual DB monitoring)
         db_connections = self._get_database_connections()
@@ -240,13 +244,50 @@ class AdvancedMonitor:
     
     def get_business_metrics(self) -> Dict:
         """Get business-specific metrics"""
-        return {
-            'total_job_postings': job_postings_created._value._value,
-            'total_matches_generated': candidate_matches_generated._value._value,
-            'total_resumes_processed': resume_processed_total._value._value,
-            'current_active_users': active_users._value._value,
-            'platform_uptime_hours': (datetime.now() - self.start_time).total_seconds() / 3600
-        }
+        try:
+            # Get metric values safely
+            job_count = 0
+            matches_count = 0
+            resumes_count = 0
+            users_count = 0
+            
+            # Try to get actual values from Prometheus metrics
+            try:
+                job_count = job_postings_created._value._value
+            except:
+                job_count = 0
+                
+            try:
+                matches_count = candidate_matches_generated._value._value
+            except:
+                matches_count = 0
+                
+            try:
+                resumes_count = sum(sample.value for sample in resume_processed_total.collect()[0].samples)
+            except:
+                resumes_count = 0
+                
+            try:
+                users_count = active_users._value._value
+            except:
+                users_count = 0
+            
+            return {
+                'total_job_postings': job_count,
+                'total_matches_generated': matches_count,
+                'total_resumes_processed': resumes_count,
+                'current_active_users': users_count,
+                'platform_uptime_hours': (datetime.now() - self.start_time).total_seconds() / 3600
+            }
+        except Exception as e:
+            logger.error(f"Error getting business metrics: {e}")
+            return {
+                'total_job_postings': 0,
+                'total_matches_generated': 0,
+                'total_resumes_processed': 0,
+                'current_active_users': 0,
+                'platform_uptime_hours': (datetime.now() - self.start_time).total_seconds() / 3600
+            }
     
     def export_prometheus_metrics(self) -> str:
         """Export metrics in Prometheus format"""
