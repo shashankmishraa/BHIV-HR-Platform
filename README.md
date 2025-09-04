@@ -5,11 +5,11 @@
 ## 🌐 Live Production Platform
 
 ### **✅ Currently Deployed on Render**
-- **API Gateway**: https://bhiv-hr-gateway.onrender.com/docs
+- **API Gateway**: https://bhiv-hr-gateway.onrender.com/docs (🔄 Deploying)
 - **AI Matching Engine**: https://bhiv-hr-agent.onrender.com/docs  
 - **HR Portal**: https://bhiv-hr-portal.onrender.com/
 - **Client Portal**: https://bhiv-hr-client-portal.onrender.com/
-- **Status**: 🟢 **LIVE & OPERATIONAL** | **Cost**: $0/month (Free tier)
+- **Status**: 🟡 **4/5 SERVICES LIVE** | **Cost**: $0/month (Free tier)
 
 ### **🔑 Demo Access**
 ```bash
@@ -68,7 +68,7 @@ python tools/dynamic_job_creator.py --count 10
 ### **Microservices Overview**
 | Service | Purpose | Technology | Port | Status |
 |---------|---------|------------|------|--------|
-| **API Gateway** | REST API Backend | FastAPI 3.1.0 | 8000 | ✅ Live |
+| **API Gateway** | REST API Backend | FastAPI 3.1.0 | 8000 | 🔄 Deploying |
 | **AI Agent** | Candidate Matching | FastAPI 2.1.0 | 9000 | ✅ Live |
 | **HR Portal** | HR Dashboard | Streamlit | 8501 | ✅ Live |
 | **Client Portal** | Client Interface | Streamlit | 8502 | ✅ Live |
