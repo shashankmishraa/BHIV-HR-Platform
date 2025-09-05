@@ -206,18 +206,8 @@ class DatabaseInit(BaseModel):
     action: str = "create_schema"
     force: bool = False
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 # Global database engine instance for connection pooling
 _db_engine = None
-
-=======
->>>>>>> 59bcb854b0302336964f60e30ed19959cc868979
-=======
-# Global database engine instance for connection pooling
-_db_engine = None
-
->>>>>>> 0cc197d9620be05bcffcffa5eb71cf80db6e0e95
 def get_db_engine():
     global _db_engine
     if _db_engine is None:
@@ -648,20 +638,6 @@ async def test_security_headers(response: Response, api_key: str = Depends(get_a
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    response.headers["Content-Security-Policy"] = "default-src 'self'"
-    
-    return {
-        "security_headers": {
-            "X-Content-Type-Options": "nosniff",
-            "X-Frame-Options": "DENY",
-            "X-XSS-Protection": "1; mode=block",
-            "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
-            "Content-Security-Policy": "default-src 'self'"
-        },
-        "headers_count": 5,
-        "status": "all_headers_applied"
-    }ck"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     response.headers["Content-Security-Policy"] = "default-src 'self'"
     
