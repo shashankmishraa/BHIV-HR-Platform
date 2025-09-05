@@ -206,9 +206,12 @@ class DatabaseInit(BaseModel):
     action: str = "create_schema"
     force: bool = False
 
+<<<<<<< HEAD
 # Global database engine instance for connection pooling
 _db_engine = None
 
+=======
+>>>>>>> 59bcb854b0302336964f60e30ed19959cc868979
 def get_db_engine():
     global _db_engine
     if _db_engine is None:
