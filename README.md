@@ -9,7 +9,11 @@
 - **AI Matching Engine**: https://bhiv-hr-agent.onrender.com/docs ✅
 - **HR Portal**: https://bhiv-hr-portal.onrender.com/ ✅
 - **Client Portal**: https://bhiv-hr-client-portal.onrender.com/ ✅
+<<<<<<< HEAD
 - **Status**: 🟡 **4/5 SERVICES OPERATIONAL** (DB connection issue) | **Cost**: $0/month (Free tier)
+=======
+- **Status**: 🟢 **ALL SERVICES LIVE & OPERATIONAL** | **Cost**: $0/month (Free tier)
+>>>>>>> 7b58a5211c8708f4c47d823fa4b7e725263e4910
 
 ### **🔑 Demo Access**
 ```bash
@@ -239,6 +243,7 @@ python tests/test_final_verification.py  # Complete system test
 
 ## 📊 Performance Metrics
 
+<<<<<<< HEAD
 ### **Current Performance - Live Metrics**
 - **API Response Time**: <100ms average ✅
 - **System Health**: CPU 46.9%, Memory 59.5%, Disk 82.8% ✅
@@ -247,6 +252,15 @@ python tests/test_final_verification.py  # Complete system test
 - **Database Status**: Connection issues ⚠️
 - **Monitoring**: Prometheus metrics active ✅
 - **AI Agent**: Operational, 3 endpoints ✅
+=======
+### **Current Performance**
+- **API Response Time**: <100ms average
+- **AI Matching Speed**: <0.02 seconds
+- **Resume Processing**: 1-2 seconds per file
+- **Uptime**: 99.9% target (production)
+- **Concurrent Users**: Multi-user support
+- **Rate Limiting**: Granular limits by endpoint and user tier
+>>>>>>> 7b58a5211c8708f4c47d823fa4b7e725263e4910
 
 ### **System Monitoring**
 ```bash
@@ -343,9 +357,15 @@ python tools/auto_sync_watcher.py
 - **Testing**: Comprehensive test suite with security validation
 - **Local Development**: Docker Compose setup with health checks
 
+<<<<<<< HEAD
 ### **📈 System Metrics - Live Status**
 - **Total Services**: 5 (Database + 4 Web Services) - 4/5 fully operational
 - **API Endpoints**: 46 total (Core: ✅, Data: ⚠️, Monitoring: ✅, Security: ✅)
+=======
+### **📈 System Metrics**
+- **Total Services**: 5 (Database + 4 Web Services)
+- **API Endpoints**: 46 interactive endpoints
+>>>>>>> 7b58a5211c8708f4c47d823fa4b7e725263e4910
 - **Monthly Cost**: $0 (Free tier deployment)
 - **Current Uptime**: 1.15 hours (session), System Health: Good
 - **Performance**: CPU 46.9%, Memory 59.5%, Response <100ms
