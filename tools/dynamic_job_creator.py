@@ -248,7 +248,7 @@ class DynamicJobCreator:
         try:
             # Remove non-API fields
             api_job_data = {k: v for k, v in job_data.items() 
-                           if k not in ['salary_range', 'employment_type', 'created_dynamically', 'market_trend_score']}
+                           if k not in ['salary_range', 'created_dynamically', 'market_trend_score']}
             
             response = requests.post(f"{API_BASE}/v1/jobs", json=api_job_data, headers=headers, timeout=10)
             
