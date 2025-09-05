@@ -223,7 +223,7 @@ def calculate_location_match(job_location: str, candidate_location: str) -> tupl
 def read_root():
     return {
         "service": "Talah AI Agent",
-        "version": "2.1.0",
+        "version": "1.0.0",
         "endpoints": {
             "match": "POST /match - Get top candidates for job",
             "analyze": "GET /analyze/{candidate_id} - Analyze candidate",
@@ -236,7 +236,7 @@ def health_check():
     return {
         "status": "healthy",
         "service": "Talah AI Agent",
-        "version": "2.1.0",
+        "version": "1.0.0",
         "timestamp": datetime.now().isoformat()
     }
 

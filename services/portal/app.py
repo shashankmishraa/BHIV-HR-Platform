@@ -9,7 +9,6 @@ st.set_page_config(page_title="BHIV HR Platform", page_icon="🎯", layout="wide
 import os
 
 API_BASE = os.getenv("GATEWAY_URL", "http://gateway:8000")
-AI_AGENT_URL = os.getenv("AI_AGENT_URL", "https://bhiv-hr-agent.onrender.com")
 API_KEY = os.getenv("API_KEY_SECRET", "myverysecureapikey123")
 headers = {"Authorization": f"Bearer {API_KEY}"}
 
@@ -88,7 +87,7 @@ if menu == "🏢 Create Job":
         with col2:
             experience_level = st.selectbox("Experience Level", ["Entry", "Mid", "Senior", "Lead"])
             employment_type = st.selectbox("Employment Type", ["Full-time", "Part-time", "Contract", "Intern"])
-            # client_id removed from form - will be set automatically
+            client_id = st.number_input("Client ID", min_value=1, step=1, value=1)
         
         description = st.text_area("Job Description", placeholder="Describe the role, responsibilities, and requirements...")
         requirements = st.text_area("Key Requirements", placeholder="List the essential skills, experience, and qualifications...")
@@ -96,14 +95,11 @@ if menu == "🏢 Create Job":
         submitted = st.form_submit_button("🚀 Create Job", use_container_width=True)
         
         if submitted and title and description:
-            # Actually create job via API - match JobCreate model exactly
+            # Actually create job via API
             job_data = {
                 "title": title,
-                "department": department,
-                "location": location,
-                "experience_level": experience_level,
-                "requirements": requirements,
-                "description": description
+                "description": f"{description}\n\nRequirements: {requirements}",
+                "client_id": client_id
             }
             
             try:
@@ -123,6 +119,7 @@ if menu == "🏢 Create Job":
                         "employment_type": employment_type,
                         "description": description,
                         "requirements": requirements,
+                        "client_id": client_id,
                         "status": "active",
                         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     }
@@ -1007,7 +1004,7 @@ with footer_col1:
 with footer_col2:
     st.markdown("**🤖 AI Status**")
     try:
-        ai_response = httpx.get(f"{AI_AGENT_URL}/health", timeout=5.0)
+        ai_response = httpx.get(f"http://agent:9000/health", timeout=3.0)
         if ai_response.status_code == 200:
             st.caption("✅ Talah AI: Online")
         else:

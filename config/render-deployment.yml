@@ -80,7 +80,6 @@ services:
     status: ✅ Active
     environment_variables:
       - GATEWAY_URL: https://bhiv-hr-gateway.onrender.com
-      - AI_AGENT_URL: https://bhiv-hr-agent.onrender.com
       - API_KEY_SECRET: myverysecureapikey123
     features:
       - HR dashboard interface

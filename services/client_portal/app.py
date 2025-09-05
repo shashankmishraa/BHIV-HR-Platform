@@ -36,10 +36,7 @@ def main():
         if jobs_response.status_code == 200:
             jobs_data = jobs_response.json()
             jobs = jobs_data.get('jobs', [])
-            import hashlib
-            client_id_str = st.session_state.get('client_id', 'TECH001')
-            client_id_num = int(hashlib.md5(client_id_str.encode()).hexdigest()[:3], 16) % 1000
-            client_jobs = [j for j in jobs if str(j.get('client_id', 0)) == str(client_id_num)]
+            client_jobs = [j for j in jobs if str(j.get('client_id', 0)) == str(hash(st.session_state.get('client_id', 'TECH001')) % 1000)]
             st.sidebar.success(f"📊 Your Jobs: {len(client_jobs)}")
         else:
             st.sidebar.info("📊 Jobs: Loading...")
@@ -210,8 +207,7 @@ def show_job_posting():
             
             # Get numeric client_id
             client_id_str = st.session_state.get('client_id', 'TECH001')
-            import hashlib
-            client_id_num = int(hashlib.md5(client_id_str.encode()).hexdigest()[:3], 16) % 1000
+            client_id_num = hash(client_id_str) % 1000  # Convert to number
             
             job_data = {
                 "title": job_title.strip(),

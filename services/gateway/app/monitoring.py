@@ -132,9 +132,7 @@ class AdvancedMonitor:
         if page:
             portal_page_views.labels(portal_type=portal_type, page=page).inc()
         
-        # Hash user_id for privacy
-        user_hash = hash(user_id) % 10000 if user_id else 'anonymous'
-        logger.info(f"User activity: user_hash={user_hash}, action={action}, "
+        logger.info(f"User activity: user_id={user_id}, action={action}, "
                    f"portal={portal_type}, page={page}")
     
     def log_error(self, error_type: str, service: str, error_message: str, 
@@ -158,7 +156,7 @@ class AdvancedMonitor:
     def collect_system_metrics(self):
         """Collect system-level performance metrics"""
         # CPU and Memory
-        cpu_percent = psutil.cpu_percent()
+        cpu_percent = psutil.cpu_percent(interval=1)
         memory = psutil.virtual_memory()
         try:
             disk = psutil.disk_usage('/')

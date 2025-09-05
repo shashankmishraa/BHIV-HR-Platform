@@ -115,13 +115,8 @@ def trigger_resume_processing():
     with st.spinner("Processing resumes..."):
         try:
             import subprocess
-            import shutil
-            python_path = shutil.which("python") or shutil.which("python3")
-            if not python_path:
-                raise RuntimeError("Python interpreter not found")
-            
             result = subprocess.run(
-                [python_path, "tools/comprehensive_resume_extractor.py"],
+                ["python", "tools/comprehensive_resume_extractor.py"],
                 capture_output=True,
                 text=True,
                 cwd="."
@@ -134,7 +129,7 @@ def trigger_resume_processing():
                 
                 # Trigger database sync
                 sync_result = subprocess.run(
-                    [python_path, "tools/database_sync_manager.py"],
+                    ["python", "tools/database_sync_manager.py"],
                     capture_output=True,
                     text=True,
                     cwd="."

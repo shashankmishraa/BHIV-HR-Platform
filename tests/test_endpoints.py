@@ -66,12 +66,12 @@ def test_job_endpoints():
     job_data = {
         "title": "Test Python Developer",
         "description": "Test job for endpoint validation",
+        "client_id": 1,
         "department": "Engineering",
         "location": "Remote",
         "experience_level": "Senior",
-        "requirements": "Python, FastAPI",
-        "client_id": 1,
         "employment_type": "Full-time",
+        "requirements": "Python, FastAPI",
         "status": "active"
     }
     

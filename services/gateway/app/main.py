@@ -10,10 +10,9 @@ import io
 import base64
 from sqlalchemy import create_engine, text
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 import time
 from .monitoring import monitor, log_resume_processing, log_matching_performance, log_user_activity, log_error
-from .database_init import initialize_render_database
 
 security = HTTPBearer()
 
@@ -23,12 +22,9 @@ app = FastAPI(
     description="Enterprise HR Platform with Advanced Security Features"
 )
 
-# CORS configuration with specific origins
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "https://bhiv-hr-portal.onrender.com,https://bhiv-hr-client-portal.onrender.com,http://localhost:8501,http://localhost:8502").split(",")
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
@@ -91,7 +87,7 @@ def get_dynamic_rate_limit(endpoint: str, user_tier: str = "default") -> int:
     return base_limit
 
 async def rate_limit_middleware(request: Request, call_next):
-    client_ip = request.client.host if request.client and request.client.host else "unknown"
+    client_ip = request.client.host
     current_time = time.time()
     endpoint_path = request.url.path
     
@@ -132,9 +128,6 @@ class JobCreate(BaseModel):
     experience_level: str
     requirements: str
     description: str
-    client_id: Optional[int] = None
-    employment_type: Optional[str] = None
-    status: Optional[str] = "active"
 
 class CandidateBulk(BaseModel):
     candidates: List[Dict[str, Any]]
@@ -142,11 +135,11 @@ class CandidateBulk(BaseModel):
 class FeedbackSubmission(BaseModel):
     candidate_id: int
     job_id: int
-    integrity: int = Field(ge=1, le=5, description="Integrity score 1-5")
-    honesty: int = Field(ge=1, le=5, description="Honesty score 1-5")
-    discipline: int = Field(ge=1, le=5, description="Discipline score 1-5")
-    hard_work: int = Field(ge=1, le=5, description="Hard work score 1-5")
-    gratitude: int = Field(ge=1, le=5, description="Gratitude score 1-5")
+    integrity: int
+    honesty: int
+    discipline: int
+    hard_work: int
+    gratitude: int
     comments: Optional[str] = None
 
 class InterviewSchedule(BaseModel):
@@ -202,24 +195,9 @@ class PasswordChange(BaseModel):
     old_password: str
     new_password: str
 
-class DatabaseInit(BaseModel):
-    action: str = "create_schema"
-    force: bool = False
-
-# Global database engine instance for connection pooling
-_db_engine = None
 def get_db_engine():
-    global _db_engine
-    if _db_engine is None:
-        database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr")
-        _db_engine = create_engine(
-            database_url, 
-            pool_pre_ping=True, 
-            pool_recycle=3600,
-            pool_size=10,
-            max_overflow=20
-        )
-    return _db_engine
+    database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr")
+    return create_engine(database_url, pool_pre_ping=True, pool_recycle=3600)
 
 def validate_api_key(api_key: str) -> bool:
     expected_key = os.getenv("API_KEY_SECRET", "myverysecureapikey123")
@@ -287,8 +265,8 @@ async def create_job(job: JobCreate, api_key: str = Depends(get_api_key)):
         engine = get_db_engine()
         with engine.connect() as connection:
             query = text("""
-                INSERT INTO jobs (title, department, location, experience_level, requirements, description, status, client_id, created_at)
-                VALUES (:title, :department, :location, :experience_level, :requirements, :description, :status, :client_id, NOW())
+                INSERT INTO jobs (title, department, location, experience_level, requirements, description, status, created_at)
+                VALUES (:title, :department, :location, :experience_level, :requirements, :description, 'active', NOW())
                 RETURNING id
             """)
             result = connection.execute(query, {
@@ -297,9 +275,7 @@ async def create_job(job: JobCreate, api_key: str = Depends(get_api_key)):
                 "location": job.location,
                 "experience_level": job.experience_level,
                 "requirements": job.requirements,
-                "description": job.description,
-                "status": job.status or "active",
-                "client_id": str(job.client_id) if job.client_id else None
+                "description": job.description
             })
             connection.commit()
             job_id = result.fetchone()[0]
@@ -319,7 +295,7 @@ async def list_jobs(api_key: str = Depends(get_api_key)):
         engine = get_db_engine()
         with engine.connect() as connection:
             query = text("""
-                SELECT id, title, department, location, experience_level, requirements, description, client_id, created_at 
+                SELECT id, title, department, location, experience_level, requirements, description, created_at 
                 FROM jobs WHERE status = 'active' ORDER BY created_at DESC
             """)
             result = connection.execute(query)
@@ -331,8 +307,7 @@ async def list_jobs(api_key: str = Depends(get_api_key)):
                 "experience_level": row[4],
                 "requirements": row[5],
                 "description": row[6],
-                "client_id": row[7],
-                "created_at": row[8].isoformat() if row[8] else None
+                "created_at": row[7].isoformat() if row[7] else None
             } for row in result]
         return {"jobs": jobs, "count": len(jobs)}
     except Exception as e:
@@ -348,7 +323,7 @@ async def get_candidates_by_job(job_id: int, api_key: str = Depends(get_api_key)
     try:
         engine = get_db_engine()
         with engine.connect() as connection:
-            query = text("SELECT id, name, email, technical_skills, experience_years FROM candidates LIMIT 10")
+            query = text("SELECT id, name, email, skills, experience FROM candidates LIMIT 10")
             result = connection.execute(query)
             candidates = [{
                 "id": row[0],
@@ -372,10 +347,10 @@ async def search_candidates(skills: Optional[str] = None, api_key: str = Depends
         engine = get_db_engine()
         with engine.connect() as connection:
             if skills:
-                query = text("SELECT id, name, email, technical_skills FROM candidates WHERE technical_skills ILIKE :skills LIMIT 10")
+                query = text("SELECT id, name, email, skills FROM candidates WHERE skills ILIKE :skills LIMIT 10")
                 result = connection.execute(query, {"skills": f"%{skills}%"})
             else:
-                query = text("SELECT id, name, email, technical_skills FROM candidates LIMIT 10")
+                query = text("SELECT id, name, email, skills FROM candidates LIMIT 10")
                 result = connection.execute(query)
             
             candidates = [{
@@ -392,30 +367,10 @@ async def search_candidates(skills: Optional[str] = None, api_key: str = Depends
 @app.post("/v1/candidates/bulk", tags=["Candidate Management"])
 async def bulk_upload_candidates(candidates: CandidateBulk, api_key: str = Depends(get_api_key)):
     """Bulk Upload Candidates"""
-    if not candidates.candidates:
-        raise HTTPException(status_code=400, detail="No candidates provided")
-    
-    processed = 0
-    errors = []
-    
-    for i, candidate in enumerate(candidates.candidates):
-        try:
-            # Validate required fields
-            required_fields = ['name', 'email']
-            missing_fields = [field for field in required_fields if not candidate.get(field)]
-            if missing_fields:
-                errors.append(f"Candidate {i+1}: Missing fields {missing_fields}")
-                continue
-            processed += 1
-        except Exception as e:
-            errors.append(f"Candidate {i+1}: {str(e)}")
-    
     return {
-        "message": "Bulk upload completed",
+        "message": "Bulk upload candidates",
         "candidates_received": len(candidates.candidates),
-        "candidates_processed": processed,
-        "errors": errors[:10],  # Limit error messages
-        "status": "completed" if not errors else "completed_with_errors"
+        "status": "processed"
     }
 
 # AI Matching Engine (1 endpoint)
@@ -428,7 +383,7 @@ async def get_top_matches(job_id: int, limit: int = 10, api_key: str = Depends(g
     try:
         engine = get_db_engine()
         with engine.connect() as connection:
-            query = text("SELECT id, name, email, technical_skills FROM candidates LIMIT :limit")
+            query = text("SELECT id, name, email, skills FROM candidates LIMIT :limit")
             result = connection.execute(query, {"limit": limit})
             matches = [{
                 "candidate_id": row[0],
@@ -466,11 +421,9 @@ async def submit_feedback(feedback: FeedbackSubmission, api_key: str = Depends(g
 @app.post("/v1/interviews", tags=["Assessment & Workflow"])
 async def schedule_interview(interview: InterviewSchedule, api_key: str = Depends(get_api_key)):
     """Schedule Interview"""
-    import uuid
-    interview_id = str(uuid.uuid4())[:8]
     return {
         "message": "Interview scheduled successfully",
-        "interview_id": interview_id,
+        "interview_id": 1,
         "candidate_id": interview.candidate_id,
         "job_id": interview.job_id,
         "interview_date": interview.interview_date,
@@ -481,11 +434,9 @@ async def schedule_interview(interview: InterviewSchedule, api_key: str = Depend
 @app.post("/v1/offers", tags=["Assessment & Workflow"])
 async def create_job_offer(offer: JobOffer, api_key: str = Depends(get_api_key)):
     """Job Offers Management"""
-    import uuid
-    offer_id = str(uuid.uuid4())[:8]
     return {
         "message": "Job offer created successfully",
-        "offer_id": offer_id,
+        "offer_id": 1,
         "candidate_id": offer.candidate_id,
         "job_id": offer.job_id,
         "salary": offer.salary,
@@ -537,9 +488,9 @@ async def client_login(login_data: ClientLogin):
     """Client Authentication"""
     try:
         valid_clients = {
-            "TECH001": os.getenv("CLIENT_TECH001_PASSWORD", "google123"),
-            "STARTUP01": os.getenv("CLIENT_STARTUP01_PASSWORD", "startup123"),
-            "ENTERPRISE01": os.getenv("CLIENT_ENTERPRISE01_PASSWORD", "enterprise123")
+            "TECH001": "google123",
+            "STARTUP01": "startup123",
+            "ENTERPRISE01": "enterprise123"
         }
         
         if login_data.client_id in valid_clients and valid_clients[login_data.client_id] == login_data.password:
@@ -622,7 +573,7 @@ async def test_phone_validation(phone_data: PhoneValidation, api_key: str = Depe
     import re
     phone = phone_data.phone
     
-    phone_pattern = r'^\+?1?[-\s]?\(?[0-9]{3}\)?[-\s]?[0-9]{3}[-\s]?[0-9]{4}$'
+    phone_pattern = r'^\+?1?[-.s]?\(?[0-9]{3}\)?[-.s]?[0-9]{3}[-.s]?[0-9]{4}$'
     is_valid = re.match(phone_pattern, phone) is not None
     
     return {
@@ -751,7 +702,7 @@ async def setup_2fa_for_client(setup_data: TwoFASetup, api_key: str = Depends(ge
 @app.post("/v1/2fa/verify-setup", tags=["Two-Factor Authentication"])
 async def verify_2fa_setup(login_data: TwoFALogin, api_key: str = Depends(get_api_key)):
     """Verify 2FA Setup"""
-    stored_secret = os.getenv("TOTP_SECRET_KEY", "JBSWY3DPEHPK3PXP")
+    stored_secret = "JBSWY3DPEHPK3PXP"
     totp = pyotp.TOTP(stored_secret)
     
     if totp.verify(login_data.totp_code, valid_window=1):
@@ -767,7 +718,7 @@ async def verify_2fa_setup(login_data: TwoFALogin, api_key: str = Depends(get_ap
 @app.post("/v1/2fa/login-with-2fa", tags=["Two-Factor Authentication"])
 async def login_with_2fa(login_data: TwoFALogin, api_key: str = Depends(get_api_key)):
     """Login with 2FA"""
-    stored_secret = os.getenv("TOTP_SECRET_KEY", "JBSWY3DPEHPK3PXP")
+    stored_secret = "JBSWY3DPEHPK3PXP"
     totp = pyotp.TOTP(stored_secret)
     
     if totp.verify(login_data.totp_code, valid_window=1):
@@ -819,7 +770,7 @@ async def regenerate_backup_codes(setup_data: TwoFASetup, api_key: str = Depends
 @app.get("/v1/2fa/test-token/{client_id}/{token}", tags=["Two-Factor Authentication"])
 async def test_2fa_token(client_id: str, token: str, api_key: str = Depends(get_api_key)):
     """Test 2FA Token"""
-    stored_secret = os.getenv("TOTP_SECRET_KEY", "JBSWY3DPEHPK3PXP")
+    stored_secret = "JBSWY3DPEHPK3PXP"
     totp = pyotp.TOTP(stored_secret)
     
     is_valid = totp.verify(token, valid_window=1)
@@ -840,16 +791,6 @@ async def demo_2fa_setup(api_key: str = Depends(get_api_key)):
         "test_codes": ["123456", "654321", "111111"],
         "instructions": "Use demo secret or scan QR code for testing"
     }
-
-# Database Administration (1 endpoint)
-@app.post("/admin/init-database", tags=["Database Administration"])
-async def initialize_database(init_data: DatabaseInit, api_key: str = Depends(get_api_key)):
-    """Initialize Database Schema and Sample Data"""
-    try:
-        result = initialize_render_database()
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database initialization failed: {str(e)}")
 
 # Password Management (6 endpoints)
 @app.post("/v1/password/validate", tags=["Password Management"])
