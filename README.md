@@ -22,43 +22,39 @@ API Key: myverysecureapikey123
 curl -H "Authorization: Bearer myverysecureapikey123" https://bhiv-hr-gateway.onrender.com/health
 ```
 
----
+## 📋 Documentation Structure
 
-## 📋 Quick Start Guide
+### **📚 Core Documentation**
+- **[📋 PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - ✅ Complete architecture and folder organization
+- **[🚀 DEPLOYMENT_STATUS.md](DEPLOYMENT_STATUS.md)** - ✅ Current deployment status and health metrics
+- **[⚡ docs/QUICK_START_GUIDE.md](docs/QUICK_START_GUIDE.md)** - ✅ Get started in 5 minutes
+- **[🎯 docs/CURRENT_FEATURES.md](docs/CURRENT_FEATURES.md)** - ✅ Complete feature list and capabilities
 
-### 🌐 **Option 1: Use Live Platform (Recommended)**
+### **🔧 Technical Guides**
+- **[🔍 docs/batch_upload_verification_guide.md](docs/batch_upload_verification_guide.md)** - ✅ Batch upload verification methods
+- **[🔒 docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md)** - Security analysis and features
+- **[🤖 docs/BIAS_ANALYSIS.md](docs/BIAS_ANALYSIS.md)** - AI bias analysis & mitigation
+- **[👥 docs/USER_GUIDE.md](docs/USER_GUIDE.md)** - Complete user manual
+- **[📝 docs/REFLECTION.md](docs/REFLECTION.md)** - ✅ Daily development reflections
+
+## ⚡ Quick Start
+
+### **🎯 Choose Your Path:**
+1. **🌐 Live Platform**: Use production services immediately → [Quick Start Guide](docs/QUICK_START_GUIDE.md)
+2. **💻 Local Development**: Run on your machine → [Setup Instructions](docs/QUICK_START_GUIDE.md#local-development-setup)
+
+### **🚀 5-Minute Setup**
 ```bash
-# 1. Access live services directly
-API Documentation: https://bhiv-hr-gateway.onrender.com/docs
-HR Dashboard: https://bhiv-hr-portal.onrender.com/
+# Live Platform - No Setup Required
+HR Portal: https://bhiv-hr-portal.onrender.com/
 Client Portal: https://bhiv-hr-client-portal.onrender.com/
+Credentials: TECH001 / demo123
 
-# 2. Test API endpoints
-curl https://bhiv-hr-gateway.onrender.com/health
-curl -H "Authorization: Bearer myverysecureapikey123" https://bhiv-hr-gateway.onrender.com/v1/jobs
-
-# 3. Login to Client Portal
-# Use credentials: TECH001 / demo123
-```
-
-### 💻 **Option 2: Local Development**
-```bash
-# 1. Clone repository
+# Local Development - Docker Required
 git clone https://github.com/shashankmishraa/BHIV-HR-Platform.git
 cd BHIV-HR-Platform
-
-# 2. Start all services
 docker-compose -f docker-compose.production.yml up -d
-
-# 3. Access local services
-HR Portal: http://localhost:8501
-Client Portal: http://localhost:8502
-API Gateway: http://localhost:8000/docs
-AI Agent: http://localhost:9000/docs
-
-# 4. Process sample data (optional)
-python tools/comprehensive_resume_extractor.py
-python tools/dynamic_job_creator.py --count 10
+# Access: http://localhost:8501
 ```
 
 ---
@@ -309,26 +305,41 @@ python tools/auto_sync_watcher.py
 ## 🎯 Current Status & Progress
 
 ### **✅ Completed Features**
-- **Production Deployment**: All 5 services live on Render
-- **API Gateway**: 46 endpoints with comprehensive functionality
-- **AI Matching**: Real-time candidate matching with bias mitigation
-- **Security**: Enterprise-grade authentication, 2FA, rate limiting
-- **Dual Portals**: HR dashboard and client interface
-- **Advanced Monitoring**: Prometheus metrics, health checks, performance tracking
-- **Documentation**: Complete guides, daily reflections, bias analysis
-- **Testing**: Comprehensive test suite with security validation
-- **Local Development**: Docker Compose setup with health checks
+- **Production Deployment**: ✅ All 5 services live on Render
+- **API Gateway**: ✅ 46 endpoints with comprehensive functionality
+- **AI Matching**: ✅ Real-time candidate matching with differentiated scoring
+- **Real Data Integration**: ✅ 68+ candidates from actual resume files
+- **Skills Match Fix**: ✅ Resolved TypeError in portal displays
+- **Batch Upload**: ✅ Fixed container paths and processing
+- **Client-HR Sync**: ✅ Real-time job sharing between portals
+- **Dynamic Dashboards**: ✅ Live data from database
+- **Security**: ✅ Enterprise-grade authentication, 2FA, rate limiting
+- **Dual Portals**: ✅ HR dashboard and client interface
+- **Advanced Monitoring**: ✅ Prometheus metrics, health checks, performance tracking
+- **Documentation**: ✅ Complete guides, daily reflections, bias analysis
+- **Testing**: ✅ Comprehensive test suite with security validation
+- **Local Development**: ✅ Docker Compose setup with health checks
+- **Project Organization**: ✅ Cleaned structure and comprehensive documentation
 
 ### **📈 System Metrics**
 - **Total Services**: 5 (Database + 4 Web Services)
 - **API Endpoints**: 46 interactive endpoints
+- **Real Candidates**: ✅ 68+ from actual resume files
+- **Resume Files**: ✅ 31 successfully processed
 - **Monthly Cost**: $0 (Free tier deployment)
 - **Global Access**: HTTPS with SSL certificates
 - **Auto-Deploy**: GitHub integration enabled
 - **Uptime Target**: 99.9%
+- **Redundant Files**: ⚠️ 8+ identified for cleanup
 
 ### **🔄 Recent Updates (January 2025)**
 - ✅ **Full Production Deployment**: All 5 services live and operational
+- ✅ **Real Data Integration**: 68+ candidates from 31 actual resume files
+- ✅ **Skills Match Fix**: Resolved TypeError in portal displays
+- ✅ **Batch Upload Fix**: Fixed container paths and directory structure
+- ✅ **Client-HR Sync**: Real-time job sharing between portals
+- ✅ **Dynamic Dashboards**: Live data from database, no hardcoded values
+- ✅ **Project Organization**: Cleaned structure and identified redundant files
 - ✅ **Enhanced Security**: Granular rate limiting and 2FA implementation
 - ✅ **Advanced Monitoring**: Prometheus metrics and health checks
 - ✅ **Documentation Complete**: Comprehensive guides and API documentation

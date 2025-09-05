@@ -1,231 +1,188 @@
-# PROJECT_STRUCTURE.md
+# 🏗️ BHIV HR Platform - Project Structure
 
-## Directory Structure
+## 📁 Current Folder Organization
 
 ```
-BHIV-HR-Platform/
-├── services/                    # Microservices Architecture
-│   ├── gateway/                # API Gateway Service
-│   │   ├── app/
-│   │   │   ├── main.py        # FastAPI application with 43 endpoints
-│   │   │   └── __init__.py
-│   │   ├── Dockerfile         # Container configuration
-│   │   └── requirements.txt   # Python dependencies
-│   ├── agent/                 # AI Matching Engine
-│   │   ├── app.py            # SBERT-based semantic matching
-│   │   ├── Dockerfile        # Container configuration
-│   │   └── requirements.txt  # AI/ML dependencies
-│   ├── portal/               # HR Dashboard (Streamlit)
-│   │   ├── app.py           # Main dashboard interface
-│   │   ├── batch_upload.py  # Resume batch processing
-│   │   ├── Dockerfile       # Container configuration
-│   │   └── requirements.txt # Streamlit dependencies
-│   ├── client_portal/       # Client Interface (Streamlit)
-│   │   ├── app.py          # Client dashboard
-│   │   ├── auth_service.py # Authentication logic
-│   │   ├── Dockerfile      # Container configuration
-│   │   └── requirements.txt # Client portal dependencies
-│   └── db/                 # Database Schema & Migrations
-│       ├── init.sql       # Database initialization
-│       └── schema.sql     # Table definitions
-├── tools/                  # Data Processing & Utilities
-│   ├── comprehensive_resume_extractor.py  # Resume parsing engine
-│   ├── dynamic_job_creator.py            # Job posting generator
-│   ├── database_sync_manager.py          # Database synchronization
-│   ├── auto_sync_watcher.py             # File system monitoring
-│   ├── create_demo_jobs.py              # Demo data creation
-│   └── show_results.py                  # Results visualization
-├── tests/                  # Test Suite
-│   ├── test_endpoints.py              # API endpoint testing
-│   ├── test_security.py               # Security validation
-│   ├── test_client_portal.py          # Portal integration tests
-│   ├── test_comprehensive_diagnostic.py # System diagnostics
-│   ├── test_aggressive_diagnostic.py   # Performance testing
-│   ├── test_week2_enterprise.py       # Enterprise features
-│   └── test_structured_api.py         # API structure validation
-├── scripts/                # Deployment & Automation
-│   ├── unified-deploy.sh   # Deployment automation
-│   └── health-check.sh     # Health monitoring
-├── docs/                   # Documentation
-│   ├── BIAS_ANALYSIS.md    # AI bias analysis & mitigation
-│   ├── SECURITY_AUDIT.md   # Security assessment
-│   ├── USER_GUIDE.md       # Complete user manual
-│   └── SERVICES_GUIDE.md   # Service architecture guide
-├── data/                   # Sample Data & Assets
-│   ├── candidates.csv      # Sample candidate data
-│   ├── jobs.csv           # Sample job postings
-│   └── resumes/           # Sample resume files
-├── config/                 # Configuration Files
-│   ├── production.env      # Production environment variables
-│   └── development.env     # Development configuration
-├── docker-compose.production.yml  # Docker orchestration
-├── render.yaml            # Render deployment configuration
-├── README.md             # Main project documentation
-├── REFLECTION.md         # Daily development reflections
-├── PROJECT_STRUCTURE.md  # This file
-└── DEPLOYMENT_STATUS.md  # Current deployment status
+bhiv-hr-platform/
+├── 📋 PROJECT_STRUCTURE.md          # This file - Complete architecture guide
+├── 📋 README.md                     # Main project documentation
+├── 📋 DEPLOYMENT_STATUS.md          # Current deployment status
+
+├── 🐳 docker-compose.production.yml # Docker orchestration
+├── 📊 .env.example                  # Environment template
+│
+├── 🔧 services/                     # Microservices Architecture
+│   ├── 🌐 gateway/                  # API Gateway Service (Port 8000)
+│   │   ├── 📱 app/
+│   │   │   ├── main.py              # FastAPI app (46 endpoints)
+│   │   │   ├── monitoring.py        # Advanced monitoring system
+│   │   │   └── __init__.py          # Package initialization
+│   │   ├── 📋 requirements.txt      # Python dependencies
+│   │   ├── 🐳 Dockerfile           # Container configuration
+│   │   └── 📊 logs/                # Application logs
+│   │
+│   ├── 🎯 portal/                   # HR Dashboard (Port 8501)
+│   │   ├── app.py                   # Main Streamlit application
+│   │   ├── batch_upload.py          # ✅ FIXED - Batch upload functionality
+│   │   ├── 📋 requirements.txt      # Dependencies
+│   │   └── 🐳 Dockerfile           # Container config
+│   │
+│   ├── 👥 client_portal/            # Client Interface (Port 8502)
+│   │   ├── app.py                   # Client-facing portal
+│   │   ├── auth_service.py          # ⚠️ REDUNDANT - 300+ lines for simple login
+│   │   ├── 📋 requirements.txt      # Dependencies
+│   │   └── 🐳 Dockerfile           # Container config
+│   │
+│   ├── 🤖 agent/                    # AI Matching Engine (Port 9000)
+│   │   ├── app.py                   # AI matching service
+│   │   ├── 📋 requirements.txt      # Dependencies
+│   │   └── 🐳 Dockerfile           # Container config
+│   │
+│   ├── 🗄️ db/                       # Database Schema
+│   │   ├── init_complete.sql        # ✅ Complete database setup
+│   │   └── 🐳 Dockerfile           # Database container
+│   │
+│   └── 🔧 semantic_engine/          # ⚠️ UNUSED - Legacy AI service
+│       └── semantic_processor.py    # ⚠️ Not integrated
+│
+├── 🛠️ tools/                        # Data Processing Tools
+│   ├── comprehensive_resume_extractor.py  # Resume processing
+│   ├── dynamic_job_creator.py       # Job creation utility
+│   ├── database_sync_manager.py     # Database synchronization
+│   └── auto_sync_watcher.py         # Auto-sync monitoring
+│
+├── 🧪 tests/                        # Test Suite
+│   ├── test_endpoints.py            # API functionality tests
+│   ├── test_security.py             # Security validation tests
+│   ├── test_client_portal.py        # Portal integration tests
+│   └── test_final_verification.py   # Complete system tests
+│
+├── 📊 data/                         # Data Storage
+│   └── candidates.csv               # ✅ Real extracted candidate data (68+ records)
+│
+├── 📁 resume/                       # Resume Files Storage (31 files)
+│   ├── *.pdf                       # ✅ 30 PDF resume files processed
+│   └── *.docx                      # ✅ 1 DOCX file processed
+│
+├── 📚 docs/                         # Documentation
+│   ├── 📁 archive/                 # Archived documentation
+│   ├── 📁 guides/                  # User guides
+│   │   └── LIVE_DEMO.md            # Live platform demo guide
+│   ├── BIAS_ANALYSIS.md            # AI bias analysis & mitigation
+│   ├── CURRENT_FEATURES.md         # ✅ Complete feature list
+│   ├── QUICK_START_GUIDE.md        # ✅ 5-minute setup guide
+│   ├── REFLECTION.md               # ✅ Daily development reflections
+│   ├── SECURITY_AUDIT.md           # Security assessment
+│   ├── SERVICES_GUIDE.md           # Service architecture
+│   ├── USER_GUIDE.md               # Complete user manual
+│   └── batch_upload_verification_guide.md  # Batch upload guide
+│
+├── ⚙️ config/                       # Configuration Files
+│   ├── .env.render                 # ✅ Render platform config
+│   ├── production.env              # Production settings
+│   └── render-deployment.yml       # ✅ Render deployment config
+│
+├── 🚀 scripts/                      # Deployment Scripts
+│   ├── unified-deploy.sh            # ✅ Unified deployment
+│   └── health-check.sh              # ✅ Health monitoring
+│
+├── 📁 deployment/                   # ✅ Deployment Documentation
+│   ├── DEPLOYMENT_GUIDE.md          # General deployment guide
+│   └── RENDER_DEPLOYMENT_GUIDE.md   # Render-specific guide
+│
+├── 📋 .env                          # ✅ Local environment config
+└── 📋 .env.example                  # Environment template
 ```
 
-## Component Overview
+## 🔄 Recent Updates (January 2025)
 
-### Core Services
+### ✅ **Fixed Components**
+- **Batch Upload**: ✅ Fixed container paths (/app/resume/) and directory structure
+- **API Gateway**: ✅ 46 endpoints with monitoring and security
+- **Database Integration**: ✅ Resolved schema issues and email constraints
+- **AI Matching**: ✅ Differentiated scoring with real candidate data
+- **Skills Match Error**: ✅ Fixed TypeError in portal displays
+- **Mock Data Replacement**: ✅ All 68+ candidates from real resume files
+- **Client-HR Sync**: ✅ Real-time job sharing between portals
 
-#### 1. API Gateway (`services/gateway/`)
-- **Technology**: FastAPI 3.1.0
-- **Purpose**: Central REST API backend with 43 endpoints
-- **Key Features**:
-  - Authentication & authorization (JWT, API keys)
-  - Rate limiting (60 requests/minute)
-  - Input validation & security headers
-  - 2FA support (TOTP compatible)
-  - Comprehensive error handling
-- **Database**: PostgreSQL integration with SQLAlchemy
-- **Port**: 8000
+### 🆕 **New Features**
+- **Advanced Monitoring**: ✅ Prometheus metrics and health dashboards
+- **Dual Portal System**: ✅ HR and Client portals with real-time sync
+- **Values Assessment**: ✅ 5-point evaluation system with feedback
+- **Export Reports**: ✅ Comprehensive reports with assessments and shortlists
+- **Workflow Organization**: ✅ Step-by-step HR process navigation
+- **Dynamic Dashboards**: ✅ Live data from database, no hardcoded values
 
-#### 2. AI Matching Engine (`services/agent/`)
-- **Technology**: FastAPI 2.1.0 + SBERT
-- **Purpose**: Semantic candidate-job matching
-- **Key Features**:
-  - SBERT-based similarity scoring
-  - Bias mitigation algorithms
-  - Real-time matching (<0.02s response)
-  - Dynamic skill categorization
-  - Performance optimization
-- **Port**: 9000
+## 📊 Service Architecture
 
-#### 3. HR Portal (`services/portal/`)
-- **Technology**: Streamlit
-- **Purpose**: HR dashboard and management interface
-- **Key Features**:
-  - Candidate search & filtering
-  - Job management interface
-  - AI matching visualization
-  - Batch resume upload
-  - Analytics dashboard
-- **Port**: 8501
+| Service | Technology | Port | Status | Purpose |
+|---------|------------|------|--------|---------|
+| **API Gateway** | FastAPI 3.1.0 | 8000 | 🟢 Live | REST API Backend |
+| **HR Portal** | Streamlit | 8501 | 🟢 Live | HR Dashboard |
+| **Client Portal** | Streamlit | 8502 | 🟢 Live | Client Interface |
+| **AI Agent** | FastAPI 2.1.0 | 9000 | 🟢 Live | Candidate Matching |
+| **Database** | PostgreSQL 17 | 5432 | 🟢 Live | Data Storage |
 
-#### 4. Client Portal (`services/client_portal/`)
-- **Technology**: Streamlit
-- **Purpose**: Client interface for job posting and candidate review
-- **Key Features**:
-  - Enterprise authentication
-  - Job posting interface
-  - Candidate review system
-  - Values assessment (5-point scale)
-  - Real-time status updates
-- **Port**: 8502
+## 🔧 Key Directories Explained
 
-### Supporting Infrastructure
+### `/services/` - Microservices
+- **gateway/**: Central API with 46 endpoints, monitoring, security
+- **portal/**: HR dashboard with workflow management
+- **client_portal/**: Client-facing job posting interface
+- **agent/**: AI matching engine with semantic analysis
+- **db/**: Database schema and initialization
 
-#### Database Layer (`services/db/`)
-- **Technology**: PostgreSQL 17
-- **Schema**: Candidates, Jobs, Matches, Users tables
-- **Features**: ACID compliance, indexing, connection pooling
-
-#### Data Processing (`tools/`)
-- **Resume Extraction**: Multi-format support (PDF, DOCX, TXT)
+### `/tools/` - Processing Utilities
+- **Resume Extraction**: PDF/DOCX to structured data
 - **Job Creation**: Dynamic job posting generation
 - **Database Sync**: Real-time data synchronization
-- **File Monitoring**: Automated file system watching
+- **Auto Monitoring**: Continuous system watching
 
-#### Testing Suite (`tests/`)
-- **API Testing**: Endpoint validation and integration tests
-- **Security Testing**: Vulnerability assessment and penetration testing
-- **Performance Testing**: Load testing and scalability assessment
-- **Enterprise Testing**: 2FA, backup codes, and enterprise features
+### `/tests/` - Quality Assurance
+- **API Tests**: Endpoint functionality validation
+- **Security Tests**: Authentication and authorization
+- **Integration Tests**: Cross-service communication
+- **System Tests**: End-to-end workflow validation
 
-## Architecture Patterns
+### `/docs/` - Documentation
+- **Technical Guides**: Architecture and implementation
+- **User Manuals**: Step-by-step usage instructions
+- **Security Analysis**: Bias mitigation and audit reports
+- **API Documentation**: Endpoint specifications
 
-### Microservices Design
-- **Service Isolation**: Each service runs independently
-- **API-First**: RESTful communication between services
-- **Database Per Service**: Shared PostgreSQL with service-specific schemas
-- **Container-Ready**: Docker containerization for all services
+## 🚀 Deployment Structure
 
-### Security Architecture
-- **Defense in Depth**: Multiple security layers
-- **Zero Trust**: Authentication required for all endpoints
-- **Input Validation**: XSS/SQL injection protection
-- **Rate Limiting**: DoS protection and resource management
-
-### AI/ML Pipeline
-- **Data Ingestion**: Resume parsing and job posting extraction
-- **Feature Engineering**: Skill extraction and categorization
-- **Model Inference**: SBERT semantic similarity scoring
-- **Bias Mitigation**: Fairness algorithms and threshold adjustment
-
-## Deployment Configuration
-
-### Local Development
-```bash
-# Start all services
-docker-compose -f docker-compose.production.yml up -d
-
-# Access services
-HR Portal: http://localhost:8501
-Client Portal: http://localhost:8502
-API Gateway: http://localhost:8000/docs
-AI Agent: http://localhost:9000/docs
-```
-
-### Production (Render)
+### **Production Environment**
 - **Platform**: Render Cloud (Oregon, US West)
-- **Configuration**: render.yaml blueprint
-- **Services**: 5 web services + PostgreSQL database
 - **Cost**: $0/month (Free tier)
 - **SSL**: Automatic HTTPS certificates
+- **Monitoring**: Real-time health checks
+- **Scaling**: Auto-scaling enabled
 
-## Data Flow
+### **Local Development**
+- **Docker Compose**: Multi-service orchestration
+- **Hot Reload**: Development mode with live updates
+- **Database**: Local PostgreSQL instance
+- **Networking**: Internal service communication
 
-### Resume Processing Flow
-1. **Upload** → Portal receives resume files
-2. **Extract** → comprehensive_resume_extractor.py processes content
-3. **Store** → Candidate data saved to PostgreSQL
-4. **Index** → SBERT embeddings generated for semantic search
+## 📈 Current Metrics
 
-### Job Matching Flow
-1. **Job Posted** → Client creates job posting via portal
-2. **Analysis** → AI agent extracts job requirements
-3. **Matching** → SBERT computes candidate similarities
-4. **Ranking** → Bias-adjusted scoring and ranking
-5. **Results** → Top matches returned to HR portal
+- **Total Services**: 5 (Database + 4 Web Services)
+- **API Endpoints**: 46 interactive endpoints
+- **Test Coverage**: 4 comprehensive test suites
+- **Documentation**: 8+ detailed guides
+- **Resume Processing**: ✅ 31 files successfully processed
+- **Candidate Database**: ✅ 68+ candidates with complete real data
+- **Redundant Files**: ⚠️ 8+ files identified for cleanup
 
-### Authentication Flow
-1. **Login** → Client credentials validated
-2. **Token** → JWT token generated and returned
-3. **Authorization** → Bearer token validates API requests
-4. **2FA** → Optional TOTP verification for enhanced security
+## 🔄 Workflow Integration
 
-## Performance Characteristics
+```
+Client Portal → API Gateway → Database ← HR Portal
+     ↓              ↓           ↓         ↓
+Job Posting → Job Storage → AI Matching → Candidate Review
+     ↓              ↓           ↓         ↓
+Resume Upload → Processing → Extraction → Assessment
+```
 
-### Response Times
-- **API Endpoints**: <100ms average
-- **AI Matching**: <0.02 seconds per candidate
-- **Resume Processing**: 1-2 seconds per file
-- **Portal Loading**: 2-3 seconds (cold start)
-
-### Scalability
-- **Concurrent Users**: Multi-user support
-- **Rate Limits**: 60 requests/minute per IP
-- **Database**: Connection pooling and indexing
-- **Caching**: In-memory caching for frequent queries
-
-## Development Guidelines
-
-### Code Organization
-- **Separation of Concerns**: Clear service boundaries
-- **DRY Principle**: Shared utilities and common functions
-- **Error Handling**: Comprehensive exception management
-- **Documentation**: Inline comments and API documentation
-
-### Testing Strategy
-- **Unit Tests**: Individual function validation
-- **Integration Tests**: Service-to-service communication
-- **Security Tests**: Vulnerability assessment
-- **Performance Tests**: Load and stress testing
-
-### Deployment Process
-1. **Development** → Local testing with Docker Compose
-2. **Testing** → Automated test suite execution
-3. **Staging** → Render preview deployments
-4. **Production** → Automatic deployment via GitHub integration
+This structure supports the complete HR workflow from job posting to candidate hiring with real-time synchronization and comprehensive reporting.

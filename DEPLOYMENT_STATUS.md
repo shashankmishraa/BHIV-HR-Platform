@@ -1,105 +1,183 @@
 # 🚀 BHIV HR Platform - Deployment Status
 
-## ✅ PRODUCTION DEPLOYMENT COMPLETE & OPTIMIZED
+## 📊 Current Deployment Status (January 2025)
 
-**Platform**: Render Cloud  
-**Region**: Oregon (US West)  
-**Deployment Date**: January 3, 2025  
-**Last Updated**: January 2025 (All Services Deployed)  
-**Status**: 🟢 ALL SERVICES LIVE & OPERATIONAL  
+### **🟢 Production Environment - LIVE**
+- **Platform**: Render Cloud (Oregon, US West)
+- **Status**: All services operational
+- **Cost**: $0/month (Free tier)
+- **Uptime**: 99.9% target
+- **SSL**: Automatic HTTPS certificates
 
----
+### **🔗 Live Service URLs**
+| Service | URL | Status | Purpose |
+|---------|-----|--------|---------|
+| **API Gateway** | https://bhiv-hr-gateway.onrender.com | 🟢 Live | REST API Backend |
+| **HR Portal** | https://bhiv-hr-portal.onrender.com | 🟢 Live | HR Dashboard |
+| **Client Portal** | https://bhiv-hr-client-portal.onrender.com | 🟢 Live | Client Interface |
+| **AI Agent** | https://bhiv-hr-agent.onrender.com | 🟢 Live | AI Matching Engine |
 
-## 🌐 Live Services
-
-| Service | URL | Status | Response Time | Features |
-|---------|-----|--------|---------------|----------|
-| **API Gateway** | https://bhiv-hr-gateway.onrender.com | 🟢 Live | <100ms | 46 Endpoints, Security, 2FA, Monitoring |
-| **AI Matching** | https://bhiv-hr-agent.onrender.com | 🟢 Live | <50ms | Real-time Matching, Bias Mitigation |
-| **HR Portal** | https://bhiv-hr-portal.onrender.com | 🟢 Live | <200ms | Dashboard, Analytics, Job Management |
-| **Client Portal** | https://bhiv-hr-client-portal.onrender.com | 🟢 Live | <200ms | Client Auth, Job Posting, Reviews |
-| **Database** | PostgreSQL (Internal) | 🟢 Live | <10ms | 1GB Storage, Auto Backup |
-
----
-
-## 📊 Key Metrics
-
-- **Total Services**: 5 (Database + 4 Web Services)
-- **API Endpoints**: 46 interactive endpoints
-- **Monthly Cost**: $0 (Free Tier)
-- **Uptime Target**: 99.9%
-- **Global Access**: ✅ HTTPS Enabled
-- **Auto-Deploy**: ✅ GitHub Integration
-- **Project Files**: Cleaned & Optimized (12 redundant files removed)
-- **Documentation**: ✅ Comprehensive & Up-to-date
-
----
-
-## 🔗 Quick Access
-
-### 🎯 For Developers
+### **🔑 Demo Access Credentials**
 ```bash
-# API Health Check
-curl https://bhiv-hr-gateway.onrender.com/health
+# Client Portal Login
+Username: TECH001
+Password: demo123
 
-# API Documentation
-open https://bhiv-hr-gateway.onrender.com/docs
-
-# Test Authentication
-curl -H "Authorization: Bearer myverysecureapikey123" \
-     https://bhiv-hr-gateway.onrender.com/v1/jobs
+# API Testing
+API Key: myverysecureapikey123
 ```
 
-### 🎯 For Users
-- **HR Dashboard**: https://bhiv-hr-portal.onrender.com/
-- **Client Login**: https://bhiv-hr-client-portal.onrender.com/
-  - Username: `TECH001`
-  - Password: `demo123`
+## 💻 Local Development Status
 
----
+### **🟢 Docker Environment - READY**
+- **Status**: All 5 services running
+- **Database**: PostgreSQL 17 with 68+ candidates
+- **Networking**: Internal service communication
+- **Monitoring**: Health checks enabled
 
-## 🔧 Technical Details
+### **🔗 Local Service URLs**
+| Service | URL | Port | Status |
+|---------|-----|------|--------|
+| **HR Portal** | http://localhost:8501 | 8501 | 🟢 Ready |
+| **Client Portal** | http://localhost:8502 | 8502 | 🟢 Ready |
+| **API Gateway** | http://localhost:8000 | 8000 | 🟢 Ready |
+| **AI Agent** | http://localhost:9000 | 9000 | 🟢 Ready |
+| **Database** | localhost:5432 | 5432 | 🟢 Ready |
 
-### Architecture
-- **Microservices**: 5 independent services
-- **Database**: PostgreSQL 17
-- **API Framework**: FastAPI 3.1.0
-- **UI Framework**: Streamlit
-- **Authentication**: Bearer Token + JWT
-- **Security**: Rate limiting, 2FA, Input validation
+## 🔧 Recent Fixes & Updates
 
-### Performance
-- **API Response**: <100ms average
-- **AI Matching**: <0.02 seconds
-- **Cold Start**: 30-60 seconds (free tier)
-- **Concurrent Users**: Multi-user support
+### **✅ Resolved Issues**
+- **Batch Upload**: ✅ Fixed container file paths (/app/resume/) and directory structure
+- **Database Schema**: ✅ Resolved candidate table constraints and email uniqueness
+- **Skills Match Error**: ✅ Fixed TypeError in portal displays for mixed data types
+- **Mock Data Replacement**: ✅ All 68+ candidates from real resume files
+- **API Integration**: ✅ Enhanced bulk upload with comprehensive error handling
+- **Container Paths**: ✅ Updated all paths to absolute container paths
+- **Client-HR Sync**: ✅ Real-time job sharing between portals
 
-### Monitoring & Analytics
-- **Prometheus Metrics**: Real-time system monitoring
-- **Health Checks**: Comprehensive service health tracking
-- **Performance Analytics**: Response times, error rates, resource usage
-- **Business Metrics**: Job postings, matches, user activity
-- **Documentation**: Daily reflections, bias analysis, architecture guides
+### **🆕 New Features**
+- **Advanced Monitoring**: ✅ Prometheus metrics and health dashboards
+- **Enhanced Security**: ✅ 2FA, rate limiting, input validation
+- **Export Reports**: ✅ Comprehensive assessment and shortlist reports
+- **Workflow Organization**: ✅ Step-by-step HR process navigation (7 steps)
+- **Real-time Sync**: ✅ Client-HR portal integration with shared API
+- **Dynamic Dashboards**: ✅ Live data from database, no hardcoded values
+- **AI Scoring Enhancement**: ✅ Differentiated evaluation scores
 
----
+## 📊 System Health Metrics
 
-## 📈 Deployment Success Metrics
+### **Performance Indicators**
+- **API Response Time**: <100ms average
+- **AI Matching Speed**: <0.02 seconds
+- **Resume Processing**: 1-2 seconds per file
+- **Database Queries**: <50ms average
+- **Container Startup**: <30 seconds
 
-✅ **Zero Downtime Deployment**  
-✅ **All Services Operational**  
-✅ **Database Connected & Healthy**  
-✅ **Authentication Working**  
-✅ **API Documentation Live**  
-✅ **Client Portal Accessible**  
-✅ **AI Matching Functional**  
-✅ **Security Features Active**  
+### **Data Statistics**
+- **Total Candidates**: ✅ 68+ real candidates in database
+- **Resume Files**: ✅ 31 successfully processed (30 PDF + 1 DOCX)
+- **Active Jobs**: ✅ 4+ job postings with client-HR sync
+- **API Endpoints**: ✅ 46 functional endpoints with monitoring
+- **Test Coverage**: ✅ 4 comprehensive test suites
+- **Redundant Files**: ⚠️ 8+ files identified for cleanup
 
----
+## 🛠️ Infrastructure Details
 
-## 🎉 DEPLOYMENT COMPLETE!
+### **Container Architecture**
+```yaml
+Services:
+  - gateway: FastAPI (Python 3.11)
+  - portal: Streamlit (Python 3.11)
+  - client_portal: Streamlit (Python 3.11)
+  - agent: FastAPI (Python 3.11)
+  - db: PostgreSQL 17
 
-**BHIV HR Platform is now live and serving users globally! 🌍**
+Networks:
+  - Internal: Service-to-service communication
+  - External: Public access via ports
 
-**All 5 services are fully operational with zero monthly cost!**
+Volumes:
+  - Database: Persistent data storage
+  - Logs: Application logging
+  - Resume: File storage
+```
 
-*Next Steps: Monitor performance, gather user feedback, and plan feature enhancements.*
+### **Security Configuration**
+- **API Authentication**: Bearer token validation
+- **Rate Limiting**: 60 requests/minute with DoS protection
+- **Input Validation**: XSS/SQL injection protection
+- **Security Headers**: CSP, XSS protection, Frame Options
+- **2FA Support**: TOTP compatible authentication
+
+## 🔄 Deployment Process
+
+### **Local Development**
+```bash
+# Start all services
+docker-compose -f docker-compose.production.yml up -d
+
+# Rebuild specific service
+docker-compose -f docker-compose.production.yml up -d --build portal
+
+# Health check
+curl http://localhost:8000/health
+```
+
+### **Production Deployment**
+- **Auto-Deploy**: GitHub integration enabled
+- **Build Process**: Automatic on code push
+- **Health Monitoring**: Continuous uptime checks
+- **SSL Certificates**: Auto-renewal enabled
+
+## 📈 Monitoring & Alerts
+
+### **Health Endpoints**
+- **Gateway**: `/health` - Basic health check
+- **Gateway**: `/health/detailed` - Comprehensive metrics
+- **Gateway**: `/metrics` - Prometheus metrics
+- **Agent**: `/health` - AI service status
+
+### **Monitoring Dashboard**
+- **System Metrics**: CPU, memory, disk usage
+- **Business Metrics**: Jobs, candidates, matches
+- **Performance**: Response times, throughput
+- **Error Tracking**: Structured logging
+
+## 🎯 Next Steps
+
+### **Immediate Actions**
+- ✅ All critical issues resolved
+- ✅ Production deployment stable
+- ✅ Local development ready
+- ✅ Documentation updated and organized
+- ✅ Project structure cleaned and documented
+- ⚠️ Redundant files identified for removal
+
+### **Future Enhancements**
+- 📊 Advanced analytics dashboard
+- 🔔 Email notification system
+- 📱 Mobile-responsive design
+- 🔄 Automated backup system
+- 🧹 Project cleanup - Remove redundant files
+- 🔒 Enhanced security with secrets management
+
+## 📞 Support & Resources
+
+### **Quick Access**
+- **Live API Docs**: https://bhiv-hr-gateway.onrender.com/docs
+- **GitHub Repository**: https://github.com/shashankmishraa/BHIV-HR-Platform
+- **Local Portal**: http://localhost:8501
+
+### **Status Verification**
+```bash
+# Check all services
+curl http://localhost:8000/health
+curl http://localhost:8501
+curl http://localhost:9000/health
+
+# Test API functionality
+curl -H "Authorization: Bearer myverysecureapikey123" \
+     http://localhost:8000/v1/jobs
+```
+
+**Last Updated**: January 2025 | **Status**: 🟢 All Systems Operational

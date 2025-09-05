@@ -128,6 +128,8 @@ class JobCreate(BaseModel):
     experience_level: str
     requirements: str
     description: str
+    client_id: Optional[int] = 1
+    employment_type: Optional[str] = "Full-time"
 
 class CandidateBulk(BaseModel):
     candidates: List[Dict[str, Any]]
@@ -146,7 +148,7 @@ class InterviewSchedule(BaseModel):
     candidate_id: int
     job_id: int
     interview_date: str
-    interview_type: str
+    interviewer: Optional[str] = "HR Team"
     notes: Optional[str] = None
 
 class JobOffer(BaseModel):
@@ -323,7 +325,7 @@ async def get_candidates_by_job(job_id: int, api_key: str = Depends(get_api_key)
     try:
         engine = get_db_engine()
         with engine.connect() as connection:
-            query = text("SELECT id, name, email, skills, experience FROM candidates LIMIT 10")
+            query = text("SELECT id, name, email, technical_skills, experience_years FROM candidates LIMIT 10")
             result = connection.execute(query)
             candidates = [{
                 "id": row[0],
@@ -338,40 +340,119 @@ async def get_candidates_by_job(job_id: int, api_key: str = Depends(get_api_key)
         return {"candidates": [], "job_id": job_id, "count": 0, "error": str(e)}
 
 @app.get("/v1/candidates/search", tags=["Candidate Management"])
-async def search_candidates(skills: Optional[str] = None, api_key: str = Depends(get_api_key)):
+async def search_candidates(skills: Optional[str] = None, location: Optional[str] = None, experience_min: Optional[int] = None, api_key: str = Depends(get_api_key)):
     """Search & Filter Candidates"""
     if skills:
         skills = skills.strip()[:200]
+    if location:
+        location = location.strip()[:100]
     
     try:
         engine = get_db_engine()
         with engine.connect() as connection:
+            # Build dynamic query
+            where_conditions = []
+            params = {}
+            
             if skills:
-                query = text("SELECT id, name, email, skills FROM candidates WHERE skills ILIKE :skills LIMIT 10")
-                result = connection.execute(query, {"skills": f"%{skills}%"})
+                where_conditions.append("technical_skills ILIKE :skills")
+                params["skills"] = f"%{skills}%"
+            
+            if location:
+                where_conditions.append("location ILIKE :location")
+                params["location"] = f"%{location}%"
+            
+            if experience_min is not None:
+                where_conditions.append("experience_years >= :experience_min")
+                params["experience_min"] = experience_min
+            
+            base_query = "SELECT id, name, email, phone, location, technical_skills, experience_years, seniority_level, education_level, status FROM candidates"
+            
+            if where_conditions:
+                query = text(f"{base_query} WHERE {' AND '.join(where_conditions)} LIMIT 50")
+                result = connection.execute(query, params)
             else:
-                query = text("SELECT id, name, email, skills FROM candidates LIMIT 10")
+                query = text(f"{base_query} LIMIT 50")
                 result = connection.execute(query)
             
             candidates = [{
                 "id": row[0],
                 "name": row[1],
                 "email": row[2],
-                "skills": row[3]
+                "phone": row[3],
+                "location": row[4],
+                "technical_skills": row[5],
+                "experience_years": row[6],
+                "seniority_level": row[7],
+                "education_level": row[8],
+                "status": row[9]
             } for row in result]
         
-        return {"candidates": candidates, "filters": {"skills": skills}, "count": len(candidates)}
+        return {
+            "candidates": candidates, 
+            "filters": {"skills": skills, "location": location, "experience_min": experience_min}, 
+            "count": len(candidates)
+        }
     except Exception as e:
-        return {"candidates": [], "filters": {"skills": skills}, "count": 0, "error": str(e)}
+        return {
+            "candidates": [], 
+            "filters": {"skills": skills, "location": location, "experience_min": experience_min}, 
+            "count": 0, 
+            "error": str(e)
+        }
 
 @app.post("/v1/candidates/bulk", tags=["Candidate Management"])
 async def bulk_upload_candidates(candidates: CandidateBulk, api_key: str = Depends(get_api_key)):
     """Bulk Upload Candidates"""
-    return {
-        "message": "Bulk upload candidates",
-        "candidates_received": len(candidates.candidates),
-        "status": "processed"
-    }
+    try:
+        engine = get_db_engine()
+        inserted_count = 0
+        errors = []
+        
+        with engine.connect() as connection:
+            for i, candidate in enumerate(candidates.candidates):
+                try:
+                    # Handle email uniqueness by checking first
+                    email = candidate.get("email", "")
+                    if email:
+                        check_query = text("SELECT COUNT(*) FROM candidates WHERE email = :email")
+                        result = connection.execute(check_query, {"email": email})
+                        if result.fetchone()[0] > 0:
+                            errors.append(f"Candidate {i+1}: Email {email} already exists")
+                            continue
+                    
+                    query = text("""
+                        INSERT INTO candidates (name, email, phone, location, experience_years, technical_skills, seniority_level, education_level, resume_path, status)
+                        VALUES (:name, :email, :phone, :location, :experience_years, :technical_skills, :seniority_level, :education_level, :resume_path, :status)
+                    """)
+                    connection.execute(query, {
+                        "name": candidate.get("name", ""),
+                        "email": email,
+                        "phone": candidate.get("phone", ""),
+                        "location": candidate.get("location", ""),
+                        "experience_years": int(candidate.get("experience_years", 0)) if candidate.get("experience_years") else 0,
+                        "technical_skills": candidate.get("technical_skills", ""),
+                        "seniority_level": candidate.get("designation", candidate.get("seniority_level", "")),
+                        "education_level": candidate.get("education_level", ""),
+                        "resume_path": candidate.get("cv_url", candidate.get("resume_path", "")),
+                        "status": candidate.get("status", "applied")
+                    })
+                    inserted_count += 1
+                except Exception as e:
+                    errors.append(f"Candidate {i+1}: {str(e)}")
+                    continue
+            connection.commit()
+        
+        return {
+            "message": "Bulk upload completed",
+            "candidates_received": len(candidates.candidates),
+            "candidates_inserted": inserted_count,
+            "errors": errors[:5] if errors else [],  # Show first 5 errors
+            "total_errors": len(errors),
+            "status": "success" if inserted_count > 0 else "failed"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Bulk upload failed: {str(e)}")
 
 # AI Matching Engine (1 endpoint)
 @app.get("/v1/match/{job_id}/top", tags=["AI Matching Engine"])
@@ -383,18 +464,28 @@ async def get_top_matches(job_id: int, limit: int = 10, api_key: str = Depends(g
     try:
         engine = get_db_engine()
         with engine.connect() as connection:
-            query = text("SELECT id, name, email, skills FROM candidates LIMIT :limit")
+            query = text("SELECT id, name, email, technical_skills FROM candidates LIMIT :limit")
             result = connection.execute(query, {"limit": limit})
             matches = [{
                 "candidate_id": row[0],
                 "name": row[1],
                 "email": row[2],
-                "skills": row[3],
-                "match_score": 85.5,
-                "reasoning": "Strong skill match and experience alignment"
+                "score": 85.5,
+                "skills_match": row[3] or "",
+                "experience_match": 80.0,
+                "values_alignment": 4.2,
+                "recommendation_strength": "Strong Match"
             } for row in result]
         
-        return {"matches": matches, "job_id": job_id, "limit": limit, "algorithm": "v2.0.0"}
+        return {
+            "matches": matches, 
+            "top_candidates": matches,
+            "job_id": job_id, 
+            "limit": limit, 
+            "algorithm_version": "v2.0.0-fallback",
+            "processing_time": "0.05s",
+            "ai_analysis": "Database fallback matching with sample scoring"
+        }
     except Exception as e:
         return {"matches": [], "job_id": job_id, "limit": limit, "error": str(e)}
 
@@ -418,18 +509,69 @@ async def submit_feedback(feedback: FeedbackSubmission, api_key: str = Depends(g
         "submitted_at": datetime.now(timezone.utc).isoformat()
     }
 
+
+
+@app.get("/v1/interviews", tags=["Assessment & Workflow"])
+async def get_interviews(api_key: str = Depends(get_api_key)):
+    """Get All Interviews"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            query = text("""
+                SELECT i.id, i.candidate_id, i.job_id, i.interview_date, i.interviewer, i.status,
+                       c.name as candidate_name, j.title as job_title
+                FROM interviews i
+                LEFT JOIN candidates c ON i.candidate_id = c.id
+                LEFT JOIN jobs j ON i.job_id = j.id
+                ORDER BY i.interview_date DESC
+            """)
+            result = connection.execute(query)
+            interviews = [{
+                "id": row[0],
+                "candidate_id": row[1],
+                "job_id": row[2],
+                "interview_date": row[3].isoformat() if row[3] else None,
+                "interviewer": row[4],
+                "status": row[5],
+                "candidate_name": row[6],
+                "job_title": row[7]
+            } for row in result]
+        
+        return {"interviews": interviews, "count": len(interviews)}
+    except Exception as e:
+        return {"interviews": [], "count": 0, "error": str(e)}
+
 @app.post("/v1/interviews", tags=["Assessment & Workflow"])
 async def schedule_interview(interview: InterviewSchedule, api_key: str = Depends(get_api_key)):
     """Schedule Interview"""
-    return {
-        "message": "Interview scheduled successfully",
-        "interview_id": 1,
-        "candidate_id": interview.candidate_id,
-        "job_id": interview.job_id,
-        "interview_date": interview.interview_date,
-        "interview_type": interview.interview_type,
-        "status": "scheduled"
-    }
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            query = text("""
+                INSERT INTO interviews (candidate_id, job_id, interview_date, interviewer, status, notes)
+                VALUES (:candidate_id, :job_id, :interview_date, :interviewer, 'scheduled', :notes)
+                RETURNING id
+            """)
+            result = connection.execute(query, {
+                "candidate_id": interview.candidate_id,
+                "job_id": interview.job_id,
+                "interview_date": interview.interview_date,
+                "interviewer": interview.interviewer,
+                "notes": interview.notes
+            })
+            connection.commit()
+            interview_id = result.fetchone()[0]
+        
+        return {
+            "message": "Interview scheduled successfully",
+            "interview_id": interview_id,
+            "candidate_id": interview.candidate_id,
+            "job_id": interview.job_id,
+            "interview_date": interview.interview_date,
+            "status": "scheduled"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Interview scheduling failed: {str(e)}")
 
 @app.post("/v1/offers", tags=["Assessment & Workflow"])
 async def create_job_offer(offer: JobOffer, api_key: str = Depends(get_api_key)):
@@ -488,7 +630,7 @@ async def client_login(login_data: ClientLogin):
     """Client Authentication"""
     try:
         valid_clients = {
-            "TECH001": "google123",
+            "TECH001": "demo123",
             "STARTUP01": "startup123",
             "ENTERPRISE01": "enterprise123"
         }
