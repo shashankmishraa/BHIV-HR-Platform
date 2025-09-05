@@ -328,7 +328,7 @@ async def get_candidates_by_job(job_id: int, api_key: str = Depends(get_api_key)
     try:
         engine = get_db_engine()
         with engine.connect() as connection:
-            query = text("SELECT id, name, email, skills, experience FROM candidates LIMIT 10")
+            query = text("SELECT id, name, email, technical_skills, experience_years FROM candidates LIMIT 10")
             result = connection.execute(query)
             candidates = [{
                 "id": row[0],
@@ -352,10 +352,10 @@ async def search_candidates(skills: Optional[str] = None, api_key: str = Depends
         engine = get_db_engine()
         with engine.connect() as connection:
             if skills:
-                query = text("SELECT id, name, email, skills FROM candidates WHERE skills ILIKE :skills LIMIT 10")
+                query = text("SELECT id, name, email, technical_skills FROM candidates WHERE technical_skills ILIKE :skills LIMIT 10")
                 result = connection.execute(query, {"skills": f"%{skills}%"})
             else:
-                query = text("SELECT id, name, email, skills FROM candidates LIMIT 10")
+                query = text("SELECT id, name, email, technical_skills FROM candidates LIMIT 10")
                 result = connection.execute(query)
             
             candidates = [{
@@ -388,7 +388,7 @@ async def get_top_matches(job_id: int, limit: int = 10, api_key: str = Depends(g
     try:
         engine = get_db_engine()
         with engine.connect() as connection:
-            query = text("SELECT id, name, email, skills FROM candidates LIMIT :limit")
+            query = text("SELECT id, name, email, technical_skills FROM candidates LIMIT :limit")
             result = connection.execute(query, {"limit": limit})
             matches = [{
                 "candidate_id": row[0],
