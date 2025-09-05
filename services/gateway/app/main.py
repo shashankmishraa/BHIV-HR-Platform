@@ -652,20 +652,6 @@ async def test_security_headers(response: Response, api_key: str = Depends(get_a
         },
         "headers_count": 5,
         "status": "all_headers_applied"
-    }ck"
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    response.headers["Content-Security-Policy"] = "default-src 'self'"
-    
-    return {
-        "security_headers": {
-            "X-Content-Type-Options": "nosniff",
-            "X-Frame-Options": "DENY",
-            "X-XSS-Protection": "1; mode=block",
-            "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
-            "Content-Security-Policy": "default-src 'self'"
-        },
-        "headers_count": 5,
-        "status": "all_headers_applied"
     }
 
 @app.get("/v1/security/penetration-test-endpoints", tags=["Security Testing"])
