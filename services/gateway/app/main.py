@@ -13,6 +13,7 @@ from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
 import time
 from .monitoring import monitor, log_resume_processing, log_matching_performance, log_user_activity, log_error
+from .database_init import initialize_render_database
 
 security = HTTPBearer()
 
@@ -194,6 +195,10 @@ class CSPReport(BaseModel):
 class PasswordChange(BaseModel):
     old_password: str
     new_password: str
+
+class DatabaseInit(BaseModel):
+    action: str = "create_schema"
+    force: bool = False
 
 def get_db_engine():
     database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr")
@@ -791,6 +796,16 @@ async def demo_2fa_setup(api_key: str = Depends(get_api_key)):
         "test_codes": ["123456", "654321", "111111"],
         "instructions": "Use demo secret or scan QR code for testing"
     }
+
+# Database Administration (1 endpoint)
+@app.post("/admin/init-database", tags=["Database Administration"])
+async def initialize_database(init_data: DatabaseInit, api_key: str = Depends(get_api_key)):
+    """Initialize Database Schema and Sample Data"""
+    try:
+        result = initialize_render_database()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database initialization failed: {str(e)}")
 
 # Password Management (6 endpoints)
 @app.post("/v1/password/validate", tags=["Password Management"])
