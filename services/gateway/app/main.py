@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends, Security, Response
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import os
 import secrets
 import pyotp
@@ -69,19 +69,19 @@ def get_api_key(credentials: HTTPAuthorizationCredentials = Security(security)):
     return credentials.credentials
 
 # Core API Endpoints
-@app.get("/", tags=["Core API Endpoints"])
+@app.get("/", tags=["Core API"])
 def read_root():
     """API Root Information"""
     return {
         "message": "BHIV HR Platform API Gateway",
         "version": "3.1.0",
         "status": "healthy",
-        "endpoints": 46,
+        "endpoints": 47,
         "documentation": "/docs",
         "monitoring": "/metrics"
     }
 
-@app.get("/health", tags=["Core API Endpoints"])
+@app.get("/health", tags=["Core API"])
 def health_check(response: Response):
     """Health Check"""
     response.headers["X-Content-Type-Options"] = "nosniff"
@@ -96,7 +96,7 @@ def health_check(response: Response):
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
-@app.get("/test-candidates", tags=["Core API Endpoints"])
+@app.get("/test-candidates", tags=["Core API"])
 async def test_candidates_db(api_key: str = Depends(get_api_key)):
     """Database Connectivity Test"""
     try:
@@ -311,56 +311,8 @@ async def bulk_upload_candidates(candidates: CandidateBulk, api_key: str = Depen
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Bulk upload failed: {str(e)}")
 
-# AI Matching Engine with Fallback
-@app.post("/v1/match", tags=["AI Matching Engine"])
-async def ai_match_proxy(request: dict, api_key: str = Depends(get_api_key)):
-    """AI Matching with Fallback"""
-    try:
-        # Try AI agent first
-        agent_url = os.getenv("AGENT_URL", "https://bhiv-hr-agent.onrender.com")
-        
-        async with httpx.AsyncClient() as client:
-            response = await client.post(f"{agent_url}/match", 
-                                       json=request, 
-                                       timeout=30.0)
-            
-            if response.status_code == 200:
-                return response.json()
-            else:
-                raise Exception(f"AI agent returned {response.status_code}")
-                
-    except Exception as e:
-        # Fallback to database matching
-        job_id = request.get("job_id", 1)
-        try:
-            engine = get_db_engine()
-            with engine.connect() as connection:
-                query = text("SELECT id, name, email, technical_skills FROM candidates LIMIT 10")
-                result = connection.execute(query)
-                candidates = [{
-                    "candidate_id": row[0],
-                    "name": row[1],
-                    "email": row[2],
-                    "score": 85.5,
-                    "skills_match": [row[3]] if row[3] else [],
-                    "experience_match": "Good match",
-                    "values_alignment": 4.2,
-                    "recommendation_strength": "Strong Match"
-                } for row in result]
-            
-            return {
-                "job_id": job_id,
-                "top_candidates": candidates,
-                "total_candidates": len(candidates),
-                "processing_time": 0.05,
-                "algorithm_version": "v2.0.0-fallback",
-                "status": "success",
-                "ai_analysis": f"Database fallback (AI agent error: {str(e)})"
-            }
-        except Exception as db_e:
-            raise HTTPException(status_code=503, detail=f"Both AI agent and database failed: {str(db_e)}")
-
-@app.get("/v1/match/{job_id}/top", tags=["AI Matching Engine"])
+# AI Matching Engine
+@app.get("/v1/match/{job_id}/top", tags=["AI Matching"])
 async def get_top_matches(job_id: int, limit: Optional[int] = 10, api_key: str = Depends(get_api_key)):
     """Get Top Candidate Matches for Job"""
     try:
@@ -454,7 +406,7 @@ async def schedule_interview(interview: InterviewSchedule, api_key: str = Depend
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Interview scheduling failed: {str(e)}")
 
-# Client Portal Authentication
+# Client Portal
 @app.post("/v1/client/login", tags=["Client Portal"])
 async def client_login(credentials: ClientLogin):
     """Client Portal Login"""
@@ -469,7 +421,7 @@ async def client_login(credentials: ClientLogin):
     else:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-# Statistics
+# Analytics
 @app.get("/candidates/stats", tags=["Analytics"])
 async def get_candidate_stats(api_key: str = Depends(get_api_key)):
     """Candidate Statistics"""
@@ -496,7 +448,15 @@ async def get_candidate_stats(api_key: str = Depends(get_api_key)):
             "error": str(e)
         }
 
-# Monitoring Endpoints
+@app.get("/v1/reports/hiring-funnel", tags=["Analytics"])
+async def get_hiring_funnel(api_key: str = Depends(get_api_key)):
+    return {"funnel_stages": {"applied": 100, "screened": 75, "interviewed": 25}}
+
+@app.get("/v1/reports/performance", tags=["Analytics"])
+async def get_performance_report(api_key: str = Depends(get_api_key)):
+    return {"time_to_hire": {"average_days": 21}, "cost_per_hire": {"average": 3500}}
+
+# Monitoring
 @app.get("/metrics", tags=["Monitoring"])
 async def get_metrics():
     """Prometheus-style Metrics"""
@@ -541,7 +501,17 @@ async def detailed_health():
         }
     }
 
-# Security Endpoints (15 endpoints)
+@app.get("/metrics/dashboard", tags=["Monitoring"])
+async def get_metrics_dashboard():
+    return {
+        "system_status": "healthy",
+        "active_users": 45,
+        "requests_per_minute": 120,
+        "error_rate": 0.1,
+        "last_updated": datetime.now().isoformat()
+    }
+
+# Security Endpoints
 @app.get("/v1/security/rate-limit-status", tags=["Security"])
 async def get_rate_limit_status(api_key: str = Depends(get_api_key)):
     return {"rate_limit": "60/minute", "remaining": 45}
@@ -603,16 +573,7 @@ async def get_compliance_status(api_key: str = Depends(get_api_key)):
 async def request_data_export(request: dict, api_key: str = Depends(get_api_key)):
     return {"export_id": "exp_123", "status": "processing"}
 
-# Analytics Endpoints (2 additional)
-@app.get("/v1/reports/hiring-funnel", tags=["Analytics"])
-async def get_hiring_funnel(api_key: str = Depends(get_api_key)):
-    return {"funnel_stages": {"applied": 100, "screened": 75, "interviewed": 25}}
-
-@app.get("/v1/reports/performance", tags=["Analytics"])
-async def get_performance_report(api_key: str = Depends(get_api_key)):
-    return {"time_to_hire": {"average_days": 21}, "cost_per_hire": {"average": 3500}}
-
-# Documentation Endpoints (13 endpoints)
+# Documentation Endpoints
 @app.get("/v1/docs/daily-reflections", tags=["Documentation"])
 async def get_daily_reflections():
     return {"reflections": [{"date": "2025-01-13", "achievements": ["Fixed endpoints"]}]}
@@ -627,11 +588,11 @@ async def get_bias_analysis():
 
 @app.get("/v1/docs/project-structure", tags=["Documentation"])
 async def get_project_structure():
-    return {"structure": {"services": 5, "endpoints": 46, "databases": 1}}
+    return {"structure": {"services": 5, "endpoints": 47, "databases": 1}}
 
 @app.get("/v1/docs/api-reference", tags=["Documentation"])
 async def get_api_reference():
-    return {"version": "3.1.0", "endpoints": 46, "authentication": "Bearer Token"}
+    return {"version": "3.1.0", "endpoints": 47, "authentication": "Bearer Token"}
 
 @app.get("/v1/docs/user-guide", tags=["Documentation"])
 async def get_user_guide():
@@ -647,7 +608,7 @@ async def get_deployment_guide():
 
 @app.get("/v1/docs/changelog", tags=["Documentation"])
 async def get_changelog():
-    return {"version": "3.1.0", "changes": ["Added 46 endpoints"]}
+    return {"version": "3.1.0", "changes": ["Added 47 endpoints"]}
 
 @app.get("/v1/docs/architecture", tags=["Documentation"])
 async def get_architecture_docs():
@@ -664,14 +625,3 @@ async def get_performance_docs():
 @app.get("/v1/docs/compliance", tags=["Documentation"])
 async def get_compliance_docs():
     return {"standards": ["GDPR", "SOC2"], "audit_frequency": "Quarterly"}
-
-# Monitoring Dashboard
-@app.get("/metrics/dashboard", tags=["Monitoring"])
-async def get_metrics_dashboard():
-    return {
-        "system_status": "healthy",
-        "active_users": 45,
-        "requests_per_minute": 120,
-        "error_rate": 0.1,
-        "last_updated": datetime.now().isoformat()
-    }
