@@ -1,0 +1,171 @@
+# BHIV HR Platform - Render Deployment Configuration
+# This file documents the current Render deployment setup
+
+services:
+  # PostgreSQL Database
+  database:
+    name: bhiv-hr-database
+    type: postgres
+    plan: free
+    region: oregon
+    database: bhiv_hr
+    user: bhiv_user
+    version: 17
+    storage: 1GB
+    status: ✅ Active
+    internal_url: "postgresql://bhiv_user:password@dpg-xxxxx-a:5432/bhiv_hr"
+
+  # API Gateway Service
+  gateway:
+    name: bhiv-hr-gateway
+    type: web_service
+    plan: free
+    region: oregon
+    repository: https://github.com/shashankmishraa/BHIV-HR-Platform
+    branch: main
+    root_directory: services/gateway
+    build_command: pip install -r requirements.txt
+    start_command: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    public_url: https://bhiv-hr-gateway.onrender.com
+    docs_url: https://bhiv-hr-gateway.onrender.com/docs
+    status: ✅ Active
+    environment_variables:
+      - DATABASE_URL: [Internal Database URL]
+      - API_KEY_SECRET: myverysecureapikey123
+    endpoints: 46
+    features:
+      - API Gateway with FastAPI
+      - 46 REST endpoints
+      - Authentication & Security
+      - Granular rate limiting by endpoint
+      - 2FA implementation with QR codes
+      - Password management
+      - Advanced monitoring & metrics
+
+  # AI Matching Engine
+  agent:
+    name: bhiv-hr-agent
+    type: web_service
+    plan: free
+    region: oregon
+    repository: https://github.com/shashankmishraa/BHIV-HR-Platform
+    branch: main
+    root_directory: services/agent
+    build_command: pip install -r requirements.txt
+    start_command: uvicorn app:app --host 0.0.0.0 --port $PORT
+    public_url: https://bhiv-hr-agent.onrender.com
+    docs_url: https://bhiv-hr-agent.onrender.com/docs
+    status: ✅ Active
+    environment_variables:
+      - DATABASE_URL: [Internal Database URL]
+    features:
+      - AI-powered candidate matching
+      - Dynamic scoring algorithms
+      - Real-time matching (<0.02s)
+      - Semantic analysis
+      - Bias mitigation
+
+  # HR Portal
+  portal:
+    name: bhiv-hr-portal
+    type: web_service
+    plan: free
+    region: oregon
+    repository: https://github.com/shashankmishraa/BHIV-HR-Platform
+    branch: main
+    root_directory: services/portal
+    build_command: pip install -r requirements.txt
+    start_command: streamlit run app.py --server.port $PORT --server.address 0.0.0.0
+    public_url: https://bhiv-hr-portal.onrender.com
+    status: ✅ Active
+    environment_variables:
+      - GATEWAY_URL: https://bhiv-hr-gateway.onrender.com
+      - API_KEY_SECRET: myverysecureapikey123
+    features:
+      - HR dashboard interface
+      - Candidate management
+      - Job posting & management
+      - AI matching interface
+      - Values assessment tools
+      - Analytics & reporting
+
+  # Client Portal
+  client_portal:
+    name: bhiv-hr-client-portal
+    type: web_service
+    plan: free
+    region: oregon
+    repository: https://github.com/shashankmishraa/BHIV-HR-Platform
+    branch: main
+    root_directory: services/client_portal
+    build_command: pip install -r requirements.txt
+    start_command: streamlit run app.py --server.port $PORT --server.address 0.0.0.0
+    public_url: https://bhiv-hr-client-portal.onrender.com
+    status: ✅ Active
+    environment_variables:
+      - GATEWAY_URL: https://bhiv-hr-gateway.onrender.com
+      - API_KEY_SECRET: myverysecureapikey123
+    features:
+      - Client authentication system
+      - Job posting interface
+      - Candidate review & selection
+      - Match results visualization
+      - Enterprise analytics
+    authentication:
+      - Username: TECH001
+      - Password: demo123
+      - Additional clients: STARTUP01, ENTERPRISE01
+
+# Deployment Information
+deployment_info:
+  platform: Render
+  region: Oregon (US West)
+  total_services: 5
+  deployment_date: "2025-01-03"
+  repository: https://github.com/shashankmishraa/BHIV-HR-Platform
+  deployment_method: GitHub integration
+  auto_deploy: enabled
+  
+# Cost Information
+cost_breakdown:
+  database: $0/month (Free tier)
+  gateway: $0/month (Free tier)
+  agent: $0/month (Free tier)
+  portal: $0/month (Free tier)
+  client_portal: $0/month (Free tier)
+  total_monthly: $0/month
+  
+# Performance & Limitations
+performance:
+  cold_start_time: 30-60 seconds
+  sleep_after_inactivity: 15 minutes
+  monthly_hours_limit: 750 hours total
+  concurrent_requests: Limited on free tier
+  uptime_target: 99.9%
+  
+# Monitoring & Health
+monitoring:
+  health_endpoints:
+    - https://bhiv-hr-gateway.onrender.com/health
+    - https://bhiv-hr-agent.onrender.com/health
+  metrics_endpoint: https://bhiv-hr-gateway.onrender.com/metrics
+  logs_access: Render dashboard
+  alerts: Basic (upgrade for advanced)
+
+# Security Features
+security:
+  https_enabled: true
+  api_authentication: Bearer token
+  rate_limiting: Granular limits by endpoint and user tier
+  input_validation: XSS/SQL injection protection
+  security_headers: CSP, XSS, Frame Options
+  2fa_implementation: TOTP with QR code generation
+  password_policies: Enterprise-grade
+  dynamic_rate_adjustment: Based on system load
+
+# Backup & Recovery
+backup:
+  database_backups: Automatic (Render managed)
+  code_backup: GitHub repository
+  configuration_backup: This file + environment variables
+  recovery_time: < 5 minutes (redeploy from GitHub)
