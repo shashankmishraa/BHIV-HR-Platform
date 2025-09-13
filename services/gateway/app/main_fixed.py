@@ -51,10 +51,6 @@ class InterviewSchedule(BaseModel):
     interviewer: Optional[str] = "HR Team"
     notes: Optional[str] = None
 
-class ClientLogin(BaseModel):
-    username: str
-    password: str
-
 def get_db_engine():
     database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr")
     return create_engine(database_url, pool_pre_ping=True, pool_recycle=3600)
@@ -65,7 +61,7 @@ def validate_api_key(api_key: str) -> bool:
 
 def get_api_key(credentials: HTTPAuthorizationCredentials = Security(security)):
     if not credentials or not validate_api_key(credentials.credentials):
-        raise HTTPException(status_code=401, detail="Invalid or missing API key")
+        raise HTTPException(status_code=401, detail="Invalid API key")
     return credentials.credentials
 
 # Core API Endpoints
@@ -171,38 +167,6 @@ async def list_jobs(api_key: str = Depends(get_api_key)):
         raise HTTPException(status_code=500, detail=f"Failed to fetch jobs: {str(e)}")
 
 # Candidate Management
-@app.get("/v1/candidates", tags=["Candidate Management"])
-async def get_all_candidates(limit: Optional[int] = 50, api_key: str = Depends(get_api_key)):
-    """Get All Candidates"""
-    try:
-        engine = get_db_engine()
-        with engine.connect() as connection:
-            query = text("""
-                SELECT id, name, email, phone, location, technical_skills, experience_years, 
-                       seniority_level, education_level, status, created_at
-                FROM candidates 
-                ORDER BY created_at DESC 
-                LIMIT :limit
-            """)
-            result = connection.execute(query, {"limit": limit})
-            candidates = [{
-                "id": row[0],
-                "name": row[1],
-                "email": row[2],
-                "phone": row[3],
-                "location": row[4],
-                "technical_skills": row[5],
-                "experience_years": row[6],
-                "seniority_level": row[7],
-                "education_level": row[8],
-                "status": row[9],
-                "created_at": row[10].isoformat() if row[10] else None
-            } for row in result]
-        
-        return {"candidates": candidates, "count": len(candidates)}
-    except Exception as e:
-        return {"candidates": [], "count": 0, "error": str(e)}
-
 @app.get("/v1/candidates/search", tags=["Candidate Management"])
 async def search_candidates(skills: Optional[str] = None, location: Optional[str] = None, experience_min: Optional[int] = None, api_key: str = Depends(get_api_key)):
     """Search & Filter Candidates"""
@@ -360,36 +324,6 @@ async def ai_match_proxy(request: dict, api_key: str = Depends(get_api_key)):
         except Exception as db_e:
             raise HTTPException(status_code=503, detail=f"Both AI agent and database failed: {str(db_e)}")
 
-@app.get("/v1/match/{job_id}/top", tags=["AI Matching Engine"])
-async def get_top_matches(job_id: int, limit: Optional[int] = 10, api_key: str = Depends(get_api_key)):
-    """Get Top Candidate Matches for Job"""
-    try:
-        engine = get_db_engine()
-        with engine.connect() as connection:
-            query = text("SELECT id, name, email, technical_skills FROM candidates LIMIT :limit")
-            result = connection.execute(query, {"limit": limit})
-            candidates = [{
-                "candidate_id": row[0],
-                "name": row[1],
-                "email": row[2],
-                "score": 85.5,
-                "skills_match": [row[3]] if row[3] else [],
-                "experience_match": "Good match",
-                "values_alignment": 4.2,
-                "recommendation_strength": "Strong Match"
-            } for row in result]
-        
-        return {
-            "job_id": job_id,
-            "top_candidates": candidates,
-            "total_candidates": len(candidates),
-            "processing_time": 0.05,
-            "algorithm_version": "v2.0.0",
-            "status": "success"
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Matching failed: {str(e)}")
-
 # Interview Management
 @app.get("/v1/interviews", tags=["Interview Management"])
 async def get_interviews(api_key: str = Depends(get_api_key)):
@@ -398,7 +332,7 @@ async def get_interviews(api_key: str = Depends(get_api_key)):
         engine = get_db_engine()
         with engine.connect() as connection:
             query = text("""
-                SELECT i.id, i.candidate_id, i.job_id, i.interview_date, i.status, i.notes,
+                SELECT i.id, i.candidate_id, i.job_id, i.interview_date, i.interviewer, i.status, i.notes,
                        c.name as candidate_name, j.title as job_title
                 FROM interviews i
                 LEFT JOIN candidates c ON i.candidate_id = c.id
@@ -411,11 +345,11 @@ async def get_interviews(api_key: str = Depends(get_api_key)):
                 "candidate_id": row[1],
                 "job_id": row[2],
                 "interview_date": row[3].isoformat() if row[3] else None,
-                "interviewer": "HR Team",
-                "status": row[4],
-                "notes": row[5],
-                "candidate_name": row[6],
-                "job_title": row[7]
+                "interviewer": row[4],
+                "status": row[5],
+                "notes": row[6],
+                "candidate_name": row[7],
+                "job_title": row[8]
             } for row in result]
         
         return {"interviews": interviews, "count": len(interviews)}
@@ -429,14 +363,15 @@ async def schedule_interview(interview: InterviewSchedule, api_key: str = Depend
         engine = get_db_engine()
         with engine.connect() as connection:
             query = text("""
-                INSERT INTO interviews (candidate_id, job_id, interview_date, status, notes)
-                VALUES (:candidate_id, :job_id, :interview_date, 'scheduled', :notes)
+                INSERT INTO interviews (candidate_id, job_id, interview_date, interviewer, status, notes)
+                VALUES (:candidate_id, :job_id, :interview_date, :interviewer, 'scheduled', :notes)
                 RETURNING id
             """)
             result = connection.execute(query, {
                 "candidate_id": interview.candidate_id,
                 "job_id": interview.job_id,
                 "interview_date": interview.interview_date,
+                "interviewer": interview.interviewer,
                 "notes": interview.notes
             })
             connection.commit()
@@ -448,26 +383,10 @@ async def schedule_interview(interview: InterviewSchedule, api_key: str = Depend
             "candidate_id": interview.candidate_id,
             "job_id": interview.job_id,
             "interview_date": interview.interview_date,
-            "interviewer": interview.interviewer or "HR Team",
             "status": "scheduled"
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Interview scheduling failed: {str(e)}")
-
-# Client Portal Authentication
-@app.post("/v1/client/login", tags=["Client Portal"])
-async def client_login(credentials: ClientLogin):
-    """Client Portal Login"""
-    if credentials.username == "TECH001" and credentials.password == "demo123":
-        return {
-            "success": True,
-            "message": "Login successful",
-            "client_id": "TECH001",
-            "access_level": "standard",
-            "session_token": "demo_session_token_123"
-        }
-    else:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
 
 # Statistics
 @app.get("/candidates/stats", tags=["Analytics"])
@@ -495,48 +414,3 @@ async def get_candidate_stats(api_key: str = Depends(get_api_key)):
             "pending_interviews": 0,
             "error": str(e)
         }
-
-# Monitoring Endpoints
-@app.get("/metrics", tags=["Monitoring"])
-async def get_metrics():
-    """Prometheus-style Metrics"""
-    return {
-        "http_requests_total": 1250,
-        "http_request_duration_seconds": 0.045,
-        "database_connections_active": 3,
-        "ai_matching_requests_total": 89,
-        "candidates_processed_total": 68,
-        "jobs_created_total": 15,
-        "interviews_scheduled_total": 12,
-        "system_uptime_seconds": 86400,
-        "memory_usage_bytes": 134217728,
-        "cpu_usage_percent": 15.2
-    }
-
-@app.get("/health/detailed", tags=["Monitoring"])
-async def detailed_health():
-    """Detailed Health Check"""
-    try:
-        engine = get_db_engine()
-        with engine.connect() as connection:
-            connection.execute(text("SELECT 1"))
-            db_status = "healthy"
-    except Exception:
-        db_status = "unhealthy"
-    
-    return {
-        "status": "healthy",
-        "service": "BHIV HR Gateway",
-        "version": "3.1.0",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "components": {
-            "database": db_status,
-            "api": "healthy",
-            "ai_agent": "external"
-        },
-        "metrics": {
-            "uptime": "24h",
-            "requests_per_minute": 45,
-            "error_rate": "0.1%"
-        }
-    }
