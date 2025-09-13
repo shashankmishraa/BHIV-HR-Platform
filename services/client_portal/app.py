@@ -4,7 +4,7 @@ from datetime import datetime
 
 # Configuration
 import os
-API_BASE_URL = os.getenv("GATEWAY_URL", "https://bhiv-hr-gateway.onrender.com")
+API_BASE_URL = os.getenv("GATEWAY_URL", "http://gateway:8000")
 API_KEY = os.getenv("API_KEY_SECRET", "myverysecureapikey123")
 
 headers = {
@@ -276,7 +276,7 @@ def show_candidate_review():
                         try:
                             # Call AI agent service directly
                             agent_response = requests.post(
-                                "https://bhiv-hr-agent.onrender.com/match", 
+                                "http://localhost:9000/match", 
                                 json={"job_id": job_id}, 
                                 timeout=15
                             )
@@ -419,7 +419,7 @@ def show_match_results():
                             try:
                                 # Call AI agent directly for dynamic matching
                                 response = requests.post(
-                                    "https://bhiv-hr-agent.onrender.com/match", 
+                                    "http://localhost:9000/match", 
                                     json={"job_id": job_id}, 
                                     timeout=20
                                 )
