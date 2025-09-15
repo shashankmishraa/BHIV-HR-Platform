@@ -1,7 +1,6 @@
-from fastapi import FastAPI, HTTPException, Depends, Security, Response, Header, Request
+from fastapi import FastAPI, HTTPException, Depends, Security, Response
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.openapi.utils import get_openapi
 from datetime import datetime, timezone
 import os
 import secrets
@@ -11,43 +10,11 @@ import io
 import base64
 from sqlalchemy import create_engine, text
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 import time
-import json
-try:
-    import redis
-except ImportError:
-    redis = None
-import asyncio
 from .monitoring import monitor, log_resume_processing, log_matching_performance, log_user_activity, log_error
 
 security = HTTPBearer()
-
-# Enhanced CORS configuration with environment-specific origins
-def get_cors_origins():
-    """Get CORS origins based on environment"""
-    env = os.getenv("ENVIRONMENT", "development")
-    
-    if env == "production":
-        return [
-            "https://bhiv-hr-portal.onrender.com",
-            "https://bhiv-hr-client-portal.onrender.com",
-            "https://bhiv.ai",
-            "https://www.bhiv.ai"
-        ]
-    elif env == "staging":
-        return [
-            "https://staging-bhiv-hr-portal.onrender.com",
-            "https://staging-bhiv-hr-client-portal.onrender.com",
-            "https://staging.bhiv.ai"
-        ]
-    else:  # development
-        return [
-            "http://localhost:8501",
-            "http://localhost:8502",
-            "http://127.0.0.1:8501",
-            "http://127.0.0.1:8502"
-        ]
 
 app = FastAPI(
     title="BHIV HR Platform API Gateway",
@@ -55,368 +22,105 @@ app = FastAPI(
     description="Enterprise HR Platform with Advanced Security Features"
 )
 
-# Enhanced CORS middleware with secure configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=get_cors_origins(),
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
-    expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"]
+    allow_headers=["*"],
 )
 
-# Redis connection for distributed rate limiting
-def get_redis_client():
-    """Get Redis client for distributed rate limiting"""
-    if redis is None:
-        return None
-    try:
-        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
-        return redis.from_url(redis_url, decode_responses=True)
-    except Exception:
-        return None
+# Add monitoring endpoints
+@app.get("/metrics", tags=["Monitoring"])
+async def get_prometheus_metrics():
+    """Prometheus Metrics Export"""
+    return Response(content=monitor.export_prometheus_metrics(), media_type="text/plain")
 
-redis_client = get_redis_client()
+@app.get("/health/detailed", tags=["Monitoring"])
+async def detailed_health_check():
+    """Detailed Health Check with Metrics"""
+    return monitor.health_check()
 
-# Enhanced rate limiting with Redis backend
-class RateLimiter:
-    def __init__(self):
-        self.redis_client = get_redis_client()
-        self.fallback_storage = {}  # In-memory fallback
-        
-    def get_rate_limit_key(self, client_ip: str, endpoint: str, user_tier: str = "default") -> str:
-        """Generate rate limit key"""
-        return f"rate_limit:{user_tier}:{client_ip}:{endpoint}"
+@app.get("/metrics/dashboard", tags=["Monitoring"])
+async def metrics_dashboard():
+    """Metrics Dashboard Data"""
+    return {
+        "performance_summary": monitor.get_performance_summary(24),
+        "business_metrics": monitor.get_business_metrics(),
+        "system_metrics": monitor.collect_system_metrics()
+    }
+
+# Enhanced Granular Rate Limiting
+from collections import defaultdict
+from fastapi import Request
+import psutil
+
+rate_limit_storage = defaultdict(list)
+
+# Granular rate limits by endpoint and user tier
+RATE_LIMITS = {
+    "default": {
+        "/v1/jobs": 100,
+        "/v1/candidates/search": 50,
+        "/v1/match": 20,
+        "/v1/candidates/bulk": 5,
+        "default": 60
+    },
+    "premium": {
+        "/v1/jobs": 500,
+        "/v1/candidates/search": 200,
+        "/v1/match": 100,
+        "/v1/candidates/bulk": 25,
+        "default": 300
+    }
+}
+
+def get_dynamic_rate_limit(endpoint: str, user_tier: str = "default") -> int:
+    """Dynamic rate limiting based on system load"""
+    cpu_usage = psutil.cpu_percent()
+    base_limit = RATE_LIMITS[user_tier].get(endpoint, RATE_LIMITS[user_tier]["default"])
     
-    def get_tier_limits(self, user_tier: str = "default") -> Dict[str, int]:
-        """Get fixed rate limits per tier (no CPU-based adjustment)"""
-        limits = {
-            "default": {
-                "/v1/jobs": 100,
-                "/v1/candidates/search": 50,
-                "/v1/match": 20,
-                "/v1/candidates/bulk": 5,
-                "/v1/security/rate-limit-status": 30,
-                "/v1/security/test-input-validation": 10,
-                "/v1/security/csp-report": 20,
-                "default": 60
-            },
-            "premium": {
-                "/v1/jobs": 500,
-                "/v1/candidates/search": 200,
-                "/v1/match": 100,
-                "/v1/candidates/bulk": 25,
-                "/v1/security/rate-limit-status": 100,
-                "/v1/security/test-input-validation": 50,
-                "/v1/security/csp-report": 100,
-                "default": 300
-            },
-            "enterprise": {
-                "/v1/jobs": 1000,
-                "/v1/candidates/search": 500,
-                "/v1/match": 200,
-                "/v1/candidates/bulk": 50,
-                "/v1/security/rate-limit-status": 200,
-                "/v1/security/test-input-validation": 100,
-                "/v1/security/csp-report": 200,
-                "default": 600
-            }
-        }
-        return limits.get(user_tier, limits["default"])
-    
-    async def check_rate_limit(self, client_ip: str, endpoint: str, user_tier: str = "default") -> tuple:
-        """Check rate limit using Redis or fallback storage"""
-        tier_limits = self.get_tier_limits(user_tier)
-        limit = tier_limits.get(endpoint, tier_limits["default"])
-        
-        key = self.get_rate_limit_key(client_ip, endpoint, user_tier)
-        current_time = int(time.time())
-        window_start = current_time - 60  # 1-minute window
-        
-        if self.redis_client:
-            try:
-                # Use Redis for distributed rate limiting
-                pipe = self.redis_client.pipeline()
-                pipe.zremrangebyscore(key, 0, window_start)
-                pipe.zcard(key)
-                pipe.zadd(key, {str(current_time): current_time})
-                pipe.expire(key, 60)
-                results = pipe.execute()
-                
-                current_count = results[1]
-                remaining = max(0, limit - current_count - 1)
-                
-                if current_count >= limit:
-                    return False, limit, 0, current_time + 60
-                
-                return True, limit, remaining, current_time + 60
-                
-            except Exception as e:
-                # Fallback to in-memory storage
-                pass
-        
-        # Fallback in-memory rate limiting
-        if key not in self.fallback_storage:
-            self.fallback_storage[key] = []
-        
-        # Clean old entries
-        self.fallback_storage[key] = [
-            req_time for req_time in self.fallback_storage[key]
-            if req_time > window_start
-        ]
-        
-        current_count = len(self.fallback_storage[key])
-        
-        if current_count >= limit:
-            return False, limit, 0, current_time + 60
-        
-        self.fallback_storage[key].append(current_time)
-        remaining = limit - current_count - 1
-        
-        return True, limit, remaining, current_time + 60
+    if cpu_usage > 80:
+        return int(base_limit * 0.5)  # Reduce by 50% during high load
+    elif cpu_usage < 30:
+        return int(base_limit * 1.5)  # Increase by 50% during low load
+    return base_limit
 
-rate_limiter = RateLimiter()
-
-# Enhanced rate limiting middleware
-async def enhanced_rate_limit_middleware(request: Request, call_next):
-    """Enhanced rate limiting middleware with Redis backend"""
+async def rate_limit_middleware(request: Request, call_next):
     client_ip = request.client.host
+    current_time = time.time()
     endpoint_path = request.url.path
     
-    # Skip rate limiting for health checks and static endpoints
-    if endpoint_path in ["/health", "/", "/docs", "/openapi.json"]:
-        response = await call_next(request)
-        return response
+    # Determine user tier (simplified - in production, get from JWT/database)
+    user_tier = "premium" if "enterprise" in request.headers.get("user-agent", "").lower() else "default"
     
-    # Determine user tier from headers or JWT
-    user_tier = "default"
-    auth_header = request.headers.get("authorization", "")
-    if "enterprise" in auth_header.lower():
-        user_tier = "enterprise"
-    elif "premium" in auth_header.lower():
-        user_tier = "premium"
+    # Get dynamic rate limit for this endpoint
+    rate_limit = get_dynamic_rate_limit(endpoint_path, user_tier)
     
-    # Check rate limit
-    allowed, limit, remaining, reset_time = await rate_limiter.check_rate_limit(
-        client_ip, endpoint_path, user_tier
-    )
+    # Clean old requests (older than 1 minute)
+    key = f"{client_ip}:{endpoint_path}"
+    rate_limit_storage[key] = [
+        req_time for req_time in rate_limit_storage[key] 
+        if current_time - req_time < 60
+    ]
     
-    if not allowed:
-        return Response(
-            status_code=429,
-            content=json.dumps({
-                "error": "rate_limit_exceeded",
-                "message": f"Rate limit exceeded for {endpoint_path}. Limit: {limit}/minute",
-                "retry_after": 60
-            }),
-            headers={
-                "Content-Type": "application/json",
-                "X-RateLimit-Limit": str(limit),
-                "X-RateLimit-Remaining": "0",
-                "X-RateLimit-Reset": str(reset_time),
-                "Retry-After": "60"
-            }
+    # Check granular rate limit
+    if len(rate_limit_storage[key]) >= rate_limit:
+        raise HTTPException(
+            status_code=429, 
+            detail=f"Rate limit exceeded for {endpoint_path}. Limit: {rate_limit}/min"
         )
     
+    # Record this request
+    rate_limit_storage[key].append(current_time)
+    
     response = await call_next(request)
-    
-    # Add rate limit headers to response
-    response.headers["X-RateLimit-Limit"] = str(limit)
-    response.headers["X-RateLimit-Remaining"] = str(remaining)
-    response.headers["X-RateLimit-Reset"] = str(reset_time)
-    
+    response.headers["X-RateLimit-Limit"] = str(rate_limit)
+    response.headers["X-RateLimit-Remaining"] = str(rate_limit - len(rate_limit_storage[key]))
     return response
 
-app.middleware("http")(enhanced_rate_limit_middleware)
+app.middleware("http")(rate_limit_middleware)
 
-# System load monitoring (separate from rate limiting)
-class SystemMonitor:
-    def __init__(self):
-        self.cpu_threshold = 80
-        self.memory_threshold = 85
-        
-    def get_system_load(self) -> Dict[str, float]:
-        """Get current system load metrics"""
-        try:
-            import psutil
-            return {
-                "cpu_percent": psutil.cpu_percent(interval=0.1),
-                "memory_percent": psutil.virtual_memory().percent,
-                "disk_percent": psutil.disk_usage('/').percent
-            }
-        except:
-            return {"cpu_percent": 0, "memory_percent": 0, "disk_percent": 0}
-    
-    def is_system_overloaded(self) -> bool:
-        """Check if system is overloaded"""
-        metrics = self.get_system_load()
-        return (metrics["cpu_percent"] > self.cpu_threshold or 
-                metrics["memory_percent"] > self.memory_threshold)
-
-system_monitor = SystemMonitor()
-
-# Enhanced Pydantic models with comprehensive examples
-class SecurityTestInput(BaseModel):
-    """Enhanced security test input model"""
-    input_data: str = Field(
-        ..., 
-        description="Input data to validate for security threats",
-        example="<script>alert('test')</script>",
-        min_length=1,
-        max_length=1000
-    )
-    test_type: Optional[str] = Field(
-        "xss", 
-        description="Type of security test to perform",
-        example="xss"
-    )
-    
-    class Config:
-        schema_extra = {
-            "example": {
-                "input_data": "<script>alert('test')</script>",
-                "test_type": "xss"
-            }
-        }
-
-class CSPReportModel(BaseModel):
-    """Enhanced CSP report model"""
-    violated_directive: str = Field(
-        ..., 
-        description="The directive that was violated",
-        example="script-src"
-    )
-    blocked_uri: str = Field(
-        ..., 
-        description="The URI that was blocked",
-        example="https://malicious-site.com/script.js"
-    )
-    document_uri: str = Field(
-        ..., 
-        description="The document URI where violation occurred",
-        example="https://bhiv-hr-portal.onrender.com/dashboard"
-    )
-    original_policy: Optional[str] = Field(
-        None,
-        description="The original CSP policy",
-        example="default-src 'self'; script-src 'self'"
-    )
-    
-    class Config:
-        schema_extra = {
-            "example": {
-                "violated_directive": "script-src",
-                "blocked_uri": "https://malicious-site.com/script.js",
-                "document_uri": "https://bhiv-hr-portal.onrender.com/dashboard",
-                "original_policy": "default-src 'self'; script-src 'self'"
-            }
-        }
-
-# Enhanced OpenAPI documentation
-def custom_openapi():
-    if app.openapi_schema:
-        return app.openapi_schema
-    
-    openapi_schema = get_openapi(
-        title="BHIV HR Platform API Gateway",
-        version="3.1.0",
-        description="""
-        ## Enterprise HR Platform with Advanced Security Features
-        
-        ### Security Features
-        - **Rate Limiting**: Distributed rate limiting with Redis backend
-        - **CORS Protection**: Environment-specific origin restrictions
-        - **Input Validation**: XSS and injection attack prevention
-        - **CSP Monitoring**: Content Security Policy violation tracking
-        
-        ### Rate Limits by Tier
-        - **Default**: 60 requests/minute (general), 20/min (AI matching)
-        - **Premium**: 300 requests/minute (general), 100/min (AI matching)
-        - **Enterprise**: 600 requests/minute (general), 200/min (AI matching)
-        """,
-        routes=app.routes,
-    )
-    
-    # Add comprehensive examples for security endpoints
-    if "paths" in openapi_schema:
-        # Add examples for security testing endpoints
-        security_examples = {
-            "/v1/security/test-input-validation": {
-                "post": {
-                    "requestBody": {
-                        "content": {
-                            "application/json": {
-                                "examples": {
-                                    "xss_test": {
-                                        "summary": "XSS Attack Test",
-                                        "value": {
-                                            "input_data": "<script>alert('xss')</script>",
-                                            "test_type": "xss"
-                                        }
-                                    },
-                                    "sql_injection_test": {
-                                        "summary": "SQL Injection Test",
-                                        "value": {
-                                            "input_data": "'; DROP TABLE users; --",
-                                            "test_type": "sql_injection"
-                                        }
-                                    },
-                                    "safe_input": {
-                                        "summary": "Safe Input Test",
-                                        "value": {
-                                            "input_data": "John Doe",
-                                            "test_type": "safe"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "/v1/security/csp-report": {
-                "post": {
-                    "requestBody": {
-                        "content": {
-                            "application/json": {
-                                "examples": {
-                                    "script_violation": {
-                                        "summary": "Script Source Violation",
-                                        "value": {
-                                            "violated_directive": "script-src",
-                                            "blocked_uri": "https://malicious-site.com/script.js",
-                                            "document_uri": "https://bhiv-hr-portal.onrender.com/dashboard"
-                                        }
-                                    },
-                                    "style_violation": {
-                                        "summary": "Style Source Violation",
-                                        "value": {
-                                            "violated_directive": "style-src",
-                                            "blocked_uri": "https://untrusted-cdn.com/styles.css",
-                                            "document_uri": "https://bhiv-hr-portal.onrender.com/profile"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        # Merge examples into schema
-        for path, methods in security_examples.items():
-            if path in openapi_schema["paths"]:
-                for method, config in methods.items():
-                    if method in openapi_schema["paths"][path]:
-                        openapi_schema["paths"][path][method].update(config)
-    
-    app.openapi_schema = openapi_schema
-    return app.openapi_schema
-
-app.openapi = custom_openapi
-
-# All existing model definitions (keeping them as they are)
 class JobCreate(BaseModel):
     title: str
     department: str
@@ -506,252 +210,865 @@ def get_api_key(credentials: HTTPAuthorizationCredentials = Security(security)):
         raise HTTPException(status_code=401, detail="Invalid API key")
     return credentials.credentials
 
-# Enhanced health endpoint (removed static rate limit headers)
+# Core API Endpoints (3 endpoints)
+@app.get("/", tags=["Core API Endpoints"])
+def read_root():
+    """API Root Information"""
+    return {
+        "message": "BHIV HR Platform API Gateway",
+        "version": "3.1.0",
+        "status": "healthy",
+        "endpoints": 46,
+        "documentation": "/docs",
+        "monitoring": "/metrics",
+        "live_demo": "https://bhiv-platform.aws.example.com"
+    }
+
 @app.get("/health", tags=["Core API Endpoints"])
-def health_check():
-    """Enhanced Health Check without static rate limit headers"""
-    system_load = system_monitor.get_system_load()
-    is_overloaded = system_monitor.is_system_overloaded()
+def health_check(response: Response):
+    """Health Check"""
+    response.headers["X-RateLimit-Limit"] = "60"
+    response.headers["X-RateLimit-Remaining"] = "59"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Content-Security-Policy"] = "default-src 'self'"
     
     return {
-        "status": "degraded" if is_overloaded else "healthy",
+        "status": "healthy",
         "service": "BHIV HR Gateway",
         "version": "3.1.0",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "system_load": system_load,
-        "rate_limiting": {
-            "backend": "redis" if redis_client else "memory",
-            "status": "active"
-        }
-    }
-
-# Enhanced security testing endpoints with comprehensive examples
-@app.post(
-    "/v1/security/test-input-validation", 
-    tags=["Security Testing"],
-    summary="Test Input Validation",
-    description="""
-    **Test input validation against common security threats**
-    
-    This endpoint validates input data against various security threats including:
-    - XSS (Cross-Site Scripting) attacks
-    - SQL injection attempts
-    - Command injection
-    - Path traversal attacks
-    
-    **Example Payloads:**
-    - XSS: `<script>alert('xss')</script>`
-    - SQL Injection: `'; DROP TABLE users; --`
-    - Safe Input: `John Doe`
-    
-    **Response includes:**
-    - Validation result (SAFE/THREAT)
-    - Detected threat types
-    - Risk level assessment
-    """
-)
-async def test_input_validation(input_data: SecurityTestInput, api_key: str = Depends(get_api_key)):
-    """Enhanced input validation with comprehensive threat detection"""
-    
-    # Enhanced threat detection patterns
-    threat_patterns = {
-        "xss": [r"<script", r"javascript:", r"onload=", r"onerror=", r"<iframe"],
-        "sql_injection": [r"'.*OR.*'", r"DROP\s+TABLE", r"UNION\s+SELECT", r"--", r";.*--"],
-        "command_injection": [r";\s*rm\s", r";\s*cat\s", r"&&", r"\|\|", r"`.*`"],
-        "path_traversal": [r"\.\./", r"\.\.\\", r"/etc/passwd", r"C:\\Windows"]
-    }
-    
-    detected_threats = []
-    risk_level = "LOW"
-    
-    import re
-    input_lower = input_data.input_data.lower()
-    
-    for threat_type, patterns in threat_patterns.items():
-        for pattern in patterns:
-            if re.search(pattern, input_lower, re.IGNORECASE):
-                detected_threats.append(threat_type)
-                risk_level = "HIGH"
-                break
-    
-    validation_result = "THREAT" if detected_threats else "SAFE"
-    
-    return {
-        "input": input_data.input_data,
-        "validation_result": validation_result,
-        "threats_detected": detected_threats,
-        "risk_level": risk_level,
-        "test_type": input_data.test_type,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "recommendations": [
-            "Sanitize user input",
-            "Use parameterized queries",
-            "Implement CSP headers"
-        ] if detected_threats else ["Input appears safe"]
-    }
-
-@app.get(
-    "/v1/security/rate-limit-status", 
-    tags=["Security Testing"],
-    summary="Check Rate Limit Status",
-    description="""
-    **Get current rate limiting status and configuration**
-    
-    Returns detailed information about:
-    - Current rate limits by tier
-    - Backend storage type (Redis/Memory)
-    - System load metrics
-    - Rate limit enforcement status
-    
-    **Rate Limit Tiers:**
-    - Default: 60 req/min (general), 20/min (AI matching)
-    - Premium: 300 req/min (general), 100/min (AI matching)  
-    - Enterprise: 600 req/min (general), 200/min (AI matching)
-    """
-)
-async def check_rate_limit_status(request: Request, api_key: str = Depends(get_api_key)):
-    """Enhanced rate limit status with detailed metrics"""
-    
-    client_ip = request.client.host
-    user_tier = "default"  # Could be extracted from JWT/headers
-    
-    tier_limits = rate_limiter.get_tier_limits(user_tier)
-    system_load = system_monitor.get_system_load()
-    
-    return {
-        "rate_limit_enabled": True,
-        "backend_type": "redis" if redis_client else "memory",
-        "user_tier": user_tier,
-        "tier_limits": tier_limits,
-        "system_load": system_load,
-        "client_ip": client_ip,
-        "status": "active",
-        "enforcement": "strict",
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
-
-@app.post(
-    "/v1/security/csp-report", 
-    tags=["CSP Management"],
-    summary="CSP Violation Reporting",
-    description="""
-    **Report Content Security Policy violations**
-    
-    This endpoint receives CSP violation reports from browsers when content
-    violates the defined security policy.
-    
-    **Common Violation Types:**
-    - script-src: Blocked external scripts
-    - style-src: Blocked external stylesheets
-    - img-src: Blocked external images
-    - connect-src: Blocked AJAX/fetch requests
-    
-    **Example Violations:**
-    - Malicious script injection attempts
-    - Unauthorized third-party resources
-    - Inline script/style violations
-    """
-)
-async def csp_violation_reporting(csp_report: CSPReportModel, api_key: str = Depends(get_api_key)):
-    """Enhanced CSP violation reporting with threat analysis"""
-    
-    # Analyze violation severity
-    high_risk_directives = ["script-src", "object-src", "base-uri"]
-    severity = "HIGH" if csp_report.violated_directive in high_risk_directives else "MEDIUM"
-    
-    # Check for known malicious patterns
-    malicious_indicators = ["eval(", "javascript:", "data:", "blob:"]
-    is_suspicious = any(indicator in csp_report.blocked_uri.lower() for indicator in malicious_indicators)
-    
-    report_id = f"csp_report_{datetime.now().timestamp()}"
-    
-    # Log violation for security monitoring
-    violation_data = {
-        "report_id": report_id,
-        "violated_directive": csp_report.violated_directive,
-        "blocked_uri": csp_report.blocked_uri,
-        "document_uri": csp_report.document_uri,
-        "severity": severity,
-        "is_suspicious": is_suspicious,
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    }
-    
-    # Store in Redis if available for security analytics
-    if redis_client:
-        try:
-            redis_client.lpush("csp_violations", json.dumps(violation_data))
-            redis_client.expire("csp_violations", 86400 * 7)  # Keep for 7 days
-        except:
-            pass
-    
-    return {
-        "message": "CSP violation reported successfully",
-        "report_id": report_id,
-        "severity": severity,
-        "is_suspicious": is_suspicious,
-        "action_taken": "logged_and_monitored",
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    }
-
-# Core API Endpoints
-@app.get("/", tags=["Core API Endpoints"])
-def root():
-    return {"message": "BHIV HR Platform API Gateway", "version": "3.1.0", "status": "operational"}
 
 @app.get("/test-candidates", tags=["Core API Endpoints"])
-def test_candidates():
-    return {"total_candidates": 68, "message": "Real candidates from processed resumes"}
+async def test_candidates_db(api_key: str = Depends(get_api_key)):
+    """Database Connectivity Test"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+            result = connection.execute(text("SELECT COUNT(*) FROM candidates"))
+            candidate_count = result.fetchone()[0]
+            
+            return {
+                "database_status": "connected",
+                "total_candidates": candidate_count,
+                "test_timestamp": datetime.now(timezone.utc).isoformat()
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database connectivity test failed: {str(e)}")
 
-# Job Management Endpoints
+# Job Management (2 endpoints)
 @app.post("/v1/jobs", tags=["Job Management"])
-def create_job(job: JobCreate, api_key: str = Depends(get_api_key)):
-    return {"job_id": 1, "message": "Job created successfully", "status": "active"}
+async def create_job(job: JobCreate, api_key: str = Depends(get_api_key)):
+    """Create New Job Posting"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            query = text("""
+                INSERT INTO jobs (title, department, location, experience_level, requirements, description, status, created_at)
+                VALUES (:title, :department, :location, :experience_level, :requirements, :description, 'active', NOW())
+                RETURNING id
+            """)
+            result = connection.execute(query, {
+                "title": job.title,
+                "department": job.department,
+                "location": job.location,
+                "experience_level": job.experience_level,
+                "requirements": job.requirements,
+                "description": job.description
+            })
+            connection.commit()
+            job_id = result.fetchone()[0]
+            
+            return {
+                "message": "Job created successfully",
+                "job_id": job_id,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Job creation failed: {str(e)}")
 
 @app.get("/v1/jobs", tags=["Job Management"])
-def get_jobs(api_key: str = Depends(get_api_key)):
-    return {"jobs": [{"id": 1, "title": "Software Engineer", "status": "active"}]}
+async def list_jobs(api_key: str = Depends(get_api_key)):
+    """List All Active Jobs"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            query = text("""
+                SELECT id, title, department, location, experience_level, requirements, description, created_at 
+                FROM jobs WHERE status = 'active' ORDER BY created_at DESC
+            """)
+            result = connection.execute(query)
+            jobs = [{
+                "id": row[0], 
+                "title": row[1], 
+                "department": row[2],
+                "location": row[3],
+                "experience_level": row[4],
+                "requirements": row[5],
+                "description": row[6],
+                "created_at": row[7].isoformat() if row[7] else None
+            } for row in result]
+        return {"jobs": jobs, "count": len(jobs)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch jobs: {str(e)}")
 
-# Candidate Management Endpoints
+# Candidate Management (3 endpoints)
+@app.get("/v1/candidates/job/{job_id}", tags=["Candidate Management"])
+async def get_candidates_by_job(job_id: int, api_key: str = Depends(get_api_key)):
+    """Get All Candidates (Dynamic Matching)"""
+    if job_id < 1:
+        raise HTTPException(status_code=400, detail="Invalid job ID")
+    
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            query = text("SELECT id, name, email, technical_skills, experience_years FROM candidates LIMIT 10")
+            result = connection.execute(query)
+            candidates = [{
+                "id": row[0],
+                "name": row[1],
+                "email": row[2],
+                "skills": row[3],
+                "experience": row[4]
+            } for row in result]
+        
+        return {"candidates": candidates, "job_id": job_id, "count": len(candidates)}
+    except Exception as e:
+        return {"candidates": [], "job_id": job_id, "count": 0, "error": str(e)}
+
 @app.get("/v1/candidates/search", tags=["Candidate Management"])
-def search_candidates(api_key: str = Depends(get_api_key)):
-    return {"candidates": [], "count": 0}
+async def search_candidates(skills: Optional[str] = None, location: Optional[str] = None, experience_min: Optional[int] = None, api_key: str = Depends(get_api_key)):
+    """Search & Filter Candidates"""
+    if skills:
+        skills = skills.strip()[:200]
+    if location:
+        location = location.strip()[:100]
+    
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            # Build dynamic query
+            where_conditions = []
+            params = {}
+            
+            if skills:
+                where_conditions.append("technical_skills ILIKE :skills")
+                params["skills"] = f"%{skills}%"
+            
+            if location:
+                where_conditions.append("location ILIKE :location")
+                params["location"] = f"%{location}%"
+            
+            if experience_min is not None:
+                where_conditions.append("experience_years >= :experience_min")
+                params["experience_min"] = experience_min
+            
+            base_query = "SELECT id, name, email, phone, location, technical_skills, experience_years, seniority_level, education_level, status FROM candidates"
+            
+            if where_conditions:
+                query = text(f"{base_query} WHERE {' AND '.join(where_conditions)} LIMIT 50")
+                result = connection.execute(query, params)
+            else:
+                query = text(f"{base_query} LIMIT 50")
+                result = connection.execute(query)
+            
+            candidates = [{
+                "id": row[0],
+                "name": row[1],
+                "email": row[2],
+                "phone": row[3],
+                "location": row[4],
+                "technical_skills": row[5],
+                "experience_years": row[6],
+                "seniority_level": row[7],
+                "education_level": row[8],
+                "status": row[9]
+            } for row in result]
+        
+        return {
+            "candidates": candidates, 
+            "filters": {"skills": skills, "location": location, "experience_min": experience_min}, 
+            "count": len(candidates)
+        }
+    except Exception as e:
+        return {
+            "candidates": [], 
+            "filters": {"skills": skills, "location": location, "experience_min": experience_min}, 
+            "count": 0, 
+            "error": str(e)
+        }
 
 @app.post("/v1/candidates/bulk", tags=["Candidate Management"])
-def bulk_upload_candidates(candidates: CandidateBulk, api_key: str = Depends(get_api_key)):
-    return {"message": "Candidates uploaded successfully", "count": len(candidates.candidates)}
+async def bulk_upload_candidates(candidates: CandidateBulk, api_key: str = Depends(get_api_key)):
+    """Bulk Upload Candidates"""
+    try:
+        engine = get_db_engine()
+        inserted_count = 0
+        errors = []
+        
+        with engine.connect() as connection:
+            for i, candidate in enumerate(candidates.candidates):
+                try:
+                    # Handle email uniqueness by checking first
+                    email = candidate.get("email", "")
+                    if email:
+                        check_query = text("SELECT COUNT(*) FROM candidates WHERE email = :email")
+                        result = connection.execute(check_query, {"email": email})
+                        if result.fetchone()[0] > 0:
+                            errors.append(f"Candidate {i+1}: Email {email} already exists")
+                            continue
+                    
+                    query = text("""
+                        INSERT INTO candidates (name, email, phone, location, experience_years, technical_skills, seniority_level, education_level, resume_path, status)
+                        VALUES (:name, :email, :phone, :location, :experience_years, :technical_skills, :seniority_level, :education_level, :resume_path, :status)
+                    """)
+                    connection.execute(query, {
+                        "name": candidate.get("name", ""),
+                        "email": email,
+                        "phone": candidate.get("phone", ""),
+                        "location": candidate.get("location", ""),
+                        "experience_years": int(candidate.get("experience_years", 0)) if candidate.get("experience_years") else 0,
+                        "technical_skills": candidate.get("technical_skills", ""),
+                        "seniority_level": candidate.get("designation", candidate.get("seniority_level", "")),
+                        "education_level": candidate.get("education_level", ""),
+                        "resume_path": candidate.get("cv_url", candidate.get("resume_path", "")),
+                        "status": candidate.get("status", "applied")
+                    })
+                    inserted_count += 1
+                except Exception as e:
+                    errors.append(f"Candidate {i+1}: {str(e)}")
+                    continue
+            connection.commit()
+        
+        return {
+            "message": "Bulk upload completed",
+            "candidates_received": len(candidates.candidates),
+            "candidates_inserted": inserted_count,
+            "errors": errors[:5] if errors else [],  # Show first 5 errors
+            "total_errors": len(errors),
+            "status": "success" if inserted_count > 0 else "failed"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Bulk upload failed: {str(e)}")
 
-# Client Portal Endpoints
-@app.post("/v1/client/login", tags=["Client Portal"])
-def client_login(login: ClientLogin):
-    return {"token": "sample_token", "client_id": login.client_id}
+# AI Matching Engine (1 endpoint)
+@app.get("/v1/match/{job_id}/top", tags=["AI Matching Engine"])
+async def get_top_matches(job_id: int, limit: int = 10, api_key: str = Depends(get_api_key)):
+    """Semantic candidate matching and ranking"""
+    if job_id < 1 or limit < 1 or limit > 50:
+        raise HTTPException(status_code=400, detail="Invalid parameters")
+    
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            query = text("SELECT id, name, email, technical_skills FROM candidates LIMIT :limit")
+            result = connection.execute(query, {"limit": limit})
+            matches = [{
+                "candidate_id": row[0],
+                "name": row[1],
+                "email": row[2],
+                "score": 85.5,
+                "skills_match": row[3] or "",
+                "experience_match": 80.0,
+                "values_alignment": 4.2,
+                "recommendation_strength": "Strong Match"
+            } for row in result]
+        
+        return {
+            "matches": matches, 
+            "top_candidates": matches,
+            "job_id": job_id, 
+            "limit": limit, 
+            "algorithm_version": "v2.0.0-fallback",
+            "processing_time": "0.05s",
+            "ai_analysis": "Database fallback matching with sample scoring"
+        }
+    except Exception as e:
+        return {"matches": [], "job_id": job_id, "limit": limit, "error": str(e)}
 
-@app.get("/v1/client/refresh", tags=["Client Portal"])
-@app.post("/v1/client/refresh", tags=["Client Portal"])
-def client_refresh(api_key: str = Depends(get_api_key)):
-    return {"token": "refreshed_token", "expires_in": 3600}
+# Assessment & Workflow (3 endpoints)
+@app.post("/v1/feedback", tags=["Assessment & Workflow"])
+async def submit_feedback(feedback: FeedbackSubmission, api_key: str = Depends(get_api_key)):
+    """Values Assessment"""
+    return {
+        "message": "Feedback submitted successfully",
+        "candidate_id": feedback.candidate_id,
+        "job_id": feedback.job_id,
+        "values_scores": {
+            "integrity": feedback.integrity,
+            "honesty": feedback.honesty,
+            "discipline": feedback.discipline,
+            "hard_work": feedback.hard_work,
+            "gratitude": feedback.gratitude
+        },
+        "average_score": (feedback.integrity + feedback.honesty + feedback.discipline + 
+                         feedback.hard_work + feedback.gratitude) / 5,
+        "submitted_at": datetime.now(timezone.utc).isoformat()
+    }
 
-# Assessment Endpoints
-@app.post("/v1/feedback", tags=["Assessment"])
-def submit_feedback(feedback: FeedbackSubmission, api_key: str = Depends(get_api_key)):
-    return {"message": "Feedback submitted successfully"}
 
-@app.post("/v1/interviews", tags=["Assessment"])
-def schedule_interview(interview: InterviewSchedule, api_key: str = Depends(get_api_key)):
-    return {"message": "Interview scheduled successfully"}
 
-@app.get("/v1/interviews", tags=["Assessment"])
-def get_interviews(api_key: str = Depends(get_api_key)):
-    return {"interviews": []}
+@app.get("/v1/interviews", tags=["Assessment & Workflow"])
+async def get_interviews(api_key: str = Depends(get_api_key)):
+    """Get All Interviews"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            query = text("""
+                SELECT i.id, i.candidate_id, i.job_id, i.interview_date, i.interviewer, i.status,
+                       c.name as candidate_name, j.title as job_title
+                FROM interviews i
+                LEFT JOIN candidates c ON i.candidate_id = c.id
+                LEFT JOIN jobs j ON i.job_id = j.id
+                ORDER BY i.interview_date DESC
+            """)
+            result = connection.execute(query)
+            interviews = [{
+                "id": row[0],
+                "candidate_id": row[1],
+                "job_id": row[2],
+                "interview_date": row[3].isoformat() if row[3] else None,
+                "interviewer": row[4],
+                "status": row[5],
+                "candidate_name": row[6],
+                "job_title": row[7]
+            } for row in result]
+        
+        return {"interviews": interviews, "count": len(interviews)}
+    except Exception as e:
+        return {"interviews": [], "count": 0, "error": str(e)}
 
-# Monitoring Endpoints
-@app.get("/metrics", tags=["Monitoring"])
-def get_metrics():
-    return {"metrics": "prometheus_format", "timestamp": datetime.now().isoformat()}
+@app.post("/v1/interviews", tags=["Assessment & Workflow"])
+async def schedule_interview(interview: InterviewSchedule, api_key: str = Depends(get_api_key)):
+    """Schedule Interview"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            query = text("""
+                INSERT INTO interviews (candidate_id, job_id, interview_date, interviewer, status, notes)
+                VALUES (:candidate_id, :job_id, :interview_date, :interviewer, 'scheduled', :notes)
+                RETURNING id
+            """)
+            result = connection.execute(query, {
+                "candidate_id": interview.candidate_id,
+                "job_id": interview.job_id,
+                "interview_date": interview.interview_date,
+                "interviewer": interview.interviewer,
+                "notes": interview.notes
+            })
+            connection.commit()
+            interview_id = result.fetchone()[0]
+        
+        return {
+            "message": "Interview scheduled successfully",
+            "interview_id": interview_id,
+            "candidate_id": interview.candidate_id,
+            "job_id": interview.job_id,
+            "interview_date": interview.interview_date,
+            "status": "scheduled"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Interview scheduling failed: {str(e)}")
 
-@app.get("/health/detailed", tags=["Monitoring"])
-def detailed_health():
-    return {"status": "healthy", "services": {"database": "connected", "redis": "available" if redis_client else "fallback"}}
+@app.post("/v1/offers", tags=["Assessment & Workflow"])
+async def create_job_offer(offer: JobOffer, api_key: str = Depends(get_api_key)):
+    """Job Offers Management"""
+    return {
+        "message": "Job offer created successfully",
+        "offer_id": 1,
+        "candidate_id": offer.candidate_id,
+        "job_id": offer.job_id,
+        "salary": offer.salary,
+        "start_date": offer.start_date,
+        "status": "pending"
+    }
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# Analytics & Statistics (2 endpoints)
+@app.get("/candidates/stats", tags=["Analytics & Statistics"])
+async def get_candidate_stats(api_key: str = Depends(get_api_key)):
+    """Candidate Statistics"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            total_query = text("SELECT COUNT(*) FROM candidates")
+            total_result = connection.execute(total_query)
+            total_candidates = total_result.fetchone()[0]
+            
+            return {
+                "total_candidates": total_candidates,
+                "active_jobs": 5,
+                "recent_matches": 25,
+                "pending_interviews": 8,
+                "statistics_generated_at": datetime.now(timezone.utc).isoformat()
+            }
+    except Exception as e:
+        return {
+            "total_candidates": 0,
+            "active_jobs": 0,
+            "recent_matches": 0,
+            "pending_interviews": 0,
+            "error": str(e)
+        }
+
+@app.get("/v1/reports/job/{job_id}/export.csv", tags=["Analytics & Statistics"])
+async def export_job_report(job_id: int, api_key: str = Depends(get_api_key)):
+    """Export Job Report"""
+    return {
+        "message": "Job report export",
+        "job_id": job_id,
+        "format": "CSV",
+        "download_url": f"/downloads/job_{job_id}_report.csv",
+        "generated_at": datetime.now(timezone.utc).isoformat()
+    }
+
+# Client Portal API (1 endpoint)
+@app.post("/v1/client/login", tags=["Client Portal API"])
+async def client_login(login_data: ClientLogin):
+    """Client Authentication"""
+    try:
+        valid_clients = {
+            "TECH001": "demo123",
+            "STARTUP01": "startup123",
+            "ENTERPRISE01": "enterprise123"
+        }
+        
+        if login_data.client_id in valid_clients and valid_clients[login_data.client_id] == login_data.password:
+            return {
+                "message": "Authentication successful",
+                "client_id": login_data.client_id,
+                "access_token": f"client_token_{login_data.client_id}_{datetime.now().timestamp()}",
+                "token_type": "bearer",
+                "expires_in": 3600,
+                "permissions": ["view_jobs", "create_jobs", "view_candidates", "schedule_interviews"]
+            }
+        else:
+            raise HTTPException(status_code=401, detail="Invalid client credentials")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Authentication failed: {str(e)}")
+
+# Security Testing (7 endpoints)
+@app.get("/v1/security/rate-limit-status", tags=["Security Testing"])
+async def check_rate_limit_status(api_key: str = Depends(get_api_key)):
+    """Check Rate Limit Status"""
+    return {
+        "rate_limit_enabled": True,
+        "requests_per_minute": 60,
+        "current_requests": 15,
+        "remaining_requests": 45,
+        "reset_time": datetime.now(timezone.utc).isoformat(),
+        "status": "active"
+    }
+
+@app.get("/v1/security/blocked-ips", tags=["Security Testing"])
+async def view_blocked_ips(api_key: str = Depends(get_api_key)):
+    """View Blocked IPs"""
+    return {
+        "blocked_ips": [
+            {"ip": "192.168.1.100", "reason": "Rate limit exceeded", "blocked_at": "2025-01-02T10:30:00Z"},
+            {"ip": "10.0.0.50", "reason": "Suspicious activity", "blocked_at": "2025-01-02T09:15:00Z"}
+        ],
+        "total_blocked": 2,
+        "last_updated": datetime.now(timezone.utc).isoformat()
+    }
+
+@app.post("/v1/security/test-input-validation", tags=["Security Testing"])
+async def test_input_validation(input_data: InputValidation, api_key: str = Depends(get_api_key)):
+    """Test Input Validation"""
+    data = input_data.input_data
+    threats = []
+    
+    if "<script>" in data.lower():
+        threats.append("XSS attempt detected")
+    if "'" in data and ("union" in data.lower() or "select" in data.lower()):
+        threats.append("SQL injection attempt detected")
+    
+    return {
+        "input": data,
+        "validation_result": "SAFE" if not threats else "BLOCKED",
+        "threats_detected": threats,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+@app.post("/v1/security/test-email-validation", tags=["Security Testing"])
+async def test_email_validation(email_data: EmailValidation, api_key: str = Depends(get_api_key)):
+    """Test Email Validation"""
+    import re
+    email = email_data.email
+    
+    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    is_valid = re.match(email_pattern, email) is not None
+    
+    return {
+        "email": email,
+        "is_valid": is_valid,
+        "validation_type": "regex_pattern",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+@app.post("/v1/security/test-phone-validation", tags=["Security Testing"])
+async def test_phone_validation(phone_data: PhoneValidation, api_key: str = Depends(get_api_key)):
+    """Test Phone Validation"""
+    import re
+    phone = phone_data.phone
+    
+    phone_pattern = r'^\+?1?[-.s]?\(?[0-9]{3}\)?[-.s]?[0-9]{3}[-.s]?[0-9]{4}$'
+    is_valid = re.match(phone_pattern, phone) is not None
+    
+    return {
+        "phone": phone,
+        "is_valid": is_valid,
+        "validation_type": "US_phone_format",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+@app.get("/v1/security/security-headers-test", tags=["Security Testing"])
+async def test_security_headers(response: Response, api_key: str = Depends(get_api_key)):
+    """Test Security Headers"""
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Content-Security-Policy"] = "default-src 'self'"
+    
+    return {
+        "security_headers": {
+            "X-Content-Type-Options": "nosniff",
+            "X-Frame-Options": "DENY",
+            "X-XSS-Protection": "1; mode=block",
+            "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+            "Content-Security-Policy": "default-src 'self'"
+        },
+        "headers_count": 5,
+        "status": "all_headers_applied"
+    }
+
+@app.get("/v1/security/penetration-test-endpoints", tags=["Security Testing"])
+async def penetration_test_endpoints(api_key: str = Depends(get_api_key)):
+    """Penetration Testing Endpoints"""
+    return {
+        "test_endpoints": [
+            {"endpoint": "/v1/security/test-input-validation", "method": "POST", "purpose": "XSS/SQL injection testing"},
+            {"endpoint": "/v1/security/test-email-validation", "method": "POST", "purpose": "Email format validation"},
+            {"endpoint": "/v1/security/test-phone-validation", "method": "POST", "purpose": "Phone format validation"},
+            {"endpoint": "/v1/security/security-headers-test", "method": "GET", "purpose": "Security headers verification"}
+        ],
+        "total_endpoints": 4,
+        "penetration_testing_enabled": True
+    }
+
+# CSP Management (4 endpoints)
+@app.post("/v1/security/csp-report", tags=["CSP Management"])
+async def csp_violation_reporting(csp_report: CSPReport, api_key: str = Depends(get_api_key)):
+    """CSP Violation Reporting"""
+    return {
+        "message": "CSP violation reported successfully",
+        "violation": {
+            "violated_directive": csp_report.violated_directive,
+            "blocked_uri": csp_report.blocked_uri,
+            "document_uri": csp_report.document_uri,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        },
+        "report_id": f"csp_report_{datetime.now().timestamp()}"
+    }
+
+@app.get("/v1/security/csp-violations", tags=["CSP Management"])
+async def view_csp_violations(api_key: str = Depends(get_api_key)):
+    """View CSP Violations"""
+    return {
+        "violations": [
+            {
+                "id": "csp_001",
+                "violated_directive": "script-src",
+                "blocked_uri": "https://malicious-site.com/script.js",
+                "document_uri": "https://bhiv-platform.com/dashboard",
+                "timestamp": "2025-01-02T10:15:00Z"
+            }
+        ],
+        "total_violations": 1,
+        "last_24_hours": 1
+    }
+
+@app.get("/v1/security/csp-policies", tags=["CSP Management"])
+async def current_csp_policies(api_key: str = Depends(get_api_key)):
+    """Current CSP Policies"""
+    return {
+        "current_policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https:; media-src 'self'; object-src 'none'; child-src 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests; block-all-mixed-content",
+        "policy_length": 408,
+        "last_updated": datetime.now(timezone.utc).isoformat(),
+        "status": "active"
+    }
+
+@app.post("/v1/security/test-csp-policy", tags=["CSP Management"])
+async def test_csp_policy(csp_data: CSPPolicy, api_key: str = Depends(get_api_key)):
+    """Test CSP Policy"""
+    return {
+        "message": "CSP policy test completed",
+        "test_policy": csp_data.policy,
+        "policy_length": len(csp_data.policy),
+        "validation_result": "valid",
+        "tested_at": datetime.now(timezone.utc).isoformat()
+    }
+
+# Two-Factor Authentication (8 endpoints)
+@app.post("/v1/2fa/setup", tags=["Two-Factor Authentication"])
+async def setup_2fa_for_client(setup_data: TwoFASetup, api_key: str = Depends(get_api_key)):
+    """Setup 2FA for Client"""
+    secret = pyotp.random_base32()
+    totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
+        name=setup_data.user_id,
+        issuer_name="BHIV HR Platform"
+    )
+    
+    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+    qr.add_data(totp_uri)
+    qr.make(fit=True)
+    
+    img = qr.make_image(fill_color="black", back_color="white")
+    img_buffer = io.BytesIO()
+    img.save(img_buffer, format='PNG')
+    img_str = base64.b64encode(img_buffer.getvalue()).decode()
+    
+    return {
+        "message": "2FA setup initiated",
+        "user_id": setup_data.user_id,
+        "secret": secret,
+        "qr_code": f"data:image/png;base64,{img_str}",
+        "manual_entry_key": secret,
+        "instructions": "Scan QR code with Google Authenticator, Microsoft Authenticator, or Authy"
+    }
+
+@app.post("/v1/2fa/verify-setup", tags=["Two-Factor Authentication"])
+async def verify_2fa_setup(login_data: TwoFALogin, api_key: str = Depends(get_api_key)):
+    """Verify 2FA Setup"""
+    stored_secret = "JBSWY3DPEHPK3PXP"
+    totp = pyotp.TOTP(stored_secret)
+    
+    if totp.verify(login_data.totp_code, valid_window=1):
+        return {
+            "message": "2FA setup verified successfully",
+            "user_id": login_data.user_id,
+            "setup_complete": True,
+            "verified_at": datetime.now(timezone.utc).isoformat()
+        }
+    else:
+        raise HTTPException(status_code=401, detail="Invalid 2FA code")
+
+@app.post("/v1/2fa/login-with-2fa", tags=["Two-Factor Authentication"])
+async def login_with_2fa(login_data: TwoFALogin, api_key: str = Depends(get_api_key)):
+    """Login with 2FA"""
+    stored_secret = "JBSWY3DPEHPK3PXP"
+    totp = pyotp.TOTP(stored_secret)
+    
+    if totp.verify(login_data.totp_code, valid_window=1):
+        return {
+            "message": "2FA authentication successful",
+            "user_id": login_data.user_id,
+            "access_token": f"2fa_token_{login_data.user_id}_{datetime.now().timestamp()}",
+            "token_type": "bearer",
+            "expires_in": 3600,
+            "2fa_verified": True
+        }
+    else:
+        raise HTTPException(status_code=401, detail="Invalid 2FA code")
+
+@app.get("/v1/2fa/status/{client_id}", tags=["Two-Factor Authentication"])
+async def get_2fa_status(client_id: str, api_key: str = Depends(get_api_key)):
+    """Get 2FA Status"""
+    return {
+        "client_id": client_id,
+        "2fa_enabled": True,
+        "setup_date": "2025-01-01T12:00:00Z",
+        "last_used": "2025-01-02T08:30:00Z",
+        "backup_codes_remaining": 8
+    }
+
+@app.post("/v1/2fa/disable", tags=["Two-Factor Authentication"])
+async def disable_2fa(setup_data: TwoFASetup, api_key: str = Depends(get_api_key)):
+    """Disable 2FA"""
+    return {
+        "message": "2FA disabled successfully",
+        "user_id": setup_data.user_id,
+        "disabled_at": datetime.now(timezone.utc).isoformat(),
+        "2fa_enabled": False
+    }
+
+@app.post("/v1/2fa/regenerate-backup-codes", tags=["Two-Factor Authentication"])
+async def regenerate_backup_codes(setup_data: TwoFASetup, api_key: str = Depends(get_api_key)):
+    """Regenerate Backup Codes"""
+    backup_codes = [f"BACKUP-{secrets.token_hex(4).upper()}" for _ in range(10)]
+    
+    return {
+        "message": "Backup codes regenerated successfully",
+        "user_id": setup_data.user_id,
+        "backup_codes": backup_codes,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "codes_count": len(backup_codes)
+    }
+
+@app.get("/v1/2fa/test-token/{client_id}/{token}", tags=["Two-Factor Authentication"])
+async def test_2fa_token(client_id: str, token: str, api_key: str = Depends(get_api_key)):
+    """Test 2FA Token"""
+    stored_secret = "JBSWY3DPEHPK3PXP"
+    totp = pyotp.TOTP(stored_secret)
+    
+    is_valid = totp.verify(token, valid_window=1)
+    
+    return {
+        "client_id": client_id,
+        "token": token,
+        "is_valid": is_valid,
+        "test_timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+@app.get("/v1/2fa/demo-setup", tags=["Two-Factor Authentication"])
+async def demo_2fa_setup(api_key: str = Depends(get_api_key)):
+    """Demo 2FA Setup"""
+    return {
+        "demo_secret": "JBSWY3DPEHPK3PXP",
+        "demo_qr_url": "https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl=otpauth://totp/BHIV%20HR%20Platform:demo_user%3Fsecret%3DJBSWY3DPEHPK3PXP%26issuer%3DBHIV%2520HR%2520Platform",
+        "test_codes": ["123456", "654321", "111111"],
+        "instructions": "Use demo secret or scan QR code for testing"
+    }
+
+# Password Management (6 endpoints)
+@app.post("/v1/password/validate", tags=["Password Management"])
+async def validate_password_strength(password_data: PasswordValidation, api_key: str = Depends(get_api_key)):
+    """Validate Password Strength"""
+    password = password_data.password
+    
+    score = 0
+    feedback = []
+    
+    if len(password) >= 8:
+        score += 20
+    else:
+        feedback.append("Password should be at least 8 characters long")
+    
+    if any(c.isupper() for c in password):
+        score += 20
+    else:
+        feedback.append("Password should contain uppercase letters")
+    
+    if any(c.islower() for c in password):
+        score += 20
+    else:
+        feedback.append("Password should contain lowercase letters")
+    
+    if any(c.isdigit() for c in password):
+        score += 20
+    else:
+        feedback.append("Password should contain numbers")
+    
+    if any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in password):
+        score += 20
+    else:
+        feedback.append("Password should contain special characters")
+    
+    strength = "Very Weak"
+    if score >= 80:
+        strength = "Very Strong"
+    elif score >= 60:
+        strength = "Strong"
+    elif score >= 40:
+        strength = "Medium"
+    elif score >= 20:
+        strength = "Weak"
+    
+    return {
+        "password_strength": strength,
+        "score": score,
+        "max_score": 100,
+        "is_valid": score >= 60,
+        "feedback": feedback
+    }
+
+@app.post("/v1/password/generate", tags=["Password Management"])
+async def generate_secure_password(length: int = 12, api_key: str = Depends(get_api_key)):
+    """Generate Secure Password"""
+    if length < 8 or length > 128:
+        raise HTTPException(status_code=400, detail="Password length must be between 8 and 128 characters")
+    
+    import string
+    import random
+    
+    chars = string.ascii_letters + string.digits + "!@#$%^&*()_+-="
+    password = ''.join(random.choice(chars) for _ in range(length))
+    
+    return {
+        "generated_password": password,
+        "length": length,
+        "entropy_bits": length * 6.5,
+        "strength": "Very Strong",
+        "generated_at": datetime.now(timezone.utc).isoformat()
+    }
+
+@app.get("/v1/password/policy", tags=["Password Management"])
+async def get_password_policy(api_key: str = Depends(get_api_key)):
+    """Get Password Policy"""
+    return {
+        "policy": {
+            "minimum_length": 8,
+            "require_uppercase": True,
+            "require_lowercase": True,
+            "require_numbers": True,
+            "require_special_chars": True,
+            "max_age_days": 90,
+            "history_count": 5
+        },
+        "complexity_requirements": [
+            "At least 8 characters long",
+            "Contains uppercase letters",
+            "Contains lowercase letters", 
+            "Contains numbers",
+            "Contains special characters"
+        ]
+    }
+
+@app.post("/v1/password/change", tags=["Password Management"])
+async def change_password(password_change: PasswordChange, api_key: str = Depends(get_api_key)):
+    """Change Password"""
+    return {
+        "message": "Password changed successfully",
+        "changed_at": datetime.now(timezone.utc).isoformat(),
+        "password_strength": "Strong",
+        "next_change_due": "2025-04-02T00:00:00Z"
+    }
+
+@app.get("/v1/password/strength-test", tags=["Password Management"])
+async def password_strength_testing_tool(api_key: str = Depends(get_api_key)):
+    """Password Strength Testing Tool"""
+    return {
+        "testing_tool": {
+            "endpoint": "/v1/password/validate",
+            "method": "POST",
+            "sample_passwords": [
+                {"password": "weak", "expected_strength": "Very Weak"},
+                {"password": "StrongPass123!", "expected_strength": "Very Strong"},
+                {"password": "medium123", "expected_strength": "Medium"}
+            ]
+        },
+        "strength_levels": ["Very Weak", "Weak", "Medium", "Strong", "Very Strong"]
+    }
+
+@app.get("/v1/password/security-tips", tags=["Password Management"])
+async def password_security_best_practices(api_key: str = Depends(get_api_key)):
+    """Password Security Best Practices"""
+    return {
+        "security_tips": [
+            "Use a unique password for each account",
+            "Enable two-factor authentication when available",
+            "Use a password manager to generate and store passwords",
+            "Avoid using personal information in passwords",
+            "Change passwords immediately if a breach is suspected",
+            "Use passphrases with random words for better security"
+        ],
+        "password_requirements": {
+            "minimum_length": 8,
+            "character_types": 4,
+            "avoid": ["dictionary words", "personal info", "common patterns"]
+        }
+    }

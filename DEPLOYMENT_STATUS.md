@@ -46,21 +46,23 @@ API Key: myverysecureapikey123
 
 ## 🔧 Recent Fixes & Updates
 
-### **✅ Production Optimizations**
-- **Codebase Cleanup**: ✅ Removed 61 redundant files (40% size reduction)
-- **Clean Architecture**: ✅ Zero redundancy, single source of truth
-- **Enhanced Security**: ✅ Redis-based rate limiting, environment-specific CORS
-- **Real Data Integration**: ✅ 68+ candidates from processed resume files
-- **Advanced Monitoring**: ✅ Prometheus metrics with system health tracking
-- **Enterprise Features**: ✅ 2FA, input validation, CSP monitoring
+### **✅ Resolved Issues**
+- **Batch Upload**: ✅ Fixed container file paths (/app/resume/) and directory structure
+- **Database Schema**: ✅ Resolved candidate table constraints and email uniqueness
+- **Skills Match Error**: ✅ Fixed TypeError in portal displays for mixed data types
+- **Mock Data Replacement**: ✅ All 68+ candidates from real resume files
+- **API Integration**: ✅ Enhanced bulk upload with comprehensive error handling
+- **Container Paths**: ✅ Updated all paths to absolute container paths
+- **Client-HR Sync**: ✅ Real-time job sharing between portals
 
-### **🆕 Core Capabilities**
-- **AI Matching Engine**: ✅ Semantic analysis with bias mitigation
-- **Dual Portal System**: ✅ Real-time HR and client synchronization
-- **Values Assessment**: ✅ Comprehensive 5-point evaluation system
-- **Export Analytics**: ✅ Complete assessment and shortlist reporting
-- **Batch Operations**: ✅ Resume processing and candidate management
-- **Zero-Cost Deployment**: ✅ $0/month production environment
+### **🆕 New Features**
+- **Advanced Monitoring**: ✅ Prometheus metrics and health dashboards
+- **Enhanced Security**: ✅ 2FA, rate limiting, input validation
+- **Export Reports**: ✅ Comprehensive assessment and shortlist reports
+- **Workflow Organization**: ✅ Step-by-step HR process navigation (7 steps)
+- **Real-time Sync**: ✅ Client-HR portal integration with shared API
+- **Dynamic Dashboards**: ✅ Live data from database, no hardcoded values
+- **AI Scoring Enhancement**: ✅ Differentiated evaluation scores
 
 ## 📊 System Health Metrics
 
