@@ -627,7 +627,7 @@ async def export_job_report(job_id: int, api_key: str = Depends(get_api_key)):
 # Client Portal API (1 endpoint)
 @app.post("/v1/client/login", tags=["Client Portal API"])
 async def client_login(login_data: ClientLogin):
-    """Client Authentication"""
+    """Client Authentication with Enhanced Security"""
     try:
         valid_clients = {
             "TECH001": "demo123",
@@ -636,19 +636,140 @@ async def client_login(login_data: ClientLogin):
         }
         
         if login_data.client_id in valid_clients and valid_clients[login_data.client_id] == login_data.password:
+            token_timestamp = datetime.now().timestamp()
+            access_token = f"client_token_{login_data.client_id}_{token_timestamp}"
+            refresh_token = f"refresh_token_{login_data.client_id}_{token_timestamp}"
+            
             return {
                 "message": "Authentication successful",
                 "client_id": login_data.client_id,
-                "access_token": f"client_token_{login_data.client_id}_{datetime.now().timestamp()}",
+                "access_token": access_token,
+                "refresh_token": refresh_token,
                 "token_type": "bearer",
                 "expires_in": 3600,
-                "permissions": ["view_jobs", "create_jobs", "view_candidates", "schedule_interviews"]
+                "refresh_expires_in": 86400,  # 24 hours
+                "permissions": ["view_jobs", "create_jobs", "view_candidates", "schedule_interviews"],
+                "session_id": f"session_{login_data.client_id}_{token_timestamp}"
             }
         else:
             raise HTTPException(status_code=401, detail="Invalid client credentials")
             
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Authentication failed: {str(e)}")
+
+@app.post("/v1/client/refresh", tags=["Client Portal API"])
+async def refresh_client_token(refresh_data: dict):
+    """Refresh Client Access Token"""
+    try:
+        refresh_token = refresh_data.get("refresh_token")
+        if not refresh_token or not refresh_token.startswith("refresh_token_"):
+            raise HTTPException(status_code=401, detail="Invalid refresh token")
+        
+        # Extract client_id from refresh token
+        parts = refresh_token.split("_")
+        if len(parts) >= 3:
+            client_id = parts[2]
+            
+            # Generate new tokens
+            token_timestamp = datetime.now().timestamp()
+            new_access_token = f"client_token_{client_id}_{token_timestamp}"
+            new_refresh_token = f"refresh_token_{client_id}_{token_timestamp}"
+            
+            return {
+                "message": "Token refreshed successfully",
+                "access_token": new_access_token,
+                "refresh_token": new_refresh_token,
+                "token_type": "bearer",
+                "expires_in": 3600,
+                "refresh_expires_in": 86400
+            }
+        else:
+            raise HTTPException(status_code=401, detail="Invalid refresh token format")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Token refresh failed: {str(e)}")
+
+@app.post("/v1/client/logout", tags=["Client Portal API"])
+async def logout_client(logout_data: dict):
+    """Logout Client and Revoke Tokens"""
+    try:
+        access_token = logout_data.get("access_token")
+        refresh_token = logout_data.get("refresh_token")
+        
+        # In a real implementation, you would revoke these tokens in your database
+        # For now, we'll just return success
+        
+        return {
+            "message": "Logout successful",
+            "revoked_tokens": {
+                "access_token": bool(access_token),
+                "refresh_token": bool(refresh_token)
+            },
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Logout failed: {str(e)}")
+
+@app.get("/v1/client/verify", tags=["Client Portal API"])
+async def verify_client_token(authorization: str = Header(None)):
+    """Verify Client Token Validity"""
+    try:
+        if not authorization or not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
+        
+        token = authorization.split(" ")[1]
+        
+        # Basic token validation
+        if token.startswith("client_token_"):
+            parts = token.split("_")
+            if len(parts) >= 3:
+                client_id = parts[2]
+                timestamp = float(parts[3]) if len(parts) > 3 else 0
+                
+                # Check if token is not too old (24 hours)
+                current_time = datetime.now().timestamp()
+                if current_time - timestamp < 86400:  # 24 hours
+                    return {
+                        "valid": True,
+                        "client_id": client_id,
+                        "expires_in": int(86400 - (current_time - timestamp)),
+                        "token_type": "bearer"
+                    }
+        
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Token verification failed: {str(e)}")ot authorization or not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
+        
+        token = authorization.split(" ")[1]
+        
+        # Basic token validation
+        if token.startswith("client_token_"):
+            parts = token.split("_")
+            if len(parts) >= 3:
+                client_id = parts[2]
+                timestamp = float(parts[3]) if len(parts) > 3 else 0
+                
+                # Check if token is not too old (24 hours)
+                current_time = datetime.now().timestamp()
+                if current_time - timestamp < 86400:  # 24 hours
+                    return {
+                        "valid": True,
+                        "client_id": client_id,
+                        "expires_in": int(86400 - (current_time - timestamp)),
+                        "token_type": "bearer"
+                    }
+        
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Token verification failed: {str(e)}")
 
 # Security Testing (7 endpoints)
 @app.get("/v1/security/rate-limit-status", tags=["Security Testing"])

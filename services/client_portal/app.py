@@ -1,47 +1,234 @@
 import streamlit as st
 import requests
 from datetime import datetime
+from mobile_fix import apply_mobile_fixes
+from error_fix import handle_api_error, show_cached_data_fallback
 
 # Configuration
 import os
 API_BASE_URL = os.getenv("GATEWAY_URL", "http://gateway:8000")
-API_KEY = os.getenv("API_KEY_SECRET", "myverysecureapikey123")
+DEFAULT_API_KEY = os.getenv("API_KEY_SECRET", "myverysecureapikey123")
 
-headers = {
-    "Authorization": f"Bearer {API_KEY}",
-    "Content-Type": "application/json"
-}
+# Dynamic token management
+def get_auth_headers():
+    """Get authentication headers with dynamic token management"""
+    # Try client token first, fallback to API key
+    if 'client_token' in st.session_state and st.session_state.get('client_authenticated'):
+        # Verify token is still valid
+        token_valid, _ = verify_client_token(st.session_state['client_token'])
+        if token_valid:
+            return {
+                "Authorization": f"Bearer {st.session_state['client_token']}",
+                "Content-Type": "application/json",
+                "X-Client-ID": st.session_state.get('client_id', '')
+            }
+        else:
+            # Token expired, clear session
+            st.session_state.clear()
+            st.error("🔒 Session expired. Please log in again.")
+            st.rerun()
+    
+    # Fallback to default API key
+    return {
+        "Authorization": f"Bearer {DEFAULT_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+# Retry mechanism with exponential backoff
+import time
+import random
+
+def make_api_request(method, url, **kwargs):
+    """Make API request with retry logic and exponential backoff"""
+    max_retries = 3
+    base_delay = 1
+    
+    for attempt in range(max_retries):
+        try:
+            headers = get_auth_headers()
+            kwargs['headers'] = headers
+            kwargs['timeout'] = kwargs.get('timeout', 10)
+            
+            if method.upper() == 'GET':
+                response = requests.get(url, **kwargs)
+            elif method.upper() == 'POST':
+                response = requests.post(url, **kwargs)
+            elif method.upper() == 'PUT':
+                response = requests.put(url, **kwargs)
+            elif method.upper() == 'DELETE':
+                response = requests.delete(url, **kwargs)
+            else:
+                raise ValueError(f"Unsupported HTTP method: {method}")
+            
+            # Handle specific error codes
+            if response.status_code == 401:
+                # Invalid token, try to refresh
+                if 'client_token' in st.session_state:
+                    st.error("🔒 Authentication failed. Please log in again.")
+                    st.session_state.clear()
+                    st.rerun()
+                else:
+                    raise requests.exceptions.HTTPError(f"401 Invalid API key")
+            
+            response.raise_for_status()
+            return response
+            
+        except requests.exceptions.Timeout:
+            error_msg = f"⏱️ Request timeout (attempt {attempt + 1}/{max_retries})"
+            if attempt == max_retries - 1:
+                raise requests.exceptions.Timeout(error_msg)
+            st.warning(error_msg + " - Retrying...")
+            
+        except requests.exceptions.ConnectionError:
+            error_msg = f"🌐 Connection error (attempt {attempt + 1}/{max_retries})"
+            if attempt == max_retries - 1:
+                raise requests.exceptions.ConnectionError(error_msg)
+            st.warning(error_msg + " - Retrying...")
+            
+        except requests.exceptions.HTTPError as e:
+            if response.status_code in [500, 502, 503, 504]:
+                error_msg = f"🔧 Server error {response.status_code} (attempt {attempt + 1}/{max_retries})"
+                if attempt == max_retries - 1:
+                    raise e
+                st.warning(error_msg + " - Retrying...")
+            else:
+                raise e
+        
+        # Exponential backoff with jitter
+        if attempt < max_retries - 1:
+            delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+            time.sleep(delay)
 
 def main():
     st.set_page_config(
         page_title="BHIV Client Portal",
         page_icon="🏢",
-        layout="wide"
+        layout="wide",
+        initial_sidebar_state="auto"
     )
+    
+    # Apply mobile responsiveness fixes
+    apply_mobile_fixes()
+    
+    # Initialize session persistence
+    initialize_session_persistence()
     
     st.title("🏢 BHIV Client Portal")
     st.markdown("**Dedicated Client Interface for Job Posting & Candidate Review**")
     
-    # Client authentication
-    if 'client_authenticated' not in st.session_state:
+    # Client authentication with session persistence
+    if not is_client_authenticated():
         show_client_login()
         return
+
+def initialize_session_persistence():
+    """Initialize session persistence with secure storage"""
+    # Check for stored session in browser cookies (via query params)
+    query_params = st.experimental_get_query_params()
+    
+    if 'session_token' in query_params and not st.session_state.get('client_authenticated'):
+        token = query_params['session_token'][0]
+        restore_session_from_token(token)
+    
+    # Auto-refresh token if expiring soon
+    if st.session_state.get('client_authenticated') and 'token_expires_at' in st.session_state:
+        from datetime import datetime, timedelta
+        expires_at = datetime.fromisoformat(st.session_state['token_expires_at'])
+        if expires_at - datetime.now() < timedelta(minutes=10):
+            refresh_client_session()
+
+def is_client_authenticated():
+    """Check if client is properly authenticated"""
+    if not st.session_state.get('client_authenticated'):
+        return False
+    
+    if 'client_token' not in st.session_state:
+        return False
+    
+    # Verify token is still valid
+    token_valid, result = verify_client_token(st.session_state['client_token'])
+    if not token_valid:
+        clear_client_session()
+        return False
+    
+    return True
+
+def restore_session_from_token(token):
+    """Restore session from stored token"""
+    try:
+        token_valid, result = verify_client_token(token)
+        if token_valid:
+            st.session_state['client_authenticated'] = True
+            st.session_state['client_token'] = token
+            st.session_state['client_id'] = result.get('client_id')
+            st.session_state['client_name'] = result.get('company_name')
+            
+            # Set token expiration
+            from datetime import datetime, timedelta
+            st.session_state['token_expires_at'] = (datetime.now() + timedelta(hours=24)).isoformat()
+            
+            # Update URL to maintain session
+            st.experimental_set_query_params(session_token=token)
+            
+            st.success("✅ Session restored successfully")
+        else:
+            st.error("🔒 Invalid or expired session token")
+    except Exception as e:
+        st.error(f"❌ Session restoration failed: {str(e)}")
+
+def refresh_client_session():
+    """Refresh client session token using refresh token"""
+    try:
+        if 'refresh_token' in st.session_state:
+            refresh_data = {"refresh_token": st.session_state['refresh_token']}
+            response = requests.post(f"{API_BASE_URL}/v1/client/refresh", json=refresh_data, timeout=10)
+            
+            if response.status_code == 200:
+                result = response.json()
+                st.session_state['client_token'] = result['access_token']
+                st.session_state['refresh_token'] = result['refresh_token']
+                # Update URL with new token
+                st.experimental_set_query_params(session_token=result['access_token'])
+                st.info("🔄 Session refreshed automatically")
+            else:
+                clear_client_session()
+        else:
+            clear_client_session()
+    except Exception as e:
+        st.error(f"❌ Session refresh failed: {str(e)}")
+        clear_client_session()
+
+def clear_client_session():
+    """Clear client session data"""
+    session_keys = ['client_authenticated', 'client_token', 'client_id', 'client_name', 'token_expires_at']
+    for key in session_keys:
+        if key in st.session_state:
+            del st.session_state[key]
+    
+    # Clear URL parameters
+    st.experimental_set_query_params()
     
     # Sidebar navigation with real-time updates
     st.sidebar.title("🏢 Client Menu")
     
     # Show real-time job count
     try:
+        headers = get_auth_headers()
         jobs_response = requests.get(f"{API_BASE_URL}/v1/jobs", headers=headers, timeout=5)
         if jobs_response.status_code == 200:
             jobs_data = jobs_response.json()
             jobs = jobs_data.get('jobs', [])
             client_jobs = [j for j in jobs if str(j.get('client_id', 0)) == str(hash(st.session_state.get('client_id', 'TECH001')) % 1000)]
             st.sidebar.success(f"📊 Your Jobs: {len(client_jobs)}")
+            # Cache jobs for offline use
+            st.session_state['cached_jobs'] = jobs
         else:
             st.sidebar.info("📊 Jobs: Loading...")
     except:
-        st.sidebar.info("📊 Jobs: Offline")
+        if st.session_state.get('cached_jobs'):
+            st.sidebar.info("📊 Jobs: Offline (Cached)")
+        else:
+            st.sidebar.info("📊 Jobs: Offline")
     
     page = st.sidebar.selectbox(
         "Select Function",
@@ -100,8 +287,11 @@ def show_client_login():
                         if success:
                             st.session_state['client_authenticated'] = True
                             st.session_state['client_token'] = result['token']
+                            st.session_state['refresh_token'] = result.get('refresh_token')
                             st.session_state['client_id'] = result['client_id']
                             st.session_state['client_name'] = result['company_name']
+                            # Store session in URL for persistence
+                            st.experimental_set_query_params(session_token=result['token'])
                             st.success("✅ Login successful!")
                             st.balloons()
                             st.rerun()
@@ -142,9 +332,25 @@ from auth_service import ClientAuthService
 auth_service = ClientAuthService()
 
 def authenticate_client(client_id, password):
-    """Authenticate client using enterprise auth service"""
-    result = auth_service.authenticate_client(client_id, password)
-    return result['success'], result
+    """Authenticate client and get Bearer token from API"""
+    try:
+        # Call the actual API login endpoint
+        login_data = {"client_id": client_id, "password": password}
+        response = requests.post(f"{API_BASE_URL}/v1/client/login", json=login_data, timeout=10)
+        
+        if response.status_code == 200:
+            result = response.json()
+            return True, {
+                'success': True,
+                'token': result.get('access_token'),
+                'refresh_token': result.get('refresh_token'),
+                'client_id': result.get('client_id'),
+                'company_name': f"Company_{client_id}"
+            }
+        else:
+            return False, {'success': False, 'error': 'Invalid credentials'}
+    except Exception as e:
+        return False, {'success': False, 'error': str(e)}
 
 def register_new_client(client_id, company_name, email, password, confirm_password):
     """Register new client using enterprise auth service"""
@@ -159,9 +365,16 @@ def get_client_info(client_id):
     return auth_service.get_client_info(client_id)
 
 def verify_client_token(token):
-    """Verify client JWT token"""
-    result = auth_service.verify_token(token)
-    return result['success'], result
+    """Verify client JWT token via API"""
+    try:
+        headers = {"Authorization": f"Bearer {token}"}
+        response = requests.get(f"{API_BASE_URL}/v1/client/verify", headers=headers, timeout=5)
+        if response.status_code == 200:
+            result = response.json()
+            return result.get('valid', False), result
+        return False, {'error': 'Token verification failed'}
+    except:
+        return False, {'error': 'Token verification failed'}
 
 def logout_client(token):
     """Logout client and revoke token"""
@@ -222,34 +435,61 @@ def show_job_posting():
             }
             
             try:
-                response = requests.post(f"{API_BASE_URL}/v1/jobs", headers=headers, json=job_data, timeout=10)
-                if response.status_code == 200:
-                    result = response.json()
-                    job_id = result.get('job_id')
-                    st.success(f"✅ Job posted successfully! Job ID: {job_id}")
-                    st.info("📊 This job is now visible to HR team for candidate matching")
+                with st.spinner("🚀 Posting job to platform..."):
+                    response = make_api_request('POST', f"{API_BASE_URL}/v1/jobs", json=job_data)
                     
-                    if 'client_jobs' not in st.session_state:
-                        st.session_state['client_jobs'] = []
-                    st.session_state['client_jobs'].append({
-                        'id': job_id,
-                        'title': job_title,
-                        'posted_at': datetime.now().isoformat()
-                    })
+                    if response.status_code == 200:
+                        result = response.json()
+                        job_id = result.get('job_id')
+                        st.success(f"✅ Job posted successfully! Job ID: {job_id}")
+                        st.info("📊 This job is now visible to HR team for candidate matching")
+                        
+                        # Store job in session for quick access
+                        if 'client_jobs' not in st.session_state:
+                            st.session_state['client_jobs'] = []
+                        st.session_state['client_jobs'].append({
+                            'id': job_id,
+                            'title': job_title,
+                            'posted_at': datetime.now().isoformat()
+                        })
+                        
+                        # Update session URL to maintain state
+                        if 'client_token' in st.session_state:
+                            st.experimental_set_query_params(session_token=st.session_state['client_token'])
+                        
+                        st.balloons()
+                    else:
+                        st.error(f"❌ Failed to post job: {response.status_code}")
+                        if response.text:
+                            error_data = response.json() if response.headers.get('content-type', '').startswith('application/json') else {'detail': response.text}
+                            st.error(f"📋 Details: {error_data.get('detail', 'Unknown error')}")
+                        
+            except requests.exceptions.Timeout as e:
+                handle_api_error(e, "posting job", lambda: st.rerun())
+                
+            except requests.exceptions.ConnectionError as e:
+                handle_api_error(e, "posting job", lambda: st.rerun())
+                
+            except requests.exceptions.HTTPError as e:
+                handle_api_error(e, "posting job", lambda: st.rerun())
                     
-                    st.balloons()
-                else:
-                    st.error(f"❌ Failed to post job: {response.status_code}")
-                    st.error(f"Response: {response.text}")
             except Exception as e:
-                st.error(f"❌ Connection Error: {e}")
+                handle_api_error(e, "posting job", lambda: st.rerun())
 
 def show_candidate_review():
     st.header("👥 Review Candidates")
     
+    # Offline support with cached data
+    if 'cached_jobs' not in st.session_state:
+        st.session_state['cached_jobs'] = []
+    if 'cached_candidates' not in st.session_state:
+        st.session_state['cached_candidates'] = []
+    
     try:
-        # Get jobs from API
-        response = requests.get(f"{API_BASE_URL}/v1/jobs", headers=headers, timeout=10)
+        # Get jobs from API with retry logic
+        with st.spinner("🔄 Loading jobs from server..."):
+            response = make_api_request('GET', f"{API_BASE_URL}/v1/jobs")
+            
         if response.status_code == 200:
             data = response.json()
             jobs = data.get('jobs', []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
@@ -343,7 +583,8 @@ def show_candidate_review():
                                 st.text(f"Response: {agent_response.text[:200]}")
                                 # Fallback to gateway API
                                 try:
-                                    match_response = requests.get(f"{API_BASE_URL}/v1/match/{job_id}/top", headers=headers, timeout=15)
+                                    fallback_headers = get_auth_headers()
+                                    match_response = requests.get(f"{API_BASE_URL}/v1/match/{job_id}/top", headers=fallback_headers, timeout=15)
                                     if match_response.status_code == 200:
                                         match_data = match_response.json()
                                         candidates = match_data.get('top_candidates', [])
@@ -362,7 +603,8 @@ def show_candidate_review():
                             st.error(f"AI matching error: {str(e)}")
                             st.info("Attempting fallback to gateway API...")
                             try:
-                                match_response = requests.get(f"{API_BASE_URL}/v1/match/{job_id}/top", headers=headers, timeout=15)
+                                fallback_headers = get_auth_headers()
+                                match_response = requests.get(f"{API_BASE_URL}/v1/match/{job_id}/top", headers=fallback_headers, timeout=15)
                                 if match_response.status_code == 200:
                                     match_data = match_response.json()
                                     candidates = match_data.get('top_candidates', [])
@@ -382,16 +624,40 @@ def show_candidate_review():
             else:
                 st.info("No jobs found. Please create a job first.")
         else:
-            st.error("Failed to load jobs")
+            st.error("❌ Failed to load jobs from API")
+            # Try to use cached data
+            if st.session_state.get('cached_jobs'):
+                st.info("💾 Using cached job data (offline mode)")
+                jobs = st.session_state['cached_jobs']
+                # Process cached jobs here
+            else:
+                st.warning("⚠️ No cached data available. Please check your connection.")
+                
+    except requests.exceptions.Timeout as e:
+        handle_api_error(e, "loading jobs", lambda: st.rerun())
+        show_cached_data_fallback("jobs")
+        
+    except requests.exceptions.ConnectionError as e:
+        handle_api_error(e, "loading jobs", lambda: st.rerun())
+        show_cached_data_fallback("jobs")
+        
+    except requests.exceptions.HTTPError as e:
+        handle_api_error(e, "loading jobs", lambda: st.rerun())
+        show_cached_data_fallback("jobs")
+        
     except Exception as e:
-        st.error(f"Error: {e}")
+        handle_api_error(e, "loading jobs", lambda: st.rerun())
+        show_cached_data_fallback("jobs")
+
+
 
 def show_match_results():
     st.header("🎯 AI Match Results")
     st.markdown("**Select Job for AI Matching**")
     
     try:
-        # Get jobs from API
+        # Get jobs from API with proper authentication
+        headers = get_auth_headers()
         response = requests.get(f"{API_BASE_URL}/v1/jobs", headers=headers, timeout=10)
         if response.status_code == 200:
             data = response.json()
@@ -498,14 +764,24 @@ def show_match_results():
                 st.info("No jobs found. Please create a job first.")
         else:
             st.error("Failed to load jobs from API")
+    except requests.exceptions.Timeout as e:
+        handle_api_error(e, "loading match results", lambda: st.rerun())
+        
+    except requests.exceptions.ConnectionError as e:
+        handle_api_error(e, "loading match results", lambda: st.rerun())
+        
+    except requests.exceptions.HTTPError as e:
+        handle_api_error(e, "loading match results", lambda: st.rerun())
+        
     except Exception as e:
-        st.error(f"Connection error: {e}")
+        handle_api_error(e, "loading match results", lambda: st.rerun())
 
 def show_reports():
     st.header("📊 Client Reports & Analytics")
     
     # Get consistent real-time data from API
     try:
+        headers = get_auth_headers()
         jobs_response = requests.get(f"{API_BASE_URL}/v1/jobs", headers=headers, timeout=10)
         candidates_response = requests.get(f"{API_BASE_URL}/v1/candidates/search", headers=headers, timeout=10)
         
