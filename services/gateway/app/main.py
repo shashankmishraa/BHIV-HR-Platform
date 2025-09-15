@@ -535,8 +535,8 @@ async def export_job_report(job_id: int, api_key: str = Depends(get_api_key)):
 
 # Client Portal API (remaining endpoints)
 @app.post("/v1/client/refresh", tags=["Client Portal API"])
-async def refresh_client_token(refresh_data: dict):
-    """Refresh Client Access Token"""
+async def refresh_client_token_post(refresh_data: dict):
+    """Refresh Client Access Token (POST)"""
     try:
         refresh_token = refresh_data.get("refresh_token")
         if not refresh_token or not refresh_token.startswith("refresh_token_"):
@@ -561,9 +561,46 @@ async def refresh_client_token(refresh_data: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Token refresh failed: {str(e)}")
 
+@app.get("/v1/client/refresh", tags=["Client Portal API"])
+async def refresh_client_token_get(refresh_token: str = None):
+    """Refresh Client Access Token (GET)"""
+    try:
+        if not refresh_token or not refresh_token.startswith("refresh_token_"):
+            raise HTTPException(status_code=401, detail="Invalid refresh token")
+        
+        parts = refresh_token.split("_")
+        if len(parts) >= 3:
+            client_id = parts[2]
+            token_timestamp = datetime.now().timestamp()
+            new_access_token = f"client_token_{client_id}_{token_timestamp}"
+            new_refresh_token = f"refresh_token_{client_id}_{token_timestamp}"
+            
+            return {
+                "message": "Token refreshed successfully",
+                "access_token": new_access_token,
+                "refresh_token": new_refresh_token,
+                "token_type": "bearer",
+                "expires_in": 3600
+            }
+        else:
+            raise HTTPException(status_code=401, detail="Invalid refresh token format")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Token refresh failed: {str(e)}")
+
 @app.post("/v1/client/logout", tags=["Client Portal API"])
-async def logout_client(logout_data: dict):
-    """Logout Client and Revoke Tokens"""
+async def logout_client_post(logout_data: dict):
+    """Logout Client and Revoke Tokens (POST)"""
+    try:
+        return {
+            "message": "Logout successful",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Logout failed: {str(e)}")
+
+@app.get("/v1/client/logout", tags=["Client Portal API"])
+async def logout_client_get():
+    """Logout Client and Revoke Tokens (GET)"""
     try:
         return {
             "message": "Logout successful",

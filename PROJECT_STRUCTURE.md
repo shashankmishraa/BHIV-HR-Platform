@@ -14,7 +14,7 @@ bhiv-hr-platform/
 ├── 🔧 services/                     # Microservices Architecture
 │   ├── 🌐 gateway/                  # API Gateway Service (Port 8000)
 │   │   ├── 📱 app/
-│   │   │   ├── main.py              # FastAPI app (46 endpoints)
+│   │   │   ├── main.py              # FastAPI app (48 endpoints)
 │   │   │   ├── monitoring.py        # Advanced monitoring system
 │   │   │   └── __init__.py          # Package initialization
 │   │   ├── 📋 requirements.txt      # Python dependencies
@@ -98,7 +98,7 @@ bhiv-hr-platform/
 
 ### ✅ **Fixed Components**
 - **Batch Upload**: ✅ Fixed container paths (/app/resume/) and directory structure
-- **API Gateway**: ✅ 46 endpoints with monitoring and security
+- **API Gateway**: ✅ 48 endpoints with monitoring and security (fixed client refresh)
 - **Database Integration**: ✅ Resolved schema issues and email constraints
 - **AI Matching**: ✅ Differentiated scoring with real candidate data
 - **Skills Match Error**: ✅ Fixed TypeError in portal displays
@@ -126,7 +126,7 @@ bhiv-hr-platform/
 ## 🔧 Key Directories Explained
 
 ### `/services/` - Microservices
-- **gateway/**: Central API with 46 endpoints, monitoring, security
+- **gateway/**: Central API with 48 endpoints, monitoring, security
 - **portal/**: HR dashboard with workflow management
 - **client_portal/**: Client-facing job posting interface
 - **agent/**: AI matching engine with semantic analysis
@@ -168,7 +168,7 @@ bhiv-hr-platform/
 ## 📈 Current Metrics
 
 - **Total Services**: 5 (Database + 4 Web Services)
-- **API Endpoints**: 46 interactive endpoints
+- **API Endpoints**: 48 interactive endpoints
 - **Test Coverage**: 4 comprehensive test suites
 - **Documentation**: 8+ detailed guides
 - **Resume Processing**: ✅ 31 files successfully processed

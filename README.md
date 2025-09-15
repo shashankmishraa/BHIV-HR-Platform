@@ -70,7 +70,7 @@ docker-compose -f docker-compose.production.yml up -d
 | **Client Portal** | Client Interface | Streamlit | 8502 | ✅ Live |
 | **Database** | Data Storage | PostgreSQL 17 | 5432 | ✅ Live |
 
-### **API Endpoints (46 Total)**
+### **API Endpoints (48 Total)**
 ```
 Core API (3):           GET /, /health, /test-candidates
 Job Management (2):     POST /v1/jobs, GET /v1/jobs  
@@ -78,9 +78,10 @@ Candidate Mgmt (3):     GET /v1/candidates/*, POST /v1/candidates/bulk
 AI Matching (1):        GET /v1/match/{job_id}/top
 Security (15):          Rate limiting, 2FA, password management
 Analytics (2):          GET /candidates/stats, /v1/reports/*
-Client Portal (1):      POST /v1/client/login
+Client Portal (5):      POST/GET /v1/client/login, /refresh, /logout, /verify
 Monitoring (3):         GET /metrics, /health/detailed, /metrics/dashboard
-Documentation (16):     Daily reflections, bias analysis, project structure
+Assessment (4):         POST /v1/feedback, /interviews, /offers
+CSP Management (4):     POST/GET CSP policies and violation reporting
 ```
 
 ---
@@ -323,7 +324,7 @@ python tools/auto_sync_watcher.py
 
 ### **📈 System Metrics**
 - **Total Services**: 5 (Database + 4 Web Services)
-- **API Endpoints**: 46 interactive endpoints
+- **API Endpoints**: 48 interactive endpoints
 - **Real Candidates**: ✅ 68+ from actual resume files
 - **Resume Files**: ✅ 31 successfully processed
 - **Monthly Cost**: $0 (Free tier deployment)
@@ -344,6 +345,7 @@ python tools/auto_sync_watcher.py
 - ✅ **Advanced Monitoring**: Prometheus metrics and health checks
 - ✅ **Documentation Complete**: Comprehensive guides and API documentation
 - ✅ **Zero-Cost Operation**: $0/month on Render free tier
+- ✅ **Endpoint Fix**: Resolved 405 Method Not Allowed for client refresh (48 endpoints total)
 
 ---
 
