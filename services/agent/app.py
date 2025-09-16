@@ -88,13 +88,19 @@ class MatchResponse(BaseModel):
 def get_db_connection():
     """Get database connection"""
     try:
-        conn = psycopg2.connect(
-            host=os.getenv("DB_HOST", "db"),
-            database=os.getenv("DB_NAME", "bhiv_hr"),
-            user=os.getenv("DB_USER", "bhiv_user"),
-            password=os.getenv("DB_PASSWORD", "bhiv_pass"),
-            port=os.getenv("DB_PORT", "5432")
-        )
+        # Try DATABASE_URL first (Render standard)
+        database_url = os.getenv("DATABASE_URL")
+        if database_url:
+            conn = psycopg2.connect(database_url)
+        else:
+            # Fallback to individual parameters (local development)
+            conn = psycopg2.connect(
+                host=os.getenv("DB_HOST", "db"),
+                database=os.getenv("DB_NAME", "bhiv_hr"),
+                user=os.getenv("DB_USER", "bhiv_user"),
+                password=os.getenv("DB_PASSWORD", "bhiv_pass"),
+                port=os.getenv("DB_PORT", "5432")
+            )
         return conn
     except Exception as e:
         logger.error(f"Database connection failed: {e}")
@@ -249,6 +255,12 @@ def test_database():
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM candidates")
         count = cursor.fetchone()[0]
+        cursor.execute("SELECT id, name FROM candidates LIMIT 3")
+        samples = cursor.fetchall()
+        conn.close()
+        return {"candidates_count": count, "samples": samples}
+    except Exception as e:
+        return {"error": str(e)}ount = cursor.fetchone()[0]
         cursor.execute("SELECT id, name FROM candidates LIMIT 3")
         samples = cursor.fetchall()
         conn.close()
