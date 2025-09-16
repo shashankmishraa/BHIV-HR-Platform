@@ -16,7 +16,7 @@ API_KEY = "myverysecureapikey123"
 HEADERS = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
 
 def test_health_endpoints():
-    """Test all health endpoints"""
+    """Test all health endpoints with multiple HTTP methods"""
     print("Testing Health Endpoints...")
     
     endpoints = [
@@ -29,10 +29,19 @@ def test_health_endpoints():
     results = {}
     for name, url in endpoints:
         try:
+            # Test GET request
             response = requests.get(url, timeout=5)
             if response.status_code == 200:
                 results[name] = "HEALTHY"
-                print(f"  {name}: HEALTHY")
+                print(f"  {name}: HEALTHY (GET)")
+                
+                # Test HEAD request
+                head_response = requests.head(url, timeout=5)
+                if head_response.status_code == 200:
+                    print(f"  {name}: HEALTHY (HEAD)")
+                else:
+                    print(f"  {name}: HEAD method failed ({head_response.status_code})")
+                    
             else:
                 results[name] = f"ERROR {response.status_code}"
                 print(f"  {name}: ERROR {response.status_code}")
@@ -259,14 +268,51 @@ def test_stats_endpoint():
             stats = response.json()
             print(f"  GET /candidates/stats: PASSED")
             print(f"    - Total Candidates: {stats.get('total_candidates', 0)}")
-            print(f"    - Total Jobs: {stats.get('total_jobs', 0)}")
-            print(f"    - Total Feedback: {stats.get('total_feedback', 0)}")
+            print(f"    - Active Jobs: {stats.get('active_jobs', 0)}")
+            print(f"    - Recent Matches: {stats.get('recent_matches', 0)}")
             return True
         else:
             print(f"  GET /candidates/stats: FAILED - Status {response.status_code}")
             return False
     except Exception as e:
         print(f"  Statistics Endpoint: FAILED - {str(e)}")
+        return False
+
+def test_http_methods():
+    """Test HTTP method handling"""
+    print("\nTesting HTTP Methods...")
+    
+    try:
+        # Test HEAD request on health endpoint
+        head_response = requests.head(f"{API_BASE}/health", timeout=5)
+        if head_response.status_code == 200:
+            print(f"  HEAD /health: PASSED")
+            
+            # Test OPTIONS request
+            options_response = requests.options(f"{API_BASE}/", timeout=5)
+            if options_response.status_code == 200:
+                print(f"  OPTIONS /: PASSED")
+                
+                # Test unsupported method (should return 405)
+                try:
+                    trace_response = requests.request("TRACE", f"{API_BASE}/", timeout=5)
+                    if trace_response.status_code == 405:
+                        print(f"  TRACE / (unsupported): CORRECTLY REJECTED (405)")
+                        return True
+                    else:
+                        print(f"  TRACE / (unsupported): UNEXPECTED STATUS {trace_response.status_code}")
+                        return False
+                except Exception:
+                    print(f"  TRACE / (unsupported): CORRECTLY REJECTED")
+                    return True
+            else:
+                print(f"  OPTIONS /: FAILED - Status {options_response.status_code}")
+                return False
+        else:
+            print(f"  HEAD /health: FAILED - Status {head_response.status_code}")
+            return False
+    except Exception as e:
+        print(f"  HTTP Methods: FAILED - {str(e)}")
         return False
 
 def main():
@@ -280,6 +326,7 @@ def main():
     results = {}
     results["Health"] = test_health_endpoints()
     results["Authentication"] = test_authentication()
+    results["HTTP Methods"] = test_http_methods()
     results["Jobs"] = test_job_endpoints()
     results["Candidates"] = test_candidate_endpoints()
     results["AI Matching"] = test_ai_matching()

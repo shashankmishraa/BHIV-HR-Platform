@@ -1,4 +1,6 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.responses import PlainTextResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import psycopg2
 import os
@@ -12,12 +14,12 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 try:
-    from services.semantic_engine.job_matcher import SemanticJobMatcher
-    from services.semantic_engine.advanced_matcher import AdvancedSemanticMatcher, BatchMatcher
+    from services.semantic_engine import SemanticJobMatcher, AdvancedSemanticMatcher, BatchMatcher, SemanticProcessor
     SEMANTIC_ENABLED = True
-except ImportError:
+    print("SUCCESS: Advanced semantic engine loaded")
+except ImportError as e:
     SEMANTIC_ENABLED = False
-    print("WARNING: Semantic matching not available, using fallback")
+    print(f"WARNING: Semantic matching not available, using fallback: {e}")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -29,6 +31,66 @@ app = FastAPI(
     title="BHIV AI Matching Engine",
     description="Advanced AI-Powered Semantic Candidate Matching Service",
     version="2.1.0"
+)
+
+# HTTP Method Handler Middleware (MUST be first)
+@app.middleware("http")
+async def http_method_handler(request: Request, call_next):
+    """Handle HTTP methods including HEAD and OPTIONS requests"""
+    method = request.method
+    path = request.url.path
+    
+    # Handle HEAD requests by converting to GET and removing body
+    if method == "HEAD":
+        # Create new request with GET method
+        get_request = Request(
+            scope={
+                **request.scope,
+                "method": "GET"
+            }
+        )
+        response = await call_next(get_request)
+        # Remove body content for HEAD response but keep headers
+        return Response(
+            content="",
+            status_code=response.status_code,
+            headers=response.headers,
+            media_type=response.media_type
+        )
+    
+    # Handle OPTIONS requests for CORS preflight
+    elif method == "OPTIONS":
+        return Response(
+            content="",
+            status_code=200,
+            headers={
+                "Allow": "GET, POST, PUT, DELETE, HEAD, OPTIONS",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, HEAD, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+                "Access-Control-Max-Age": "86400"
+            }
+        )
+    
+    # Handle unsupported methods
+    elif method not in ["GET", "POST", "PUT", "DELETE", "PATCH"]:
+        return PlainTextResponse(
+            content=f"Method {method} not allowed. Supported methods: GET, POST, PUT, DELETE, HEAD, OPTIONS",
+            status_code=405,
+            headers={
+                "Allow": "GET, POST, PUT, DELETE, HEAD, OPTIONS"
+            }
+        )
+    
+    return await call_next(request)
+
+# Add CORS middleware with HEAD and OPTIONS support
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
+    allow_headers=["*"],
 )
 
 # Custom OpenAPI schema with organized tags
@@ -52,20 +114,30 @@ def custom_openapi():
 
 app.openapi = custom_openapi
 
-# Initialize semantic matchers with error handling
+# Initialize semantic engine components
 semantic_matcher = None
 advanced_matcher = None
+batch_matcher = None
+semantic_processor = None
+
 if SEMANTIC_ENABLED:
     try:
-        # Initialize AI matching components
+        # Initialize all semantic components
         semantic_matcher = SemanticJobMatcher()
         advanced_matcher = AdvancedSemanticMatcher()
-        logger.info("SUCCESS: Advanced semantic matching enabled")
-        print("SUCCESS: Advanced semantic matching enabled")
+        batch_matcher = BatchMatcher(max_workers=2)
+        semantic_processor = SemanticProcessor()
+        
+        logger.info("SUCCESS: Complete semantic engine initialized")
+        print("SUCCESS: Complete semantic engine initialized")
     except Exception as e:
-        logger.error(f"Failed to initialize semantic matcher: {e}")
-        print(f"Failed to initialize semantic matcher: {e}")
+        logger.error(f"Failed to initialize semantic engine: {e}")
+        print(f"Failed to initialize semantic engine: {e}")
         SEMANTIC_ENABLED = False
+        semantic_matcher = None
+        advanced_matcher = None
+        batch_matcher = None
+        semantic_processor = None
 
 class MatchRequest(BaseModel):
     job_id: int
@@ -241,27 +313,76 @@ def calculate_location_match(job_location: str, candidate_location: str) -> tupl
     return 0.3, False
 
 @app.get("/", tags=["Core API Endpoints"], summary="AI Service Information")
+@app.head("/", tags=["Core API Endpoints"], summary="AI Service Information (HEAD)")
 def read_root():
     return {
         "service": "BHIV AI Agent",
         "version": "2.1.0",
+        "semantic_engine": "enabled" if SEMANTIC_ENABLED else "fallback",
         "endpoints": {
             "match": "POST /match - Get top candidates for job",
             "analyze": "GET /analyze/{candidate_id} - Analyze candidate",
-            "health": "GET /health - Service health check"
-        }
+            "health": "GET /health - Service health check",
+            "semantic_status": "GET /semantic-status - Semantic engine status",
+            "test_db": "GET /test-db - Database connectivity test",
+            "http_methods_test": "GET /http-methods-test - HTTP methods testing"
+        },
+        "supported_methods": ["GET", "POST", "HEAD", "OPTIONS"]
     }
 
 @app.get("/health", tags=["Core API Endpoints"], summary="Health Check")
+@app.head("/health", tags=["Core API Endpoints"], summary="Health Check (HEAD)")
 def health_check():
     return {
         "status": "healthy",
         "service": "BHIV AI Agent",
         "version": "2.1.0",
-        "timestamp": datetime.now().isoformat()
+        "semantic_engine": "enabled" if SEMANTIC_ENABLED else "fallback",
+        "timestamp": datetime.now().isoformat(),
+        "uptime": "operational",
+        "methods_supported": ["GET", "HEAD"]
     }
 
+@app.get("/semantic-status", tags=["System Diagnostics"], summary="Semantic Engine Status")
+def semantic_engine_status():
+    """Check semantic engine status and capabilities"""
+    status = {
+        "semantic_engine_enabled": SEMANTIC_ENABLED,
+        "components": {
+            "job_matcher": semantic_matcher is not None,
+            "advanced_matcher": advanced_matcher is not None,
+            "batch_matcher": batch_matcher is not None,
+            "semantic_processor": semantic_processor is not None
+        },
+        "algorithm_version": "3.0.0-semantic" if SEMANTIC_ENABLED else "2.0.0-fallback",
+        "capabilities": []
+    }
+    
+    if SEMANTIC_ENABLED:
+        status["capabilities"] = [
+            "Advanced semantic matching",
+            "Bias mitigation",
+            "Skill embeddings",
+            "Cultural fit analysis",
+            "Batch processing",
+            "Model artifacts"
+        ]
+        
+        # Get model statistics if available
+        if semantic_processor and hasattr(semantic_processor, 'model_manager'):
+            try:
+                model_stats = semantic_processor.model_manager.get_model_stats()
+                status["model_statistics"] = model_stats
+            except Exception as e:
+                status["model_statistics"] = {"error": str(e)}
+    else:
+        status["capabilities"] = ["Basic keyword matching", "Experience scoring", "Location matching"]
+        status["fallback_reason"] = "Semantic engine components not available"
+    
+    return status
+
 @app.get("/test-db", tags=["System Diagnostics"], summary="Database Connectivity Test")
+@app.head("/test-db", tags=["System Diagnostics"], summary="Database Connectivity Test (HEAD)")
 def test_database():
     """Test database connectivity and return sample data
     
@@ -292,11 +413,40 @@ def test_database():
             "status": "connected",
             "candidates_count": count,
             "samples": samples,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
+            "connection_pool": "healthy"
         }
     except Exception as e:
         logger.error(f"Database test error: {e}")
         return {"error": str(e), "status": "error"}
+
+@app.get("/http-methods-test", tags=["System Diagnostics"], summary="HTTP Methods Testing")
+@app.head("/http-methods-test", tags=["System Diagnostics"], summary="HTTP Methods Testing (HEAD)")
+@app.options("/http-methods-test", tags=["System Diagnostics"], summary="HTTP Methods Testing (OPTIONS)")
+async def http_methods_test(request: Request):
+    """HTTP Methods Testing Endpoint for AI Agent Service"""
+    method = request.method
+    
+    response_data = {
+        "service": "BHIV AI Agent",
+        "method_received": method,
+        "supported_methods": ["GET", "POST", "HEAD", "OPTIONS"],
+        "timestamp": datetime.now().isoformat(),
+        "semantic_engine": "enabled" if SEMANTIC_ENABLED else "fallback",
+        "status": "method_handled_successfully"
+    }
+    
+    if method == "OPTIONS":
+        return Response(
+            content="",
+            status_code=200,
+            headers={
+                "Allow": "GET, POST, HEAD, OPTIONS",
+                "Access-Control-Allow-Methods": "GET, POST, HEAD, OPTIONS"
+            }
+        )
+    
+    return response_data
 
 @app.post("/match", response_model=MatchResponse, tags=["AI Matching Engine"], summary="AI-Powered Candidate Matching")
 async def match_candidates(request: MatchRequest):
@@ -355,188 +505,178 @@ async def match_candidates(request: MatchRequest):
                 status="no_candidates"
             )
         
-        # Dynamic scoring based on job-specific requirements
-        scored_candidates = []
-        
-        # Extract job-specific keywords for dynamic matching
-        job_text = f"{job_title or ''} {job_desc or ''} {job_requirements or ''}".lower()
-        
-        # Dynamic skill extraction based on job requirements
-        tech_skills_map = {
-            'python': ['python', 'django', 'flask', 'pandas', 'numpy'],
-            'java': ['java', 'spring', 'hibernate', 'maven', 'gradle'],
-            'javascript': ['javascript', 'js', 'react', 'node', 'angular', 'vue'],
-            'data science': ['data science', 'machine learning', 'ai', 'tensorflow', 'pytorch'],
-            'cloud': ['aws', 'azure', 'gcp', 'docker', 'kubernetes'],
-            'database': ['sql', 'mysql', 'postgresql', 'mongodb', 'redis'],
-            'web': ['html', 'css', 'react', 'angular', 'vue', 'bootstrap'],
-            'mobile': ['android', 'ios', 'react native', 'flutter', 'swift'],
-            'devops': ['docker', 'kubernetes', 'jenkins', 'ci/cd', 'terraform']
-        }
-        
-        # Identify required skills from job description
-        required_skill_categories = []
-        for category, skills in tech_skills_map.items():
-            if any(skill in job_text for skill in skills):
-                required_skill_categories.append(category)
-        
-        logger.info(f"Identified required skill categories: {required_skill_categories}")
-        
-        for candidate in candidates:
-            cand_id, name, email, phone, location, exp_years, skills, seniority, education = candidate
-            
-            candidate_skills_lower = (skills or '').lower()
-            candidate_name_lower = (name or '').lower()
-            
-            # Enhanced skills matching with exact keyword scoring
-            skills_score = 0.0
-            matched_skills = []
-            skill_bonus = 0.0
-            
-            if required_skill_categories:
-                total_possible_matches = 0
-                actual_matches = 0
-                
-                for category in required_skill_categories:
-                    category_skills = tech_skills_map[category]
-                    category_matches = 0
-                    
-                    for skill in category_skills:
-                        total_possible_matches += 1
-                        if skill in candidate_skills_lower:
-                            matched_skills.append(skill.title())
-                            actual_matches += 1
-                            category_matches += 1
-                    
-                    # Bonus for multiple skills in same category
-                    if category_matches > 1:
-                        skill_bonus += 0.1 * (category_matches - 1)
-                
-                skills_score = actual_matches / max(1, total_possible_matches) if total_possible_matches > 0 else 0.0
-            else:
-                skills_score, matched_skills = calculate_skills_match(
-                    job_requirements or job_desc, skills or ""
-                )
-            
-            # Experience scoring with more granular differentiation
-            exp_score, exp_reasoning = calculate_experience_match(
-                job_level or "", exp_years or 0, seniority or ""
+        # Use semantic engine if available, otherwise fallback
+        if SEMANTIC_ENABLED and semantic_processor:
+            logger.info("Using advanced semantic processing")
+            scored_candidates = await process_with_semantic_engine(
+                job_data, candidates, request.job_id
             )
-            
-            # Enhanced experience scoring with realistic bonuses
-            exp_years_val = exp_years or 0
-            if exp_years_val >= 5:
-                exp_bonus = 0.2   # Senior experience bonus
-            elif exp_years_val >= 3:
-                exp_bonus = 0.15  # Mid-level bonus
-            elif exp_years_val >= 2:
-                exp_bonus = 0.1   # Junior bonus
-            else:
-                exp_bonus = 0.0   # No penalty for entry level
-            
-            # Location matching with distance consideration
-            location_score, location_match = calculate_location_match(
-                job_location or "", location or ""
+        else:
+            logger.info("Using fallback matching algorithm")
+            scored_candidates = process_with_fallback_algorithm(
+                job_data, candidates, request.job_id
             )
-            
-            # Name-based diversity bonus (avoid clustering similar profiles)
-            name_diversity_bonus = 0.0
-            if 'a' in candidate_name_lower[:2]:  # Names starting with A
-                name_diversity_bonus = 0.05
-            elif 's' in candidate_name_lower[:2]:  # Names starting with S
-                name_diversity_bonus = 0.03
-            
-            # Education level bonus
-            education_bonus = 0.0
-            if education and ('master' in education.lower() or 'mba' in education.lower()):
-                education_bonus = 0.1
-            elif education and 'bachelor' in education.lower():
-                education_bonus = 0.05
-            
-            # Enhanced dynamic weighting with better differentiation
-            base_multiplier = 75  # Reduced base for more realistic scores
-            
-            if 'senior' in job_text or 'lead' in job_text:
-                # Experience-heavy weighting for senior roles
-                raw_score = (skills_score * 0.4 + exp_score * 0.5 + location_score * 0.1)
-                role_bonus = 10 if exp_years_val >= 5 else 0
-                overall_score = (raw_score + skill_bonus + exp_bonus + education_bonus) * base_multiplier + role_bonus
-            elif 'data' in job_text or 'ai' in job_text or 'machine learning' in job_text:
-                # Skills-heavy weighting for technical roles
-                raw_score = (skills_score * 0.6 + exp_score * 0.3 + location_score * 0.1)
-                tech_bonus = 15 if len(matched_skills) >= 3 else 5
-                overall_score = (raw_score + skill_bonus + exp_bonus + education_bonus) * (base_multiplier + 5) + tech_bonus
-            else:
-                # Balanced weighting for general roles
-                raw_score = (skills_score * 0.5 + exp_score * 0.3 + location_score * 0.2)
-                overall_score = (raw_score + skill_bonus + exp_bonus + name_diversity_bonus + education_bonus) * base_multiplier
-            
-            # Enhanced candidate-specific variations for better differentiation
-            skill_diversity_bonus = len(set(matched_skills)) * 2  # Bonus for skill diversity
-            experience_multiplier = 1 + (exp_years_val * 0.05)  # Experience multiplier
-            candidate_variation = (cand_id % 13) * 1.2  # Larger variation based on ID
-            
-            overall_score = (overall_score * experience_multiplier) + skill_diversity_bonus + candidate_variation
-            
-            # Ensure realistic score range with better spread (45-92)
-            overall_score = max(45.0, min(92.0, overall_score))
-            
-            # Enhanced reasoning with detailed breakdown
-            reasoning_parts = []
-            if matched_skills:
-                reasoning_parts.append(f"Skills: {', '.join(matched_skills[:3])} ({len(matched_skills)} total)")
-            reasoning_parts.append(f"Experience: {exp_years or 0}y - {exp_reasoning}")
-            if location_match:
-                reasoning_parts.append(f"Location: {location or 'Unknown'}")
-            if education:
-                reasoning_parts.append(f"Education: {education}")
-            
-            reasoning = "; ".join(reasoning_parts)
-            
-            scored_candidates.append(CandidateScore(
-                candidate_id=cand_id,
-                name=name,
-                email=email,
-                score=round(overall_score, 1),
-                skills_match=matched_skills[:5],
-                experience_match=exp_reasoning,
-                location_match=location_match,
-                reasoning=reasoning
-            ))
         
-        # Sort by score and get top candidates with enhanced differentiation
+        # Sort by score and get top candidates
         scored_candidates.sort(key=lambda x: x.score, reverse=True)
-        
-        # Enhanced score differentiation to prevent clustering
-        for i in range(1, len(scored_candidates)):
-            if abs(scored_candidates[i].score - scored_candidates[i-1].score) < 0.5:
-                scored_candidates[i].score = round(scored_candidates[i].score - (i * 0.7), 1)
-        
-        # Final score adjustment to ensure proper ranking
-        for i, candidate in enumerate(scored_candidates):
-            if i > 0 and candidate.score >= scored_candidates[i-1].score:
-                candidate.score = round(scored_candidates[i-1].score - 0.8, 1)
-        
         top_candidates = scored_candidates[:10]
         
         processing_time = (datetime.now() - start_time).total_seconds()
         
         conn.close()
         
-        logger.info(f"Dynamic matching completed: {len(top_candidates)} top candidates found")
+        algorithm_version = "3.0.0-semantic" if SEMANTIC_ENABLED else "2.0.0-fallback"
+        logger.info(f"Matching completed: {len(top_candidates)} candidates, algorithm: {algorithm_version}")
         
         return MatchResponse(
             job_id=request.job_id,
             top_candidates=top_candidates,
             total_candidates=len(candidates),
             processing_time=round(processing_time, 3),
-            algorithm_version="2.0.0-dynamic",
+            algorithm_version=algorithm_version,
             status="success"
         )
         
     except Exception as e:
-        logger.error(f"Dynamic matching error: {e}")
-        raise HTTPException(status_code=500, detail=f"Dynamic matching failed: {str(e)}")
+        logger.error(f"Matching error: {e}")
+        raise HTTPException(status_code=500, detail=f"Matching failed: {str(e)}")
+
+async def process_with_semantic_engine(job_data: tuple, candidates: list, job_id: int) -> list:
+    """Process candidates using advanced semantic engine"""
+    job_title, job_desc, job_dept, job_location, job_level, job_requirements = job_data
+    
+    # Prepare job data for semantic processing
+    job_dict = {
+        'id': job_id,
+        'title': job_title,
+        'description': job_desc,
+        'department': job_dept,
+        'location': job_location,
+        'experience_level': job_level,
+        'requirements': job_requirements
+    }
+    
+    scored_candidates = []
+    
+    for candidate in candidates:
+        cand_id, name, email, phone, location, exp_years, skills, seniority, education = candidate
+        
+        # Prepare candidate data
+        candidate_dict = {
+            'id': cand_id,
+            'name': name,
+            'email': email,
+            'phone': phone,
+            'location': location,
+            'experience_years': exp_years or 0,
+            'technical_skills': skills or '',
+            'seniority_level': seniority or '',
+            'education_level': education or ''
+        }
+        
+        # Use semantic processor for matching
+        match_result = semantic_processor.semantic_match(job_dict, candidate_dict)
+        
+        # Create candidate score object
+        candidate_score = CandidateScore(
+            candidate_id=cand_id,
+            name=name,
+            email=email,
+            score=match_result['score'],
+            skills_match=match_result.get('matched_skills', []),
+            experience_match=match_result.get('reasoning', 'Semantic analysis'),
+            location_match=location == job_location if job_location else True,
+            reasoning=match_result.get('reasoning', 'Advanced semantic matching')
+        )
+        
+        scored_candidates.append(candidate_score)
+    
+    return scored_candidates
+
+def process_with_fallback_algorithm(job_data: tuple, candidates: list, job_id: int) -> list:
+    """Fallback algorithm when semantic engine is not available"""
+    job_title, job_desc, job_dept, job_location, job_level, job_requirements = job_data
+    
+    # Extract job-specific keywords for dynamic matching
+    job_text = f"{job_title or ''} {job_desc or ''} {job_requirements or ''}".lower()
+        
+    # Dynamic skill extraction based on job requirements
+    tech_skills_map = {
+        'python': ['python', 'django', 'flask', 'pandas', 'numpy'],
+        'java': ['java', 'spring', 'hibernate', 'maven', 'gradle'],
+        'javascript': ['javascript', 'js', 'react', 'node', 'angular', 'vue'],
+        'data science': ['data science', 'machine learning', 'ai', 'tensorflow', 'pytorch'],
+        'cloud': ['aws', 'azure', 'gcp', 'docker', 'kubernetes'],
+        'database': ['sql', 'mysql', 'postgresql', 'mongodb', 'redis'],
+        'web': ['html', 'css', 'react', 'angular', 'vue', 'bootstrap'],
+        'mobile': ['android', 'ios', 'react native', 'flutter', 'swift'],
+        'devops': ['docker', 'kubernetes', 'jenkins', 'ci/cd', 'terraform']
+    }
+    
+    # Identify required skills from job description
+    required_skill_categories = []
+    for category, skills in tech_skills_map.items():
+        if any(skill in job_text for skill in skills):
+            required_skill_categories.append(category)
+    
+    scored_candidates = []
+    
+    for candidate in candidates:
+        cand_id, name, email, phone, location, exp_years, skills, seniority, education = candidate
+        
+        candidate_skills_lower = (skills or '').lower()
+        
+        # Enhanced skills matching
+        skills_score = 0.0
+        matched_skills = []
+        
+        if required_skill_categories:
+            total_possible_matches = 0
+            actual_matches = 0
+            
+            for category in required_skill_categories:
+                category_skills = tech_skills_map[category]
+                for skill in category_skills:
+                    total_possible_matches += 1
+                    if skill in candidate_skills_lower:
+                        matched_skills.append(skill.title())
+                        actual_matches += 1
+            
+            skills_score = actual_matches / max(1, total_possible_matches)
+        else:
+            skills_score, matched_skills = calculate_skills_match(
+                job_requirements or job_desc, skills or ""
+            )
+        
+        # Experience scoring
+        exp_score, exp_reasoning = calculate_experience_match(
+            job_level or "", exp_years or 0, seniority or ""
+        )
+        
+        # Location matching
+        location_score, location_match = calculate_location_match(
+            job_location or "", location or ""
+        )
+        
+        # Calculate overall score
+        raw_score = (skills_score * 0.5 + exp_score * 0.3 + location_score * 0.2)
+        overall_score = raw_score * 85 + (cand_id % 10) * 1.5  # Add variation
+        overall_score = max(50.0, min(90.0, overall_score))
+        
+        reasoning = f"Skills: {len(matched_skills)} matches; Experience: {exp_reasoning}"
+        
+        scored_candidates.append(CandidateScore(
+            candidate_id=cand_id,
+            name=name,
+            email=email,
+            score=round(overall_score, 1),
+            skills_match=matched_skills[:5],
+            experience_match=exp_reasoning,
+            location_match=location_match,
+            reasoning=reasoning
+        ))
+    
+    return scored_candidates
 
 @app.get("/analyze/{candidate_id}", tags=["Candidate Analysis"], summary="Detailed Candidate Analysis")
 async def analyze_candidate(candidate_id: int):

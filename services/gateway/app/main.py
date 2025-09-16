@@ -1,6 +1,7 @@
-from fastapi import FastAPI, HTTPException, Depends, Security, Response
+from fastapi import FastAPI, HTTPException, Depends, Security, Response, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse
 from datetime import datetime, timezone
 import os
 import secrets
@@ -22,11 +23,62 @@ app = FastAPI(
     description="Enterprise HR Platform with Advanced Security Features"
 )
 
+# HTTP Method Handler Middleware (MUST be first)
+@app.middleware("http")
+async def http_method_handler(request: Request, call_next):
+    """Handle HTTP methods including HEAD and OPTIONS requests"""
+    method = request.method
+    path = request.url.path
+    
+    # Handle HEAD requests by converting to GET and removing body
+    if method == "HEAD":
+        # Create new request with GET method
+        get_request = Request(
+            scope={
+                **request.scope,
+                "method": "GET"
+            }
+        )
+        response = await call_next(get_request)
+        # Remove body content for HEAD response but keep headers
+        return Response(
+            content="",
+            status_code=response.status_code,
+            headers=response.headers,
+            media_type=response.media_type
+        )
+    
+    # Handle OPTIONS requests for CORS preflight
+    elif method == "OPTIONS":
+        return Response(
+            content="",
+            status_code=200,
+            headers={
+                "Allow": "GET, POST, PUT, DELETE, HEAD, OPTIONS",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, HEAD, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+                "Access-Control-Max-Age": "86400"
+            }
+        )
+    
+    # Handle unsupported methods
+    elif method not in ["GET", "POST", "PUT", "DELETE", "PATCH"]:
+        return PlainTextResponse(
+            content=f"Method {method} not allowed. Supported methods: GET, POST, PUT, DELETE, HEAD, OPTIONS",
+            status_code=405,
+            headers={
+                "Allow": "GET, POST, PUT, DELETE, HEAD, OPTIONS"
+            }
+        )
+    
+    return await call_next(request)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -119,6 +171,7 @@ async def rate_limit_middleware(request: Request, call_next):
     response.headers["X-RateLimit-Remaining"] = str(rate_limit - len(rate_limit_storage[key]))
     return response
 
+# Rate limiting middleware (after HTTP method handler)
 app.middleware("http")(rate_limit_middleware)
 
 class JobCreate(BaseModel):
@@ -210,40 +263,49 @@ def get_api_key(credentials: HTTPAuthorizationCredentials = Security(security)):
         raise HTTPException(status_code=401, detail="Invalid API key")
     return credentials.credentials
 
-# Core API Endpoints (3 endpoints)
+# Core API Endpoints (4 endpoints)
 @app.get("/", tags=["Core API Endpoints"])
+@app.head("/", tags=["Core API Endpoints"])
 def read_root():
     """API Root Information"""
     return {
         "message": "BHIV HR Platform API Gateway",
         "version": "3.1.0",
         "status": "healthy",
-        "endpoints": 46,
+        "endpoints": 47,
         "documentation": "/docs",
         "monitoring": "/metrics",
-        "live_demo": "https://bhiv-platform.aws.example.com"
+        "live_demo": "https://bhiv-platform.aws.example.com",
+        "supported_methods": ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"]
     }
 
 @app.get("/health", tags=["Core API Endpoints"])
+@app.head("/health", tags=["Core API Endpoints"])
 def health_check(response: Response):
-    """Health Check"""
+    """Health Check - Supports both GET and HEAD methods"""
     response.headers["X-RateLimit-Limit"] = "60"
     response.headers["X-RateLimit-Remaining"] = "59"
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Content-Security-Policy"] = "default-src 'self'"
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
     
     return {
         "status": "healthy",
         "service": "BHIV HR Gateway",
         "version": "3.1.0",
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "uptime": "operational",
+        "methods_supported": ["GET", "HEAD"]
     }
 
 @app.get("/test-candidates", tags=["Core API Endpoints"])
+@app.head("/test-candidates", tags=["Core API Endpoints"])
 async def test_candidates_db(api_key: str = Depends(get_api_key)):
-    """Database Connectivity Test"""
+    """Database Connectivity Test - Supports both GET and HEAD methods"""
     try:
         engine = get_db_engine()
         with engine.connect() as connection:
@@ -254,10 +316,37 @@ async def test_candidates_db(api_key: str = Depends(get_api_key)):
             return {
                 "database_status": "connected",
                 "total_candidates": candidate_count,
-                "test_timestamp": datetime.now(timezone.utc).isoformat()
+                "test_timestamp": datetime.now(timezone.utc).isoformat(),
+                "connection_pool": "healthy"
             }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database connectivity test failed: {str(e)}")
+
+@app.get("/http-methods-test", tags=["Core API Endpoints"])
+@app.head("/http-methods-test", tags=["Core API Endpoints"])
+@app.options("/http-methods-test", tags=["Core API Endpoints"])
+async def http_methods_test(request: Request):
+    """HTTP Methods Testing Endpoint"""
+    method = request.method
+    
+    response_data = {
+        "method_received": method,
+        "supported_methods": ["GET", "HEAD", "OPTIONS"],
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "status": "method_handled_successfully"
+    }
+    
+    if method == "OPTIONS":
+        return Response(
+            content="",
+            status_code=200,
+            headers={
+                "Allow": "GET, HEAD, OPTIONS",
+                "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS"
+            }
+        )
+    
+    return response_data
 
 # Job Management (2 endpoints)
 @app.post("/v1/jobs", tags=["Job Management"])

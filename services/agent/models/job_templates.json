@@ -1,0 +1,95 @@
+{
+  "software_engineer": {
+    "required_skills": [
+      "python",
+      "java",
+      "javascript",
+      "sql",
+      "git"
+    ],
+    "preferred_skills": [
+      "react",
+      "docker",
+      "aws"
+    ],
+    "experience_range": [
+      2,
+      8
+    ],
+    "weight_factors": {
+      "skills": 0.6,
+      "experience": 0.3,
+      "education": 0.1
+    }
+  },
+  "data_scientist": {
+    "required_skills": [
+      "python",
+      "sql",
+      "machine learning",
+      "pandas",
+      "numpy"
+    ],
+    "preferred_skills": [
+      "tensorflow",
+      "pytorch",
+      "aws",
+      "tableau"
+    ],
+    "experience_range": [
+      1,
+      6
+    ],
+    "weight_factors": {
+      "skills": 0.7,
+      "experience": 0.2,
+      "education": 0.1
+    }
+  },
+  "frontend_developer": {
+    "required_skills": [
+      "javascript",
+      "html",
+      "css",
+      "react"
+    ],
+    "preferred_skills": [
+      "typescript",
+      "vue",
+      "angular",
+      "bootstrap"
+    ],
+    "experience_range": [
+      1,
+      5
+    ],
+    "weight_factors": {
+      "skills": 0.8,
+      "experience": 0.15,
+      "education": 0.05
+    }
+  },
+  "devops_engineer": {
+    "required_skills": [
+      "docker",
+      "kubernetes",
+      "aws",
+      "linux",
+      "git"
+    ],
+    "preferred_skills": [
+      "jenkins",
+      "terraform",
+      "ansible"
+    ],
+    "experience_range": [
+      2,
+      10
+    ],
+    "weight_factors": {
+      "skills": 0.5,
+      "experience": 0.4,
+      "education": 0.1
+    }
+  }
+}
