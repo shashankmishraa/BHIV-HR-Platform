@@ -222,8 +222,8 @@ def calculate_location_match(job_location: str, candidate_location: str) -> tupl
 @app.get("/", tags=["Core API Endpoints"], summary="AI Service Information")
 def read_root():
     return {
-        "service": "Talah AI Agent",
-        "version": "1.0.0",
+        "service": "BHIV AI Agent",
+        "version": "2.1.0",
         "endpoints": {
             "match": "POST /match - Get top candidates for job",
             "analyze": "GET /analyze/{candidate_id} - Analyze candidate",
@@ -235,8 +235,8 @@ def read_root():
 def health_check():
     return {
         "status": "healthy",
-        "service": "Talah AI Agent",
-        "version": "1.0.0",
+        "service": "BHIV AI Agent",
+        "version": "2.1.0",
         "timestamp": datetime.now().isoformat()
     }
 
@@ -289,7 +289,7 @@ async def match_candidates(request: MatchRequest):
             )
         
         job_title, job_desc, job_dept, job_location, job_level, job_requirements = job_data
-        logger.info(f"Processing job: {job_title} with requirements: {job_requirements[:100]}...")
+        logger.info(f"Processing job: {job_title}")
         
         # Get ALL candidates globally (no job_id filtering for dynamic matching)
         cursor.execute("""
@@ -317,7 +317,7 @@ async def match_candidates(request: MatchRequest):
         scored_candidates = []
         
         # Extract job-specific keywords for dynamic matching
-        job_text = f"{job_title} {job_desc} {job_requirements}".lower()
+        job_text = f"{job_title or ''} {job_desc or ''} {job_requirements or ''}".lower()
         
         # Dynamic skill extraction based on job requirements
         tech_skills_map = {
