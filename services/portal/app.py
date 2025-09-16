@@ -8,6 +8,7 @@ st.set_page_config(page_title="BHIV HR Platform v2.0", page_icon="🎯", layout=
 
 import os
 
+AGENT_URL = os.getenv("AGENT_SERVICE_URL", "http://agent:9000")
 API_BASE = os.getenv("GATEWAY_URL", "http://gateway:8000")
 API_KEY = os.getenv("API_KEY_SECRET", "myverysecureapikey123")
 headers = {"Authorization": f"Bearer {API_KEY}"}
@@ -1494,7 +1495,7 @@ with footer_col1:
 with footer_col2:
     st.markdown("**🤖 AI Status**")
     try:
-        ai_response = httpx.get(f"http://agent:9000/health", timeout=3.0)
+        ai_response = httpx.get(f"{AGENT_URL}/health", timeout=3.0)
         if ai_response.status_code == 200:
             st.caption("✅ Talah AI: Online")
         else:
