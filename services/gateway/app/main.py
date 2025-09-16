@@ -14,32 +14,6 @@ from pydantic import BaseModel
 import time
 from .monitoring import monitor, log_resume_processing, log_matching_performance, log_user_activity, log_error
 
-
-import logging
-import sys
-from datetime import datetime
-
-# Configure enhanced logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('logs/service.log'),
-        logging.StreamHandler(sys.stdout)
-    ]
-)
-
-def log_error(error, context=""):
-    """Log errors with context"""
-    logger = logging.getLogger(__name__)
-    logger.error(f"Error in {context}: {str(error)}", exc_info=True)
-
-def log_performance(operation, duration):
-    """Log performance metrics"""
-    logger = logging.getLogger(__name__)
-    logger.info(f"Performance: {operation} took {duration:.3f}s")
-
-
 security = HTTPBearer()
 
 app = FastAPI(
