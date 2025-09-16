@@ -52,15 +52,18 @@ def custom_openapi():
 
 app.openapi = custom_openapi
 
-# Initialize semantic matchers
+# Initialize semantic matchers with error handling
 semantic_matcher = None
 advanced_matcher = None
 if SEMANTIC_ENABLED:
     try:
+        # Initialize AI matching components
         semantic_matcher = SemanticJobMatcher()
         advanced_matcher = AdvancedSemanticMatcher()
+        logger.info("SUCCESS: Advanced semantic matching enabled")
         print("SUCCESS: Advanced semantic matching enabled")
     except Exception as e:
+        logger.error(f"Failed to initialize semantic matcher: {e}")
         print(f"Failed to initialize semantic matcher: {e}")
         SEMANTIC_ENABLED = False
 
@@ -86,14 +89,25 @@ class MatchResponse(BaseModel):
     status: str
 
 def get_db_connection():
-    """Get database connection"""
+    """Get database connection with fallback mechanism
+    
+    Returns:
+        psycopg2.connection: Database connection object or None if failed
+        
+    Connection Strategy:
+        1. Try DATABASE_URL (Render/production standard)
+        2. Fallback to individual DB parameters (local development)
+    """
     try:
-        # Try DATABASE_URL first (Render standard)
+        # Primary: Use DATABASE_URL (Render standard format)
+        # Format: postgresql://user:password@host:port/database
         database_url = os.getenv("DATABASE_URL")
         if database_url:
+            logger.info("Connecting using DATABASE_URL")
             conn = psycopg2.connect(database_url)
         else:
-            # Fallback to individual parameters (local development)
+            # Fallback: Individual parameters for local development
+            logger.info("Connecting using individual DB parameters")
             conn = psycopg2.connect(
                 host=os.getenv("DB_HOST", "db"),
                 database=os.getenv("DB_NAME", "bhiv_hr"),
@@ -101,6 +115,7 @@ def get_db_connection():
                 password=os.getenv("DB_PASSWORD", "bhiv_pass"),
                 port=os.getenv("DB_PORT", "5432")
             )
+        logger.info("Database connection successful")
         return conn
     except Exception as e:
         logger.error(f"Database connection failed: {e}")
@@ -248,25 +263,40 @@ def health_check():
 
 @app.get("/test-db", tags=["System Diagnostics"], summary="Database Connectivity Test")
 def test_database():
+    """Test database connectivity and return sample data
+    
+    Returns:
+        dict: Database status with candidate count and samples
+    """
     try:
+        # Attempt database connection
         conn = get_db_connection()
         if not conn:
-            return {"error": "Connection failed"}
+            logger.error("Database connection test failed")
+            return {"error": "Connection failed", "status": "disconnected"}
+        
         cursor = conn.cursor()
+        
+        # Get candidate count
         cursor.execute("SELECT COUNT(*) FROM candidates")
         count = cursor.fetchone()[0]
+        
+        # Get sample candidates for verification
         cursor.execute("SELECT id, name FROM candidates LIMIT 3")
         samples = cursor.fetchall()
+        
         conn.close()
-        return {"candidates_count": count, "samples": samples}
+        logger.info(f"Database test successful: {count} candidates found")
+        
+        return {
+            "status": "connected",
+            "candidates_count": count,
+            "samples": samples,
+            "timestamp": datetime.now().isoformat()
+        }
     except Exception as e:
-        return {"error": str(e)}ount = cursor.fetchone()[0]
-        cursor.execute("SELECT id, name FROM candidates LIMIT 3")
-        samples = cursor.fetchall()
-        conn.close()
-        return {"candidates_count": count, "samples": samples}
-    except Exception as e:
-        return {"error": str(e)}
+        logger.error(f"Database test error: {e}")
+        return {"error": str(e), "status": "error"}
 
 @app.post("/match", response_model=MatchResponse, tags=["AI Matching Engine"], summary="AI-Powered Candidate Matching")
 async def match_candidates(request: MatchRequest):
