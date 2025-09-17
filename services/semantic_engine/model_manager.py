@@ -11,8 +11,11 @@ logger = logging.getLogger(__name__)
 class ModelManager:
     """Manages AI model artifacts and embeddings for semantic matching"""
     
-    def __init__(self, model_dir: str = "models"):
+    def __init__(self, model_dir: str = None):
         self.version = "2.1.0"
+        # Use centralized models directory
+        if model_dir is None:
+            model_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'models')
         self.model_dir = Path(model_dir)
         self.model_dir.mkdir(exist_ok=True)
         

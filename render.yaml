@@ -11,3 +11,14 @@ services:
       - key: API_KEY_SECRET
         value: myverysecureapikey123
     healthCheckPath: /health
+  
+  - type: web
+    name: bhiv-hr-agent
+    env: docker
+    dockerfilePath: ./services/agent/Dockerfile
+    dockerContext: ./services
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        value: postgresql://bhiv_user:bhiv_pass@dpg-ctqtl8aj1k6c73a9ub50-a.oregon-postgres.render.com/bhiv_hr_db
+    healthCheckPath: /health

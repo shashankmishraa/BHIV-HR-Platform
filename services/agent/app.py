@@ -12,22 +12,29 @@ from datetime import datetime
 import sys
 
 # Add semantic engine and shared modules to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
+services_path = os.path.join(os.path.dirname(__file__), '..')
+sys.path.insert(0, services_path)
+sys.path.insert(0, os.path.join(services_path, 'shared'))
 
 try:
-    from services.semantic_engine import SemanticJobMatcher, AdvancedSemanticMatcher, BatchMatcher, SemanticProcessor
-    from model_manager import ModelManager
+    from semantic_engine import SemanticJobMatcher, AdvancedSemanticMatcher, BatchMatcher, SemanticProcessor
     SEMANTIC_ENABLED = True
     print("SUCCESS: Advanced semantic engine loaded")
 except ImportError as e:
     SEMANTIC_ENABLED = False
     print(f"WARNING: Semantic matching not available, using fallback: {e}")
     
-    # Fallback model manager
-    class ModelManager:
-        def get_skill_embeddings(self): return {}
-        def get_model_path(self, name): return ""
+    # Create fallback classes
+    class SemanticJobMatcher:
+        def __init__(self): pass
+    class AdvancedSemanticMatcher:
+        def __init__(self): pass
+    class BatchMatcher:
+        def __init__(self, max_workers=2): pass
+    class SemanticProcessor:
+        def __init__(self): pass
+        def semantic_match(self, job_dict, candidate_dict): 
+            return {'score': 75.0, 'matched_skills': [], 'reasoning': 'Fallback matching'}
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
