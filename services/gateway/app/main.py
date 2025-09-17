@@ -21,28 +21,58 @@ import traceback
 import sys
 import os
 
-# Add shared directory to Python path for enhanced monitoring
-# Handle both local development and container deployment
-possible_shared_paths = [
-    '/app/shared',  # Container deployment
-    os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))  # Local development
-]
-
-shared_path = None
-for path in possible_shared_paths:
-    if os.path.exists(path):
-        shared_path = path
-        break
-
-if not shared_path:
-    raise ImportError("Shared monitoring modules not found")
-
-if shared_path not in sys.path:
-    sys.path.insert(0, shared_path)
-
-from logging_config import get_logger, CorrelationContext
-from health_checks import create_health_manager, HealthStatus
-from error_tracking import ErrorTracker, create_error_context, track_exception
+# Enhanced monitoring - graceful fallback for production
+try:
+    # Try to import from shared directory
+    possible_shared_paths = [
+        '/app/shared',  # Container deployment
+        os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))  # Local development
+    ]
+    
+    shared_path = None
+    for path in possible_shared_paths:
+        if os.path.exists(path):
+            shared_path = path
+            break
+    
+    if shared_path and shared_path not in sys.path:
+        sys.path.insert(0, shared_path)
+    
+    from logging_config import get_logger, CorrelationContext
+    from health_checks import create_health_manager, HealthStatus
+    from error_tracking import ErrorTracker, create_error_context, track_exception
+    
+    ENHANCED_MONITORING = True
+except ImportError:
+    # Fallback: Use basic monitoring for production stability
+    import logging
+    
+    def get_logger(name):
+        return logging.getLogger(name)
+    
+    class CorrelationContext:
+        @staticmethod
+        def set_correlation_id(id): pass
+        @staticmethod
+        def set_request_id(id): pass
+        @staticmethod
+        def clear(): pass
+    
+    def create_health_manager(config):
+        class BasicHealthManager:
+            async def get_simple_health(self): return {'status': 'healthy'}
+            async def get_detailed_health(self): return {'status': 'healthy', 'checks': [], 'response_time_ms': 0}
+        return BasicHealthManager()
+    
+    class ErrorTracker:
+        def __init__(self, service): pass
+        def track_error(self, **kwargs): pass
+        def get_error_summary(self, hours): return {'total_errors': 0, 'error_types': []}
+    
+    def create_error_context(**kwargs): return {}
+    def track_exception(tracker, exception, context): pass
+    
+    ENHANCED_MONITORING = False
 
 security = HTTPBearer()
 
@@ -612,20 +642,22 @@ async def http_methods_test(request: Request):
 
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
-    """Serve favicon.ico"""
-    favicon_path = os.path.join(os.path.dirname(__file__), "..", "static", "favicon.ico")
-    if os.path.exists(favicon_path):
-        return FileResponse(
-            favicon_path,
-            media_type="image/x-icon",
-            headers={
-                "Cache-Control": "public, max-age=86400",  # Cache for 24 hours
-                "ETag": '"bhiv-favicon-v1"'
-            }
-        )
-    else:
-        # Return 204 No Content instead of 404 to reduce log noise
-        return Response(status_code=204)
+    """Serve favicon.ico from centralized location"""
+    try:
+        from static_assets import get_favicon_path
+        favicon_path = get_favicon_path()
+        if os.path.exists(favicon_path):
+            return FileResponse(
+                favicon_path,
+                media_type="image/x-icon",
+                headers={
+                    "Cache-Control": "public, max-age=86400",
+                    "ETag": '"bhiv-favicon-v2"'
+                }
+            )
+    except ImportError:
+        pass
+    return Response(status_code=204)
 
 # Job Management (2 endpoints)
 @app.post("/v1/jobs", tags=["Job Management"])

@@ -11,16 +11,23 @@ import logging
 from datetime import datetime
 import sys
 
-# Add semantic engine to path
+# Add semantic engine and shared modules to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
 
 try:
     from services.semantic_engine import SemanticJobMatcher, AdvancedSemanticMatcher, BatchMatcher, SemanticProcessor
+    from model_manager import ModelManager
     SEMANTIC_ENABLED = True
     print("SUCCESS: Advanced semantic engine loaded")
 except ImportError as e:
     SEMANTIC_ENABLED = False
     print(f"WARNING: Semantic matching not available, using fallback: {e}")
+    
+    # Fallback model manager
+    class ModelManager:
+        def get_skill_embeddings(self): return {}
+        def get_model_path(self, name): return ""
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
