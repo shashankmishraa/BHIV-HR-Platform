@@ -21,8 +21,22 @@ import traceback
 import sys
 import os
 
-# Add shared directory to Python path
-shared_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))
+# Add shared directory to Python path for enhanced monitoring
+# Handle both local development and container deployment
+possible_shared_paths = [
+    '/app/shared',  # Container deployment
+    os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))  # Local development
+]
+
+shared_path = None
+for path in possible_shared_paths:
+    if os.path.exists(path):
+        shared_path = path
+        break
+
+if not shared_path:
+    raise ImportError("Shared monitoring modules not found")
+
 if shared_path not in sys.path:
     sys.path.insert(0, shared_path)
 
