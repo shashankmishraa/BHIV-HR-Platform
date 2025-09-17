@@ -18,45 +18,17 @@ from .monitoring import monitor, log_resume_processing, log_matching_performance
 
 # Import enhanced monitoring components
 import traceback
-try:
-    import sys
-    import os
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))
-    
-    from logging_config import get_logger, CorrelationContext
-    from health_checks import create_health_manager, HealthStatus
-    from error_tracking import ErrorTracker, create_error_context, track_exception
-except ImportError:
-    # Fallback for when enhanced monitoring is not available
-    class MockLogger:
-        def info(self, msg, **kwargs): print(f"INFO: {msg}")
-        def error(self, msg, **kwargs): print(f"ERROR: {msg}")
-        def warning(self, msg, **kwargs): print(f"WARNING: {msg}")
-        def log_api_request(self, **kwargs): pass
-    
-    class MockContext:
-        @staticmethod
-        def set_correlation_id(id): pass
-        @staticmethod
-        def set_request_id(id): pass
-        @staticmethod
-        def clear(): pass
-    
-    class MockHealthManager:
-        async def get_simple_health(self): return {'status': 'healthy'}
-        async def get_detailed_health(self): return {'status': 'healthy', 'checks': [], 'response_time_ms': 0}
-    
-    class MockErrorTracker:
-        def track_error(self, **kwargs): pass
-        def get_error_summary(self, hours): return {'total_errors': 0}
-    
-    def get_logger(name): return MockLogger()
-    def create_health_manager(config): return MockHealthManager()
-    def create_error_context(**kwargs): return {}
-    def track_exception(tracker, e, context): pass
-    CorrelationContext = MockContext()
-    ErrorTracker = MockErrorTracker
-    HealthStatus = type('HealthStatus', (), {})
+import sys
+import os
+
+# Add shared directory to Python path
+shared_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))
+if shared_path not in sys.path:
+    sys.path.insert(0, shared_path)
+
+from logging_config import get_logger, CorrelationContext
+from health_checks import create_health_manager, HealthStatus
+from error_tracking import ErrorTracker, create_error_context, track_exception
 
 security = HTTPBearer()
 
@@ -248,18 +220,16 @@ async def detailed_health_check():
         return health_result
     except Exception as e:
         # Track health check error
-        try:
-            context = create_error_context(
-                service_name="gateway",
-                endpoint="/health/detailed"
-            )
-            error_tracker.track_error(
-                error_type=type(e).__name__,
-                error_message=str(e),
-                stack_trace=traceback.format_exc(),
-                context=context
-            )
-        except: pass
+        context = create_error_context(
+            service_name="gateway",
+            endpoint="/health/detailed"
+        )
+        error_tracker.track_error(
+            error_type=type(e).__name__,
+            error_message=str(e),
+            stack_trace=traceback.format_exc(),
+            context=context
+        )
         
         structured_logger.error("Health check failed", exception=e)
         raise HTTPException(status_code=500, detail="Health check failed")
@@ -297,18 +267,16 @@ async def metrics_dashboard():
         return dashboard_data
         
     except Exception as e:
-        try:
-            context = create_error_context(
-                service_name="gateway",
-                endpoint="/metrics/dashboard"
-            )
-            error_tracker.track_error(
-                error_type=type(e).__name__,
-                error_message=str(e),
-                stack_trace=traceback.format_exc(),
-                context=context
-            )
-        except: pass
+        context = create_error_context(
+            service_name="gateway",
+            endpoint="/metrics/dashboard"
+        )
+        error_tracker.track_error(
+            error_type=type(e).__name__,
+            error_message=str(e),
+            stack_trace=traceback.format_exc(),
+            context=context
+        )
         
         structured_logger.error("Dashboard generation failed", exception=e)
         raise HTTPException(status_code=500, detail="Dashboard generation failed")
