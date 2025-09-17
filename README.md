@@ -26,7 +26,8 @@ curl -H "Authorization: Bearer myverysecureapikey123" https://bhiv-hr-gateway.on
 
 ### **📚 Core Documentation**
 - **[📋 PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - ✅ Complete architecture and folder organization
-- **[🚀 DEPLOYMENT_STATUS.md](DEPLOYMENT_STATUS.md)** - ✅ Current deployment status and health metrics
+- **[🚀 DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** - ✅ Complete deployment instructions (Render + Local)
+- **[🔧 TECHNICAL_RESOLUTIONS.md](TECHNICAL_RESOLUTIONS.md)** - ✅ All technical issues and resolutions
 - **[⚡ docs/QUICK_START_GUIDE.md](docs/QUICK_START_GUIDE.md)** - ✅ Get started in 5 minutes
 - **[🎯 docs/CURRENT_FEATURES.md](docs/CURRENT_FEATURES.md)** - ✅ Complete feature list and capabilities
 
@@ -36,7 +37,6 @@ curl -H "Authorization: Bearer myverysecureapikey123" https://bhiv-hr-gateway.on
 - **[🤖 docs/BIAS_ANALYSIS.md](docs/BIAS_ANALYSIS.md)** - AI bias analysis & mitigation
 - **[👥 docs/USER_GUIDE.md](docs/USER_GUIDE.md)** - Complete user manual
 - **[📝 docs/REFLECTION.md](docs/REFLECTION.md)** - ✅ Daily development reflections
-- **[📊 docs/ENHANCED_MONITORING_RESOLUTION.md](docs/ENHANCED_MONITORING_RESOLUTION.md)** - ✅ Enterprise monitoring system
 
 ## ⚡ Quick Start
 
@@ -304,18 +304,17 @@ python tools/auto_sync_watcher.py
 ## 📚 Documentation
 
 ### **Complete Guides**
-- **[LIVE_DEMO.md](LIVE_DEMO.md)** - Live platform access guide
-- **[RENDER_DEPLOYMENT_GUIDE.md](RENDER_DEPLOYMENT_GUIDE.md)** - Complete deployment guide
+- **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** - Complete deployment guide (Render + Local)
+- **[TECHNICAL_RESOLUTIONS.md](TECHNICAL_RESOLUTIONS.md)** - All technical issues and solutions
 - **[DEPLOYMENT_STATUS.md](DEPLOYMENT_STATUS.md)** - Current deployment status
 
 ### **Technical Documentation**
-- **[REFLECTION.md](REFLECTION.md)** - Daily development reflections with values
+- **[docs/REFLECTION.md](docs/REFLECTION.md)** - Daily development reflections with values
 - **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - Complete architecture guide
 - **[docs/BIAS_ANALYSIS.md](docs/BIAS_ANALYSIS.md)** - AI bias analysis & mitigation
 - **[docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md)** - Security analysis
 - **[docs/USER_GUIDE.md](docs/USER_GUIDE.md)** - Complete user manual
 - **[docs/SERVICES_GUIDE.md](docs/SERVICES_GUIDE.md)** - Service architecture
-- **[docs/ENHANCED_MONITORING_RESOLUTION.md](docs/ENHANCED_MONITORING_RESOLUTION.md)** - Enterprise monitoring system
 
 ---
 
