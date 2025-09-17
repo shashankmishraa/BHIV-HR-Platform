@@ -34,9 +34,32 @@ def setup_service_logging(service_name: str, log_level: str = "INFO"):
     
     return logging.getLogger(service_name)
 
+class CustomLogger:
+    """Custom logger with additional methods"""
+    
+    def __init__(self, name: str):
+        self.logger = logging.getLogger(name)
+    
+    def info(self, msg, **kwargs):
+        self.logger.info(msg)
+    
+    def error(self, msg, **kwargs):
+        # Handle exception parameter gracefully
+        if 'exception' in kwargs:
+            self.logger.error(f"{msg}: {kwargs['exception']}")
+        else:
+            self.logger.error(msg)
+    
+    def warning(self, msg, **kwargs):
+        self.logger.warning(msg)
+    
+    def log_api_request(self, method, endpoint, status_code, response_time, client_ip, user_tier):
+        """Log API request with structured format"""
+        self.logger.info(f"API {method} {endpoint} - {status_code} - {response_time:.3f}s - {client_ip} - {user_tier}")
+
 def get_logger(name: str):
-    """Get logger with centralized configuration"""
-    return logging.getLogger(name)
+    """Get custom logger with additional methods"""
+    return CustomLogger(name)
 
 class CorrelationContext:
     """Request correlation context for distributed tracing"""
