@@ -3,6 +3,7 @@ import httpx
 import pandas as pd
 from datetime import datetime
 import numpy as np
+import os
 
 # Configure favicon
 favicon_path = os.path.join(os.path.dirname(__file__), "static", "favicon.ico")
@@ -13,8 +14,6 @@ st.set_page_config(
     page_icon=page_icon, 
     layout="wide"
 )
-
-import os
 
 AGENT_URL = os.getenv("AGENT_SERVICE_URL", "http://agent:9000")
 API_BASE = os.getenv("GATEWAY_URL", "http://gateway:8000")
