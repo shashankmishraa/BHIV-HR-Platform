@@ -24,15 +24,15 @@ services:
 
   gateway:
     build:
-      context: ./services
-      dockerfile: gateway/Dockerfile
+      context: ./services/gateway
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD:-bhiv_pass}@db:5432/bhiv_hr
       API_KEY_SECRET: ${API_KEY_SECRET:-myverysecureapikey123}
     volumes:
-      - ./services/gateway/logs:/app/logs
+      - ./logs:/app/logs
     depends_on:
       db:
         condition: service_healthy
@@ -46,7 +46,9 @@ services:
     # Production URL: https://bhiv-hr-gateway.onrender.com
 
   agent:
-    build: ./services/agent
+    build:
+      context: ./services/agent
+      dockerfile: Dockerfile
     ports:
       - "9000:9000"
     environment:
@@ -64,7 +66,9 @@ services:
     # Production URL: https://bhiv-hr-agent.onrender.com
 
   portal:
-    build: ./services/portal
+    build:
+      context: ./services/portal
+      dockerfile: Dockerfile
     ports:
       - "8501:8501"
     environment:
@@ -77,7 +81,9 @@ services:
     # Production URL: https://bhiv-hr-portal.onrender.com
 
   client_portal:
-    build: ./services/client_portal
+    build:
+      context: ./services/client_portal
+      dockerfile: Dockerfile
     ports:
       - "8502:8502"
     environment:
