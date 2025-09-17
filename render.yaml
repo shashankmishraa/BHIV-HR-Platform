@@ -22,3 +22,29 @@ services:
       - key: DATABASE_URL
         value: postgresql://bhiv_user:bhiv_pass@dpg-ctqtl8aj1k6c73a9ub50-a.oregon-postgres.render.com/bhiv_hr_db
     healthCheckPath: /health
+  
+  - type: web
+    name: bhiv-hr-portal
+    env: docker
+    dockerfilePath: ./services/portal/Dockerfile
+    dockerContext: ./services
+    plan: free
+    envVars:
+      - key: GATEWAY_URL
+        value: https://bhiv-hr-gateway.onrender.com
+      - key: API_KEY_SECRET
+        value: myverysecureapikey123
+    healthCheckPath: /
+  
+  - type: web
+    name: bhiv-hr-client-portal
+    env: docker
+    dockerfilePath: ./services/client_portal/Dockerfile
+    dockerContext: ./services
+    plan: free
+    envVars:
+      - key: GATEWAY_URL
+        value: https://bhiv-hr-gateway.onrender.com
+      - key: API_KEY_SECRET
+        value: myverysecureapikey123
+    healthCheckPath: /
