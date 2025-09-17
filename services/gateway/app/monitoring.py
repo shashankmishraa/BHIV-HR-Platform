@@ -12,20 +12,15 @@ from dataclasses import dataclass
 import psutil
 import requests
 
-# Configure structured logging
-import os
-os.makedirs('logs', exist_ok=True)
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('logs/bhiv_hr_platform.log'),
-        logging.StreamHandler()
-    ]
-)
-
-logger = logging.getLogger(__name__)
+# Use centralized logging configuration
+try:
+    from logging_config import setup_service_logging
+    logger = setup_service_logging('gateway')
+except ImportError:
+    # Fallback for environments without centralized logging
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
 
 # Prometheus Metrics
 resume_processed_total = Counter('resumes_processed_total', 'Total resumes processed', ['status'])

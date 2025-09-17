@@ -38,14 +38,18 @@ try:
     if shared_path and shared_path not in sys.path:
         sys.path.insert(0, shared_path)
     
-    from logging_config import get_logger, CorrelationContext
+    from logging_config import setup_service_logging, get_logger, CorrelationContext
     from health_checks import create_health_manager, HealthStatus
     from error_tracking import ErrorTracker, create_error_context, track_exception
+    
+    # Setup centralized logging for gateway service
+    setup_service_logging('gateway')
     
     ENHANCED_MONITORING = True
 except ImportError:
     # Fallback: Use basic monitoring for production stability
     import logging
+    logging.basicConfig(level=logging.INFO)
     
     def get_logger(name):
         return logging.getLogger(name)
