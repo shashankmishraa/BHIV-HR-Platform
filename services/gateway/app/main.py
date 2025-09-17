@@ -16,6 +16,15 @@ from pydantic import BaseModel
 import time
 from .monitoring import monitor, log_resume_processing, log_matching_performance, log_user_activity, log_error
 
+# Import enhanced monitoring components
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))
+
+from logging_config import get_logger, CorrelationContext
+from health_checks import create_health_manager, HealthStatus
+from error_tracking import ErrorTracker, create_error_context, track_exception
+
 security = HTTPBearer()
 
 app = FastAPI(
@@ -23,6 +32,26 @@ app = FastAPI(
     version="3.1.0",
     description="Enterprise HR Platform with Advanced Security Features"
 )
+
+# Initialize enhanced monitoring
+structured_logger = get_logger("gateway")
+error_tracker = ErrorTracker("gateway")
+
+# Health check configuration
+health_config = {
+    'database_url': os.getenv("DATABASE_URL", "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr"),
+    'dependent_services': [
+        {'url': 'https://bhiv-hr-agent.onrender.com/health', 'name': 'ai_agent'},
+        {'url': 'https://bhiv-hr-portal.onrender.com/', 'name': 'hr_portal'},
+        {'url': 'https://bhiv-hr-client-portal.onrender.com/', 'name': 'client_portal'}
+    ],
+    'ai_models': [
+        {'path': '/app/models/skill_embeddings.pkl', 'name': 'skill_embeddings'}
+    ]
+}
+health_manager = create_health_manager(health_config)
+
+# Enhanced logging will be handled by rate_limit_middleware
 
 # Mount static files for favicon and assets
 static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
@@ -88,25 +117,164 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Add monitoring endpoints
+# Enhanced monitoring endpoints
 @app.get("/metrics", tags=["Monitoring"])
 async def get_prometheus_metrics():
     """Prometheus Metrics Export"""
     return Response(content=monitor.export_prometheus_metrics(), media_type="text/plain")
 
+@app.get("/health/simple", tags=["Monitoring"])
+async def simple_health_check():
+    """Simple Health Check for Load Balancers"""
+    try:
+        health_result = await health_manager.get_simple_health()
+        if health_result['status'] == 'healthy':
+            return Response(content="OK", status_code=200)
+        else:
+            return Response(content="DEGRADED", status_code=503)
+    except Exception:
+        return Response(content="ERROR", status_code=503)
+
+@app.get("/monitoring/errors", tags=["Monitoring"])
+async def get_error_analytics(hours: int = 24):
+    """Error Analytics and Patterns"""
+    try:
+        error_summary = error_tracker.get_error_summary(hours)
+        return error_summary
+    except Exception as e:
+        structured_logger.error("Failed to get error analytics", exception=e)
+        raise HTTPException(status_code=500, detail="Error analytics unavailable")
+
+@app.get("/monitoring/logs/search", tags=["Monitoring"])
+async def search_logs(query: str, hours: int = 1):
+    """Search Application Logs"""
+    try:
+        # In production, this would search centralized logs
+        # For now, return mock search results
+        return {
+            "query": query,
+            "time_range_hours": hours,
+            "results": [
+                {
+                    "timestamp": "2025-01-15T10:30:00Z",
+                    "level": "ERROR",
+                    "service": "gateway",
+                    "message": f"Sample log entry matching '{query}'",
+                    "correlation_id": "abc123"
+                }
+            ],
+            "total_matches": 1,
+            "search_time_ms": 45
+        }
+    except Exception as e:
+        structured_logger.error("Log search failed", exception=e)
+        raise HTTPException(status_code=500, detail="Log search unavailable")
+
+@app.get("/monitoring/dependencies", tags=["Monitoring"])
+async def check_dependencies():
+    """Check All Service Dependencies"""
+    try:
+        health_result = await health_manager.get_detailed_health()
+        
+        dependencies = []
+        for check in health_result['checks']:
+            dependencies.append({
+                "name": check['name'],
+                "status": check['status'],
+                "response_time_ms": check['response_time_ms'],
+                "message": check['message'],
+                "last_checked": check['timestamp']
+            })
+        
+        return {
+            "dependencies": dependencies,
+            "overall_status": health_result['status'],
+            "total_dependencies": len(dependencies),
+            "healthy_count": len([d for d in dependencies if d['status'] == 'healthy']),
+            "checked_at": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        structured_logger.error("Dependency check failed", exception=e)
+        raise HTTPException(status_code=500, detail="Dependency check failed")
+
 @app.get("/health/detailed", tags=["Monitoring"])
 async def detailed_health_check():
-    """Detailed Health Check with Metrics"""
-    return monitor.health_check()
+    """Enhanced Health Check with Dependency Validation"""
+    try:
+        # Run comprehensive health checks
+        health_result = await health_manager.get_detailed_health()
+        
+        # Log health check
+        structured_logger.info(
+            "Health check completed",
+            status=health_result['status'],
+            checks_count=len(health_result['checks']),
+            response_time_ms=health_result['response_time_ms']
+        )
+        
+        return health_result
+    except Exception as e:
+        # Track health check error
+        context = create_error_context(
+            service_name="gateway",
+            endpoint="/health/detailed"
+        )
+        error_tracker.track_error(
+            error_type=type(e).__name__,
+            error_message=str(e),
+            stack_trace=traceback.format_exc(),
+            context=context
+        )
+        
+        structured_logger.error("Health check failed", exception=e)
+        raise HTTPException(status_code=500, detail="Health check failed")
 
 @app.get("/metrics/dashboard", tags=["Monitoring"])
 async def metrics_dashboard():
-    """Metrics Dashboard Data"""
-    return {
-        "performance_summary": monitor.get_performance_summary(24),
-        "business_metrics": monitor.get_business_metrics(),
-        "system_metrics": monitor.collect_system_metrics()
-    }
+    """Enhanced Metrics Dashboard with Error Analytics"""
+    try:
+        # Get traditional metrics
+        performance_summary = monitor.get_performance_summary(24)
+        business_metrics = monitor.get_business_metrics()
+        system_metrics = monitor.collect_system_metrics()
+        
+        # Get error analytics
+        error_summary = error_tracker.get_error_summary(24)
+        
+        # Get simple health status
+        health_status = await health_manager.get_simple_health()
+        
+        dashboard_data = {
+            "performance_summary": performance_summary,
+            "business_metrics": business_metrics,
+            "system_metrics": system_metrics,
+            "error_analytics": error_summary,
+            "health_status": health_status,
+            "dashboard_generated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        structured_logger.info(
+            "Dashboard metrics generated",
+            total_errors=error_summary['total_errors'],
+            health_status=health_status['status']
+        )
+        
+        return dashboard_data
+        
+    except Exception as e:
+        context = create_error_context(
+            service_name="gateway",
+            endpoint="/metrics/dashboard"
+        )
+        error_tracker.track_error(
+            error_type=type(e).__name__,
+            error_message=str(e),
+            stack_trace=traceback.format_exc(),
+            context=context
+        )
+        
+        structured_logger.error("Dashboard generation failed", exception=e)
+        raise HTTPException(status_code=500, detail="Dashboard generation failed")
 
 # Enhanced Granular Rate Limiting
 from collections import defaultdict
@@ -149,33 +317,102 @@ async def rate_limit_middleware(request: Request, call_next):
     current_time = time.time()
     endpoint_path = request.url.path
     
-    # Determine user tier (simplified - in production, get from JWT/database)
-    user_tier = "premium" if "enterprise" in request.headers.get("user-agent", "").lower() else "default"
+    # Set correlation context
+    import uuid
+    correlation_id = str(uuid.uuid4())
+    CorrelationContext.set_correlation_id(correlation_id)
+    CorrelationContext.set_request_id(f"{request.method}-{int(current_time)}")
     
-    # Get dynamic rate limit for this endpoint
-    rate_limit = get_dynamic_rate_limit(endpoint_path, user_tier)
-    
-    # Clean old requests (older than 1 minute)
-    key = f"{client_ip}:{endpoint_path}"
-    rate_limit_storage[key] = [
-        req_time for req_time in rate_limit_storage[key] 
-        if current_time - req_time < 60
-    ]
-    
-    # Check granular rate limit
-    if len(rate_limit_storage[key]) >= rate_limit:
-        raise HTTPException(
-            status_code=429, 
-            detail=f"Rate limit exceeded for {endpoint_path}. Limit: {rate_limit}/min"
+    try:
+        # Determine user tier (simplified - in production, get from JWT/database)
+        user_tier = "premium" if "enterprise" in request.headers.get("user-agent", "").lower() else "default"
+        
+        # Get dynamic rate limit for this endpoint
+        rate_limit = get_dynamic_rate_limit(endpoint_path, user_tier)
+        
+        # Clean old requests (older than 1 minute)
+        key = f"{client_ip}:{endpoint_path}"
+        rate_limit_storage[key] = [
+            req_time for req_time in rate_limit_storage[key] 
+            if current_time - req_time < 60
+        ]
+        
+        # Check granular rate limit
+        if len(rate_limit_storage[key]) >= rate_limit:
+            # Log rate limit violation
+            structured_logger.warning(
+                "Rate limit exceeded",
+                client_ip=client_ip,
+                endpoint=endpoint_path,
+                limit=rate_limit,
+                current_requests=len(rate_limit_storage[key])
+            )
+            
+            raise HTTPException(
+                status_code=429, 
+                detail=f"Rate limit exceeded for {endpoint_path}. Limit: {rate_limit}/min"
+            )
+        
+        # Record this request
+        rate_limit_storage[key].append(current_time)
+        
+        # Process request
+        start_time = time.time()
+        response = await call_next(request)
+        response_time = time.time() - start_time
+        
+        # Log successful request
+        structured_logger.log_api_request(
+            method=request.method,
+            endpoint=endpoint_path,
+            status_code=response.status_code,
+            response_time=response_time,
+            client_ip=client_ip,
+            user_tier=user_tier
         )
-    
-    # Record this request
-    rate_limit_storage[key].append(current_time)
-    
-    response = await call_next(request)
-    response.headers["X-RateLimit-Limit"] = str(rate_limit)
-    response.headers["X-RateLimit-Remaining"] = str(rate_limit - len(rate_limit_storage[key]))
-    return response
+        
+        response.headers["X-RateLimit-Limit"] = str(rate_limit)
+        response.headers["X-RateLimit-Remaining"] = str(rate_limit - len(rate_limit_storage[key]))
+        response.headers["X-Correlation-ID"] = correlation_id
+        
+        return response
+        
+    except HTTPException as e:
+        # Log HTTP exceptions
+        if e.status_code >= 500:
+            context = create_error_context(
+                service_name="gateway",
+                endpoint=endpoint_path,
+                ip_address=client_ip,
+                request_data={"method": request.method, "path": endpoint_path}
+            )
+            error_tracker.track_error(
+                error_type="HTTPException",
+                error_message=e.detail,
+                stack_trace="",
+                context=context,
+                metadata={"status_code": e.status_code}
+            )
+        raise
+    except Exception as e:
+        # Log unexpected errors
+        context = create_error_context(
+            service_name="gateway",
+            endpoint=endpoint_path,
+            ip_address=client_ip,
+            request_data={"method": request.method, "path": endpoint_path}
+        )
+        track_exception(error_tracker, e, context)
+        
+        structured_logger.error(
+            "Unexpected error in rate limit middleware",
+            exception=e,
+            endpoint=endpoint_path
+        )
+        raise
+    finally:
+        # Clear correlation context
+        CorrelationContext.clear()
 
 # Rate limiting middleware (after HTTP method handler)
 app.middleware("http")(rate_limit_middleware)
