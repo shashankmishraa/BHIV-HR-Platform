@@ -3,15 +3,15 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Copy requirements first for better caching
-COPY agent/requirements.txt .
+COPY services/agent/requirements.txt .
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application files and semantic engine
-COPY agent/app.py .
-COPY semantic_engine/ ./semantic_engine/
-COPY shared/ ./shared/
+COPY services/agent/app.py .
+COPY services/semantic_engine/ ./semantic_engine/
+COPY services/shared/ ./shared/
 
 # Expose port
 EXPOSE 9000

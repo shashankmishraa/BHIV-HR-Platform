@@ -3,7 +3,7 @@ services:
     name: bhiv-hr-gateway
     env: docker
     dockerfilePath: ./services/gateway/Dockerfile
-    dockerContext: ./services
+    dockerContext: .
     plan: free
     envVars:
       - key: DATABASE_URL
@@ -16,7 +16,7 @@ services:
     name: bhiv-hr-agent
     env: docker
     dockerfilePath: ./services/agent/Dockerfile
-    dockerContext: ./services
+    dockerContext: .
     plan: free
     envVars:
       - key: DATABASE_URL
@@ -27,7 +27,7 @@ services:
     name: bhiv-hr-portal
     env: docker
     dockerfilePath: ./services/portal/Dockerfile
-    dockerContext: ./services
+    dockerContext: .
     plan: free
     envVars:
       - key: GATEWAY_URL
@@ -40,7 +40,7 @@ services:
     name: bhiv-hr-client-portal
     env: docker
     dockerfilePath: ./services/client_portal/Dockerfile
-    dockerContext: ./services
+    dockerContext: .
     plan: free
     envVars:
       - key: GATEWAY_URL
