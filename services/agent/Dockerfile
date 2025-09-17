@@ -10,8 +10,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application files and semantic engine
 COPY app.py .
-COPY ../semantic_engine/ ./semantic_engine/
-COPY ../shared/ ./shared/
+COPY semantic_engine/ ./semantic_engine/
+COPY shared/ ./shared/
 
 # Expose port
 EXPOSE 9000

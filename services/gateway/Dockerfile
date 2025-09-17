@@ -9,8 +9,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY app/ ./app/
 
-# Copy shared modules from parent directory
-COPY ../shared/ ./shared/
+# Copy shared modules
+COPY shared/ ./shared/
 
 # Expose port (Render will use PORT env variable)
 EXPOSE 8000
