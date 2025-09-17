@@ -4,7 +4,15 @@ import pandas as pd
 from datetime import datetime
 import numpy as np
 
-st.set_page_config(page_title="BHIV HR Platform v2.0", page_icon="🎯", layout="wide")
+# Configure favicon
+favicon_path = os.path.join(os.path.dirname(__file__), "static", "favicon.ico")
+page_icon = favicon_path if os.path.exists(favicon_path) else "🎯"
+
+st.set_page_config(
+    page_title="BHIV HR Platform v2.0", 
+    page_icon=page_icon, 
+    layout="wide"
+)
 
 import os
 
@@ -1509,3 +1517,10 @@ with footer_col3:
 
 st.markdown("*Powered by Advanced Semantic AI + MDVP Compliance | Built with Integrity, Honesty, Discipline, Hard Work & Gratitude | © 2025*")
 st.caption("📊 Values-driven recruiting with comprehensive reporting and daily value delivery tracking")
+
+# Add favicon meta tags for better browser support
+st.markdown("""
+<link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+<link rel="shortcut icon" type="image/x-icon" href="/static/favicon.ico">
+<meta name="theme-color" content="#1f77b4">
+""", unsafe_allow_html=True)

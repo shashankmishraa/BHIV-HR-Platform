@@ -13,11 +13,22 @@ headers = {
 }
 
 def main():
+    # Configure favicon
+    favicon_path = os.path.join(os.path.dirname(__file__), "static", "favicon.ico")
+    page_icon = favicon_path if os.path.exists(favicon_path) else "🏢"
+    
     st.set_page_config(
         page_title="BHIV Client Portal",
-        page_icon="🏢",
+        page_icon=page_icon,
         layout="wide"
     )
+    
+    # Add favicon meta tags for better browser support
+    st.markdown("""
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="/static/favicon.ico">
+    <meta name="theme-color" content="#2e7d32">
+    """, unsafe_allow_html=True)
     
     st.title("🏢 BHIV Client Portal")
     st.markdown("**Dedicated Client Interface for Job Posting & Candidate Review**")

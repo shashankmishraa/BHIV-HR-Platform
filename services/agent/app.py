@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Request, Response
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import psycopg2
@@ -32,6 +33,11 @@ app = FastAPI(
     description="Advanced AI-Powered Semantic Candidate Matching Service",
     version="2.1.0"
 )
+
+# Mount static files for favicon and assets
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # HTTP Method Handler Middleware (MUST be first)
 @app.middleware("http")
@@ -325,7 +331,8 @@ def read_root():
             "health": "GET /health - Service health check",
             "semantic_status": "GET /semantic-status - Semantic engine status",
             "test_db": "GET /test-db - Database connectivity test",
-            "http_methods_test": "GET /http-methods-test - HTTP methods testing"
+            "http_methods_test": "GET /http-methods-test - HTTP methods testing",
+            "favicon": "GET /favicon.ico - Service favicon"
         },
         "supported_methods": ["GET", "POST", "HEAD", "OPTIONS"]
     }
@@ -447,6 +454,23 @@ async def http_methods_test(request: Request):
         )
     
     return response_data
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    """Serve favicon.ico for AI Agent Service"""
+    favicon_path = os.path.join(os.path.dirname(__file__), "static", "favicon.ico")
+    if os.path.exists(favicon_path):
+        return FileResponse(
+            favicon_path,
+            media_type="image/x-icon",
+            headers={
+                "Cache-Control": "public, max-age=86400",  # Cache for 24 hours
+                "ETag": '"bhiv-ai-favicon-v1"'
+            }
+        )
+    else:
+        # Return 204 No Content instead of 404 to reduce log noise
+        return Response(status_code=204)
 
 @app.post("/match", response_model=MatchResponse, tags=["AI Matching Engine"], summary="AI-Powered Candidate Matching")
 async def match_candidates(request: MatchRequest):

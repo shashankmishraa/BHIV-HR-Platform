@@ -1,7 +1,8 @@
 from fastapi import FastAPI, HTTPException, Depends, Security, Response, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from datetime import datetime, timezone
 import os
 import secrets
@@ -22,6 +23,11 @@ app = FastAPI(
     version="3.1.0",
     description="Enterprise HR Platform with Advanced Security Features"
 )
+
+# Mount static files for favicon and assets
+static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # HTTP Method Handler Middleware (MUST be first)
 @app.middleware("http")
@@ -272,7 +278,7 @@ def read_root():
         "message": "BHIV HR Platform API Gateway",
         "version": "3.1.0",
         "status": "healthy",
-        "endpoints": 47,
+        "endpoints": 48,
         "documentation": "/docs",
         "monitoring": "/metrics",
         "live_demo": "https://bhiv-platform.aws.example.com",
@@ -347,6 +353,23 @@ async def http_methods_test(request: Request):
         )
     
     return response_data
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    """Serve favicon.ico"""
+    favicon_path = os.path.join(os.path.dirname(__file__), "..", "static", "favicon.ico")
+    if os.path.exists(favicon_path):
+        return FileResponse(
+            favicon_path,
+            media_type="image/x-icon",
+            headers={
+                "Cache-Control": "public, max-age=86400",  # Cache for 24 hours
+                "ETag": '"bhiv-favicon-v1"'
+            }
+        )
+    else:
+        # Return 204 No Content instead of 404 to reduce log noise
+        return Response(status_code=204)
 
 # Job Management (2 endpoints)
 @app.post("/v1/jobs", tags=["Job Management"])
