@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: bhiv-hr-gateway
+    env: docker
+    dockerfilePath: ./services/gateway/Dockerfile
+    dockerContext: ./services
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        value: postgresql://bhiv_user:bhiv_pass@dpg-ctqtl8aj1k6c73a9ub50-a.oregon-postgres.render.com/bhiv_hr_db
+      - key: API_KEY_SECRET
+        value: myverysecureapikey123
+    healthCheckPath: /health

@@ -23,7 +23,9 @@ services:
       start_period: 30s
 
   gateway:
-    build: ./services/gateway
+    build:
+      context: ./services
+      dockerfile: gateway/Dockerfile
     ports:
       - "8000:8000"
     environment:

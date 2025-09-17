@@ -3,11 +3,13 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Copy requirements
-COPY requirements.txt .
+COPY gateway/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code and shared modules
-COPY app/ ./app/
+# Copy application code
+COPY gateway/app/ ./app/
+
+# Copy shared modules
 COPY shared/ ./shared/
 
 # Expose port (Render will use PORT env variable)
