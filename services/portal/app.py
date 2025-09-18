@@ -15,10 +15,31 @@ st.set_page_config(
     layout="wide"
 )
 
+# Security imports with error handling
+try:
+    from security_config import secure_api
+    from input_sanitizer import sanitizer
+    from sql_protection import sql_guard
+    from rate_limiter import form_limiter
+    SECURITY_ENABLED = True
+except ImportError as e:
+    st.error(f"Security modules not available: {e}")
+    SECURITY_ENABLED = False
+    # Fallback to basic auth
+    API_KEY = os.getenv("API_KEY_SECRET")
+    if not API_KEY:
+        raise ValueError("API_KEY_SECRET environment variable is required")
+    headers = {"Authorization": f"Bearer {API_KEY}"}
+
 AGENT_URL = os.getenv("AGENT_SERVICE_URL", "http://agent:9000")
 API_BASE = os.getenv("GATEWAY_URL", "http://gateway:8000")
-API_KEY = os.getenv("API_KEY_SECRET", "myverysecureapikey123")
-headers = {"Authorization": f"Bearer {API_KEY}"}
+
+# Use secure API key management (fixes CWE-798)
+if SECURITY_ENABLED:
+    headers = secure_api.get_headers()
+else:
+    # Fallback headers already set above
+    pass
 
 # Header
 st.title("🎯 BHIV HR Portal")
@@ -109,46 +130,54 @@ if menu == "🏢 Step 1: Create Job Positions":
         submitted = st.form_submit_button("🚀 Create Job", use_container_width=True)
         
         if submitted and title and description:
-            # Actually create job via API
-            job_data = {
-                "title": title,
-                "department": department,
-                "location": location,
-                "experience_level": experience_level,
-                "requirements": requirements,
-                "description": description,
-                "client_id": client_id
-            }
+            # Rate limiting protection
+            session_id = st.session_state.get('session_id', 'anonymous')
+            if SECURITY_ENABLED and not form_limiter.is_allowed(session_id):
+                st.error("⚠️ Too many requests. Please wait before submitting again.")
+            else:
+                # Sanitize inputs to prevent XSS
+                job_data = {
+                    "title": title,
+                    "department": department,
+                    "location": location,
+                    "experience_level": experience_level,
+                    "requirements": requirements,
+                    "description": description,
+                    "client_id": client_id
+                }
+                
+                if SECURITY_ENABLED:
+                    job_data = sanitizer.sanitize_dict(job_data)
             
-            try:
-                response = httpx.post(f"{API_BASE}/v1/jobs", 
-                                    json=job_data, 
-                                    headers=headers, timeout=10.0)
-                if response.status_code == 200:
-                    result = response.json()
-                    job_id = result.get("job_id", "Unknown")
-                    
-                    display_data = {
-                        "job_id": job_id,
-                        "title": title,
-                        "department": department,
-                        "location": location,
-                        "experience_level": experience_level,
-                        "employment_type": employment_type,
-                        "description": description,
-                        "requirements": requirements,
-                        "client_id": client_id,
-                        "status": "active",
-                        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    }
-                    
-                    st.success(f"✅ Job created successfully! Job ID: {job_id}")
-                    st.json(display_data)
-                    st.balloons()
-                else:
-                    st.error(f"❌ Job creation failed: {response.text}")
-            except Exception as e:
-                st.error(f"❌ Error creating job: {str(e)}")
+                try:
+                    response = httpx.post(f"{API_BASE}/v1/jobs", 
+                                        json=job_data, 
+                                        headers=headers, timeout=10.0)
+                    if response.status_code == 200:
+                        result = response.json()
+                        job_id = result.get("job_id", "Unknown")
+                        
+                        display_data = {
+                            "job_id": job_id,
+                            "title": title,
+                            "department": department,
+                            "location": location,
+                            "experience_level": experience_level,
+                            "employment_type": employment_type,
+                            "description": description,
+                            "requirements": requirements,
+                            "client_id": client_id,
+                            "status": "active",
+                            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        }
+                        
+                        st.success(f"✅ Job created successfully! Job ID: {job_id}")
+                        st.json(display_data)
+                        st.balloons()
+                    else:
+                        st.error(f"❌ Job creation failed: {response.text}")
+                except Exception as e:
+                    st.error(f"❌ Error creating job: {str(e)}")
         elif submitted:
             st.warning("⚠️ Please fill in all required fields")
 
@@ -210,7 +239,7 @@ elif menu == "🔍 Step 3: Search & Filter Candidates":
         else:
             with st.spinner("🔄 Searching candidates with real API..."):
                 try:
-                    # Build search parameters
+                    # Build and validate search parameters
                     params = {"job_id": 1}
                     if search_query.strip():
                         params["q"] = search_query.strip()
@@ -226,10 +255,14 @@ elif menu == "🔍 Step 3: Search & Filter Candidates":
                         elif "5+" in experience_filter:
                             params["experience_min"] = 5
                     
+                    # Validate against SQL injection
+                    if SECURITY_ENABLED:
+                        params = sql_guard.validate_search_params(params)
+                    
                     # Make API call
                     response = httpx.get(f"{API_BASE}/v1/candidates/search", 
                                        params=params, 
-                                       headers={"Authorization": f"Bearer {API_KEY}"}, 
+                                       headers=headers, 
                                        timeout=10.0)
                     
                     if response.status_code == 200:
@@ -1369,6 +1402,9 @@ elif menu == "📅 Step 5: Schedule Interviews":
                     "notes": f"Interview scheduled for {candidate_name}"
                 }
                 
+                if SECURITY_ENABLED:
+                    interview_data = sanitizer.sanitize_dict(interview_data)
+                
                 try:
                     response = httpx.post(f"{API_BASE}/v1/interviews", 
                                         json=interview_data, 
@@ -1470,6 +1506,9 @@ elif menu == "📤 Step 2: Upload Candidates":
                         "designation": str(row.get("designation", "")).strip(),
                         "education_level": str(row.get("education", "")).strip()
                     }
+                    
+                    if SECURITY_ENABLED:
+                        candidate = sanitizer.sanitize_dict(candidate)
                     candidates.append(candidate)
                 
                 try:

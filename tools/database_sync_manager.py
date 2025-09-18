@@ -9,7 +9,9 @@ from datetime import datetime
 class DatabaseSyncManager:
     def __init__(self):
         self.api_base = "http://localhost:8000"
-        self.api_key = "myverysecureapikey123"
+        self.api_key = os.getenv("API_KEY_SECRET")
+        if not self.api_key:
+            raise ValueError("API_KEY_SECRET environment variable is required for security")
         self.headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
         self.resume_folder = "resume"
         self.csv_file = "data/candidates.csv"

@@ -21,7 +21,9 @@ class ClientAuthService:
     
     def __init__(self):
         self.database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr")
-        self.jwt_secret = os.getenv("JWT_SECRET", "bhiv_hr_platform_jwt_secret_key_2024")
+        self.jwt_secret = os.getenv("JWT_SECRET")
+        if not self.jwt_secret:
+            raise ValueError("JWT_SECRET environment variable is required for security")
         self.jwt_algorithm = "HS256"
         self.token_expiry_hours = 24
         self.engine = create_engine(self.database_url, pool_pre_ping=True, pool_recycle=300)
@@ -77,13 +79,13 @@ class ClientAuthService:
                 'client_id': 'TECH001',
                 'company_name': 'TechCorp Solutions',
                 'email': 'admin@techcorp.com',
-                'password': 'google123'
+                'password': os.getenv('DEFAULT_CLIENT_TECH001_PASSWORD', 'demo123')
             },
             {
                 'client_id': 'STARTUP01',
                 'company_name': 'InnovateLab',
                 'email': 'hello@innovatelab.com',
-                'password': 'startup123'
+                'password': os.getenv('DEFAULT_CLIENT_STARTUP01_PASSWORD', 'startup123')
             }
         ]
         
