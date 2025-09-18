@@ -2489,7 +2489,7 @@ async def validate_password_strength(password_data: PasswordValidation, api_key:
         "feedback": feedback
     }
 
-@app.post("/v1/password/generate", tags=["Password Management"])
+@app.get("/v1/password/generate", tags=["Password Management"])
 async def generate_secure_password(length: int = 12, api_key: str = Depends(get_api_key)):
     """Generate Secure Password"""
     if length < 8 or length > 128:
