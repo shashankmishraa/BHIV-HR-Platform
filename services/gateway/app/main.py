@@ -162,12 +162,18 @@ async def http_method_handler(request: Request, call_next):
     
     return await call_next(request)
 
+# Import enhanced security configuration
+from .security_config import security_manager, api_key_manager, session_manager
+
+# Configure secure CORS based on environment
+cors_config = security_manager.get_cors_config()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
-    allow_headers=["*"],
+    allow_origins=cors_config.allowed_origins,
+    allow_credentials=cors_config.allow_credentials,
+    allow_methods=cors_config.allowed_methods,
+    allow_headers=cors_config.allowed_headers,
+    max_age=cors_config.max_age
 )
 
 # Enhanced monitoring endpoints
@@ -550,13 +556,28 @@ def get_db_engine():
     database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr")
     return create_engine(database_url, pool_pre_ping=True, pool_recycle=3600)
 
-def validate_api_key(api_key: str) -> bool:
-    expected_key = os.getenv("API_KEY_SECRET", "myverysecureapikey123")
-    return api_key == expected_key
+def validate_api_key(api_key: str) -> Optional[Dict]:
+    """Enhanced API key validation with metadata"""
+    return api_key_manager.validate_api_key(api_key)
 
 def get_api_key(credentials: HTTPAuthorizationCredentials = Security(security)):
-    if not credentials or not validate_api_key(credentials.credentials):
+    """Enhanced API key dependency with validation and logging"""
+    if not credentials:
+        raise HTTPException(status_code=401, detail="API key required")
+    
+    key_metadata = validate_api_key(credentials.credentials)
+    if not key_metadata:
+        structured_logger.warning("Invalid API key attempt", api_key_prefix=credentials.credentials[:8])
         raise HTTPException(status_code=401, detail="Invalid API key")
+    
+    # Log successful authentication
+    structured_logger.info(
+        "API key authenticated",
+        client_id=key_metadata.get("client_id"),
+        permissions=key_metadata.get("permissions"),
+        key_type=key_metadata.get("key_type", "dynamic")
+    )
+    
     return credentials.credentials
 
 # Core API Endpoints (4 endpoints)
@@ -1028,6 +1049,112 @@ async def export_job_report(job_id: int, api_key: str = Depends(get_api_key)):
         "generated_at": datetime.now(timezone.utc).isoformat()
     }
 
+# Enhanced Session Management (3 endpoints)
+@app.post("/v1/sessions/create", tags=["Session Management"])
+async def create_secure_session(request: Request, response: Response, login_data: ClientLogin):
+    """Create Secure Session with Enhanced Cookie Security"""
+    try:
+        valid_clients = {
+            "TECH001": "demo123",
+            "STARTUP01": "startup123",
+            "ENTERPRISE01": "enterprise123"
+        }
+        
+        if login_data.client_id in valid_clients and valid_clients[login_data.client_id] == login_data.password:
+            # Create secure session
+            user_data = {
+                "client_id": login_data.client_id,
+                "permissions": ["view_jobs", "create_jobs", "view_candidates", "schedule_interviews"],
+                "login_time": datetime.now(timezone.utc).isoformat()
+            }
+            
+            session_id = session_manager.create_session(login_data.client_id, user_data)
+            
+            # Set secure cookie headers
+            cookie_headers = session_manager.get_cookie_headers(session_id)
+            for header, value in cookie_headers.items():
+                response.headers[header] = value
+            
+            structured_logger.info(
+                "Secure session created",
+                client_id=login_data.client_id,
+                session_id=session_id[:8],  # Log only prefix
+                ip_address=request.client.host
+            )
+            
+            return {
+                "message": "Authentication successful",
+                "client_id": login_data.client_id,
+                "session_created": True,
+                "security_features": ["Secure Cookies", "HttpOnly", "SameSite", "Session Timeout"],
+                "expires_in": security_manager.get_cookie_config().max_age
+            }
+        else:
+            structured_logger.warning(
+                "Failed login attempt",
+                client_id=login_data.client_id,
+                ip_address=request.client.host
+            )
+            raise HTTPException(status_code=401, detail="Invalid client credentials")
+            
+    except Exception as e:
+        structured_logger.error("Session creation failed", exception=e)
+        raise HTTPException(status_code=500, detail=f"Authentication failed: {str(e)}")
+
+@app.get("/v1/sessions/validate", tags=["Session Management"])
+async def validate_session(request: Request):
+    """Validate Current Session"""
+    try:
+        # Extract session ID from cookie
+        cookies = request.cookies
+        session_id = cookies.get("session_id")
+        
+        if not session_id:
+            raise HTTPException(status_code=401, detail="No session found")
+        
+        session_data = session_manager.validate_session(session_id)
+        if not session_data:
+            raise HTTPException(status_code=401, detail="Invalid or expired session")
+        
+        return {
+            "session_valid": True,
+            "user_id": session_data["user_id"],
+            "created_at": session_data["created_at"],
+            "expires_at": session_data["expires_at"]
+        }
+        
+    except Exception as e:
+        structured_logger.error("Session validation failed", exception=e)
+        raise HTTPException(status_code=500, detail="Session validation failed")
+
+@app.post("/v1/sessions/logout", tags=["Session Management"])
+async def logout_session(request: Request, response: Response):
+    """Secure Session Logout"""
+    try:
+        cookies = request.cookies
+        session_id = cookies.get("session_id")
+        
+        if session_id:
+            session_manager.invalidate_session(session_id)
+            
+            # Clear cookie
+            response.set_cookie(
+                "session_id",
+                "",
+                max_age=0,
+                secure=security_manager.get_cookie_config().secure,
+                httponly=True,
+                samesite="strict"
+            )
+            
+            structured_logger.info("Session logged out", session_id=session_id[:8])
+        
+        return {"message": "Logged out successfully", "session_cleared": True}
+        
+    except Exception as e:
+        structured_logger.error("Logout failed", exception=e)
+        raise HTTPException(status_code=500, detail="Logout failed")
+
 # Client Portal API (1 endpoint)
 @app.post("/v1/client/login", tags=["Client Portal API"])
 async def client_login(login_data: ClientLogin):
@@ -1336,6 +1463,100 @@ async def demo_2fa_setup(api_key: str = Depends(get_api_key)):
         "demo_qr_url": "https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl=otpauth://totp/BHIV%20HR%20Platform:demo_user%3Fsecret%3DJBSWY3DPEHPK3PXP%26issuer%3DBHIV%2520HR%2520Platform",
         "test_codes": ["123456", "654321", "111111"],
         "instructions": "Use demo secret or scan QR code for testing"
+    }
+
+# Enhanced API Key Management (5 endpoints)
+@app.post("/v1/security/api-keys/generate", tags=["Enhanced Security"])
+async def generate_new_api_key(client_id: str, permissions: List[str] = None, api_key: str = Depends(get_api_key)):
+    """Generate New API Key with Permissions"""
+    try:
+        key_data = api_key_manager.generate_api_key(client_id, permissions)
+        
+        structured_logger.info(
+            "API key generated",
+            client_id=client_id,
+            key_id=key_data["key_id"],
+            permissions=permissions
+        )
+        
+        return {
+            "message": "API key generated successfully",
+            "key_data": key_data,
+            "security_note": "Store this key securely. It cannot be retrieved again."
+        }
+    except Exception as e:
+        structured_logger.error("API key generation failed", exception=e)
+        raise HTTPException(status_code=500, detail="Key generation failed")
+
+@app.post("/v1/security/api-keys/rotate", tags=["Enhanced Security"])
+async def rotate_client_api_keys(client_id: str, api_key: str = Depends(get_api_key)):
+    """Rotate API Keys for Client"""
+    try:
+        rotation_result = api_key_manager.rotate_api_keys(client_id)
+        
+        structured_logger.info(
+            "API keys rotated",
+            client_id=client_id,
+            rotated_count=rotation_result.get("rotated_keys_count", 0)
+        )
+        
+        return rotation_result
+    except Exception as e:
+        structured_logger.error("API key rotation failed", exception=e)
+        raise HTTPException(status_code=500, detail="Key rotation failed")
+
+@app.delete("/v1/security/api-keys/{key_id}", tags=["Enhanced Security"])
+async def revoke_api_key(key_id: str, api_key: str = Depends(get_api_key)):
+    """Revoke Specific API Key"""
+    try:
+        success = api_key_manager.revoke_api_key(key_id)
+        
+        if success:
+            structured_logger.info("API key revoked", key_id=key_id)
+            return {"message": "API key revoked successfully", "key_id": key_id}
+        else:
+            raise HTTPException(status_code=404, detail="API key not found")
+    except Exception as e:
+        structured_logger.error("API key revocation failed", exception=e)
+        raise HTTPException(status_code=500, detail="Key revocation failed")
+
+@app.get("/v1/security/cors-config", tags=["Enhanced Security"])
+async def get_cors_configuration(api_key: str = Depends(get_api_key)):
+    """Get Current CORS Configuration"""
+    cors_config = security_manager.get_cors_config()
+    
+    return {
+        "environment": security_manager.environment.value,
+        "cors_config": {
+            "allowed_origins": cors_config.allowed_origins,
+            "allowed_methods": cors_config.allowed_methods,
+            "allowed_headers": cors_config.allowed_headers,
+            "allow_credentials": cors_config.allow_credentials,
+            "max_age": cors_config.max_age
+        },
+        "security_level": "enhanced"
+    }
+
+@app.get("/v1/security/cookie-config", tags=["Enhanced Security"])
+async def get_cookie_configuration(api_key: str = Depends(get_api_key)):
+    """Get Current Cookie Security Configuration"""
+    cookie_config = security_manager.get_cookie_config()
+    
+    return {
+        "cookie_security": {
+            "secure": cookie_config.secure,
+            "httponly": cookie_config.httponly,
+            "samesite": cookie_config.samesite,
+            "max_age": cookie_config.max_age,
+            "domain": cookie_config.domain,
+            "path": cookie_config.path
+        },
+        "security_features": [
+            "XSS Protection (HttpOnly)",
+            "CSRF Protection (SameSite)",
+            "HTTPS Enforcement (Secure)",
+            "Session Timeout"
+        ]
     }
 
 # Password Management (6 endpoints)

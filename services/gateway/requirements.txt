@@ -27,5 +27,10 @@ aiohttp==3.9.1
 asyncpg==0.29.0
 redis==5.0.1
 
+# Enhanced Security Dependencies
+cryptography==41.0.7
+PyJWT==2.8.0
+itsdangerous==2.1.2
+
 # Static file serving
 aiofiles==23.2.1
