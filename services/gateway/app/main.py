@@ -1539,6 +1539,10 @@ async def search_candidates(skills: Optional[str] = None, location: Optional[str
 async def bulk_upload_candidates(candidates: CandidateBulk, api_key: str = Depends(get_api_key)):
     """Bulk Upload Candidates"""
     try:
+        # Validate input
+        if not candidates.candidates or len(candidates.candidates) == 0:
+            raise HTTPException(status_code=400, detail="Candidates list cannot be empty")
+        
         engine = get_db_engine()
         inserted_count = 0
         errors = []
@@ -2740,8 +2744,11 @@ async def client_login(login_data: ClientLogin):
         else:
             raise HTTPException(status_code=401, detail="Invalid client credentials")
             
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Authentication failed: {str(e)}")
+        structured_logger.error("Client login system error", exception=e)
+        raise HTTPException(status_code=500, detail="Authentication system error")
 
 # Security Testing (7 endpoints)
 @app.get("/v1/security/rate-limit-status", tags=["Security Testing"])
