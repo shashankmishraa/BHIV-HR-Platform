@@ -161,9 +161,6 @@ advanced_matcher = None
 batch_matcher = None
 semantic_processor = None
 
-# Initialize connection pool
-initialize_connection_pool()
-
 if SEMANTIC_ENABLED:
     try:
         # Initialize all semantic components
@@ -180,6 +177,9 @@ if SEMANTIC_ENABLED:
         advanced_matcher = None
         batch_matcher = None
         semantic_processor = None
+
+# Initialize connection pool after function definition
+initialize_connection_pool()
 
 class MatchRequest(BaseModel):
     job_id: int
