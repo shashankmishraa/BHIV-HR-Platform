@@ -4,25 +4,24 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from datetime import datetime, timezone
+from sqlalchemy import create_engine, text
+from sqlalchemy.pool import QueuePool
+from typing import Optional, List, Dict, Any
+from pydantic import BaseModel
+from concurrent.futures import ThreadPoolExecutor
+from .monitoring import monitor, log_resume_processing, log_matching_performance, log_user_activity, log_error
+
+# Standard library imports
 import os
 import secrets
 import pyotp
 import qrcode
 import io
 import base64
-from sqlalchemy import create_engine, text
-from sqlalchemy.pool import QueuePool
-from typing import Optional, List, Dict, Any
-from pydantic import BaseModel
 import time
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
-from .monitoring import monitor, log_resume_processing, log_matching_performance, log_user_activity, log_error
-
-# Import enhanced monitoring components
 import traceback
 import sys
-import os
 
 # Enhanced monitoring - graceful fallback for production
 try:
@@ -81,12 +80,13 @@ except ImportError:
     
     ENHANCED_MONITORING = False
 
+# Initialize FastAPI application
 security = HTTPBearer()
 
 app = FastAPI(
     title="BHIV HR Platform API Gateway",
-    version="3.1.0",
-    description="Enterprise HR Platform with Advanced Security Features"
+    version="3.2.0",
+    description="Enterprise HR Platform with Advanced AI Matching and Security Features"
 )
 
 # Initialize enhanced monitoring
@@ -100,16 +100,11 @@ health_config = {
         {'url': 'https://bhiv-hr-agent.onrender.com/health', 'name': 'ai_agent'},
         {'url': 'https://bhiv-hr-portal.onrender.com/', 'name': 'hr_portal'},
         {'url': 'https://bhiv-hr-client-portal.onrender.com/', 'name': 'client_portal'}
-    ],
-    'ai_models': [
-        {'path': '/app/models/skill_embeddings.pkl', 'name': 'skill_embeddings'}
     ]
 }
 health_manager = create_health_manager(health_config)
 
-# Enhanced logging will be handled by rate_limit_middleware
-
-# Mount static files for favicon and assets
+# Mount static files
 static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
 if os.path.exists(static_dir):
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
@@ -165,10 +160,10 @@ async def http_method_handler(request: Request, call_next):
     
     return await call_next(request)
 
-# Import enhanced security configuration
+# Import security configuration
 from .security_config import security_manager, api_key_manager, session_manager
 
-# Configure secure CORS based on environment
+# Configure CORS
 cors_config = security_manager.get_cors_config()
 app.add_middleware(
     CORSMiddleware,
@@ -338,14 +333,13 @@ async def metrics_dashboard():
         structured_logger.error("Dashboard generation failed", exception=e)
         raise HTTPException(status_code=500, detail="Dashboard generation failed")
 
-# Enhanced Granular Rate Limiting
+# Rate limiting configuration
 from collections import defaultdict
-from fastapi import Request
 import psutil
 
 rate_limit_storage = defaultdict(list)
 
-# Granular rate limits by endpoint and user tier
+# Rate limits by endpoint and user tier
 RATE_LIMITS = {
     "default": {
         "/v1/jobs": 100,
@@ -629,18 +623,19 @@ def read_root():
     """API Root Information"""
     return {
         "message": "BHIV HR Platform API Gateway",
-        "version": "3.1.0",
+        "version": "3.2.0",
         "status": "healthy",
-        "endpoints": 51,
+        "endpoints": 49,
         "documentation": "/docs",
         "monitoring": "/metrics",
-        "live_demo": "https://bhiv-platform.aws.example.com",
+        "live_demo": "https://bhiv-hr-gateway.onrender.com",
         "supported_methods": ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
-        "performance_optimizations": [
-            "Connection pooling (20 connections)",
-            "In-memory caching for AI matching",
-            "Async database queries",
-            "Thread pool execution"
+        "features": [
+            "Advanced AI Matching v3.2.0",
+            "Job-specific candidate scoring",
+            "Real-time database integration",
+            "Enterprise security",
+            "Comprehensive monitoring"
         ]
     }
 
@@ -661,7 +656,7 @@ def health_check(response: Response):
     return {
         "status": "healthy",
         "service": "BHIV HR Gateway",
-        "version": "3.1.0",
+        "version": "3.2.0",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "uptime": "operational",
         "methods_supported": ["GET", "HEAD"]
@@ -725,7 +720,7 @@ async def database_health_check(api_key: str = Depends(get_api_key)):
                 "tables": tables_info,
                 "schema_status": {
                     "candidates_has_status_column": has_status_column,
-                    "schema_version": "v3.1.0"
+                    "schema_version": "v3.2.0"
                 }
             }
     except Exception as e:
@@ -1511,33 +1506,19 @@ async def get_top_matches(job_id: int, limit: int = 10, request: Request = None,
             error=str(e)
         )
         
-        # Return fallback results even on error
-        fallback_matches = []
-        for i in range(min(limit, 3)):
-            fallback_matches.append({
-                "candidate_id": i + 1,
-                "name": f"Fallback Candidate {i + 1}",
-                "email": f"fallback{i + 1}@example.com",
-                "score": 85.0 - (i * 2),
-                "skills_match": "General Skills",
-                "experience_years": 3 + i,
-                "seniority_level": "Mid-level",
-                "experience_match": 80.0 - (i * 2),
-                "values_alignment": 4.2,
-                "recommendation_strength": "Good"
-            })
-        
+        # Return minimal fallback on error
         return {
-            "matches": fallback_matches, 
-            "top_candidates": fallback_matches,
+            "matches": [], 
+            "top_candidates": [],
             "job_id": job_id, 
             "limit": limit, 
-            "error": str(e),
+            "error": "AI matching service temporarily unavailable",
             "processing_time": f"{processing_time:.3f}s",
-            "candidates_processed": len(fallback_matches),
+            "candidates_processed": 0,
             "cache_hit": False,
             "fallback_mode": True,
-            "algorithm_version": "v3.1.0-fallback"
+            "algorithm_version": "v3.2.0-fallback",
+            "retry_suggestion": "Please try again in a few moments"
         }
 
 @app.get("/v1/match/performance-test", tags=["AI Matching Engine"])
@@ -2202,10 +2183,10 @@ async def test_2fa_token(client_id: str, token: str, api_key: str = Depends(get_
 
 @app.get("/v1/2fa/demo-setup", tags=["Two-Factor Authentication"])
 async def demo_2fa_setup(api_key: str = Depends(get_api_key)):
-    """Demo 2FA Setup"""
+    """Demo 2FA Setup for Testing"""
     return {
         "demo_secret": "JBSWY3DPEHPK3PXP",
-        "demo_qr_url": "https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl=otpauth://totp/BHIV%20HR%20Platform:demo_user%3Fsecret%3DJBSWY3DPEHPK3PXP%26issuer%3DBHIV%2520HR%2520Platform",
+        "qr_code_url": "https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl=otpauth://totp/BHIV%20HR%20Platform:demo_user%3Fsecret%3DJBSWY3DPEHPK3PXP%26issuer%3DBHIV%2520HR%2520Platform",
         "test_codes": ["123456", "654321", "111111"],
         "instructions": "Use demo secret or scan QR code for testing"
     }

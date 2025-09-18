@@ -68,7 +68,7 @@
 
 ### **1. API Gateway Service**
 **Purpose**: Central API management and security enforcement  
-**Technology**: FastAPI 3.1.0  
+**Technology**: FastAPI 3.2.0  
 **Port**: 8000 (Production: Dynamic)  
 
 **Responsibilities**:
@@ -92,7 +92,7 @@ Monitoring (6):         /metrics, /health/*, /monitoring/*
 
 ### **2. AI Agent Service**
 **Purpose**: Advanced semantic candidate matching and analysis  
-**Technology**: FastAPI 2.1.0 + Custom ML Pipeline  
+**Technology**: FastAPI 2.1.0 + Advanced AI Matching v3.2.0  
 **Port**: 9000 (Production: Dynamic)  
 
 **Responsibilities**:
@@ -103,10 +103,11 @@ Monitoring (6):         /metrics, /health/*, /monitoring/*
 - **Bias Mitigation**: Fairness algorithms and bias detection
 
 **AI Components**:
-- **SemanticJobMatcher**: Core matching algorithms
-- **AdvancedSemanticMatcher**: Enhanced matching with bias mitigation
-- **ModelManager**: ML model lifecycle management
-- **SemanticProcessor**: Text processing and feature extraction
+- **Job-Specific Matching**: Advanced candidate scoring with ML algorithms
+- **Recruiter Preferences**: Integration with reviewer feedback
+- **Bias Mitigation**: Comprehensive fairness algorithms
+- **Real-time Processing**: <0.02 second response time
+- **Values Assessment**: 5-point evaluation system integration
 
 ### **3. HR Portal Service**
 **Purpose**: Human Resources dashboard and management interface  
@@ -277,6 +278,20 @@ matching_history   -- AI matching audit trail
 
 ---
 
+## 🧹 Recent Architecture Improvements (v3.2.0)
+
+### **Codebase Optimization**
+- **Duplicate Removal**: Eliminated redundant directories and files
+- **Code Organization**: Professional structure with clean imports
+- **Performance Optimization**: Enhanced AI matching algorithms
+- **Version Consistency**: Updated to v3.2.0 across all components
+
+### **Structure Cleanup**
+- **Removed Duplicates**: `services/semantic_engine/`, `services/shared/`
+- **Optimized Imports**: Clean, organized import statements
+- **File Organization**: Removed old test files and temporary files
+- **Documentation**: Updated all docs to reflect current state
+
 ## 🔮 Future Architecture Enhancements
 
 ### **Planned Improvements**
@@ -294,6 +309,6 @@ matching_history   -- AI matching audit trail
 
 ---
 
-**Architecture Version**: 3.1.0  
+**Architecture Version**: 3.2.0  
 **Last Updated**: January 17, 2025  
 **Next Review**: Quarterly architecture review

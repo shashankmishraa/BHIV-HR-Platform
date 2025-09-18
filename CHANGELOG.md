@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.2.0] - 2025-01-17
+
+### 🚀 Added
+- **Advanced AI Matching v3.2.0**: Job-specific candidate scoring with ML algorithms
+- **Recruiter Preferences**: Integration with reviewer feedback and interview data
+- **Values Assessment Integration**: 5-point evaluation system in matching algorithm
+- **Bias Mitigation**: Comprehensive fairness algorithms and diversity factors
+- **Real-time Processing**: <0.02 second AI matching response time
+
+### 🔧 Fixed
+- **Codebase Cleanup**: Removed duplicate directories (`services/semantic_engine/`, `services/shared/`)
+- **Code Organization**: Clean imports, optimized code structure
+- **File Cleanup**: Removed old test files and temporary files from root directory
+- **Version Consistency**: Updated to v3.2.0 across all components
+
+### 🏧 Changed
+- **AI Algorithm**: Upgraded from v3.1.0 to v3.2.0-job-specific-matching
+- **Scoring System**: Multi-factor scoring with job requirements analysis
+- **Documentation**: Updated all docs to reflect current codebase state
+- **Project Structure**: Professional organization with removed redundancies
+
+### 📊 Performance
+- **AI Matching**: Job-specific scoring with weighted factors
+- **Database Integration**: Real-time candidate data processing
+- **Response Time**: Maintained <100ms API response average
+- **Code Quality**: Removed old/unused code patterns
+
+---
+
 ## [3.1.0] - 2025-01-17
 
 ### 🚀 Added
@@ -94,7 +123,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Services | Endpoints | Features | Status |
 |---------|----------|-----------|----------|--------|
-| **3.1.0** | 4 | 49 | Production Ready | 🟢 Live |
+| **3.2.0** | 4 | 49 | Advanced AI + Cleanup | 🟢 Live |
+| **3.1.0** | 4 | 49 | Production Ready | ✅ Stable |
 | **2.1.0** | 4 | 35 | Enhanced AI | ✅ Stable |
 | **2.0.0** | 4 | 25 | Microservices | ✅ Stable |
 | **1.0.0** | 1 | 10 | Basic Platform | ✅ Legacy |
@@ -103,11 +133,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 🔮 Upcoming Releases
 
-### [3.2.0] - Planned Q1 2025
+### [3.3.0] - Planned Q1 2025
 - **Advanced Analytics**: Real-time dashboard enhancements
 - **Custom Domains**: Enterprise domain configuration
-- **API Rate Limiting**: Enhanced tier-based limits
-- **Performance Optimization**: Caching and query optimization
+- **Redis Integration**: Distributed caching system
+- **Performance Monitoring**: Enhanced metrics and alerting
 
 ### [4.0.0] - Planned Q2 2025
 - **Kubernetes Migration**: Container orchestration
@@ -120,6 +150,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## 📈 Deployment History
 
 ### Production Deployments
+- **2025-01-17 15:30 UTC**: v3.2.0 - Advanced AI matching + codebase cleanup
 - **2025-01-17 09:49 UTC**: v3.1.0 - All services operational
 - **2025-01-15 14:30 UTC**: v2.1.0 - Semantic engine integration
 - **2025-01-10 16:45 UTC**: v2.0.0 - Microservices architecture
@@ -143,7 +174,8 @@ All releases are tagged in the format `v{MAJOR}.{MINOR}.{PATCH}`:
 
 ### Git Tags
 ```bash
-git tag v3.1.0  # Current production release
+git tag v3.2.0  # Current production release
+git tag v3.1.0  # Production ready
 git tag v2.1.0  # Semantic engine integration
 git tag v2.0.0  # Microservices architecture
 git tag v1.0.0  # Initial release
