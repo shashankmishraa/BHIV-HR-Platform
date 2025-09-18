@@ -1815,10 +1815,9 @@ async def schedule_interview(interview: InterviewSchedule, api_key: str = Depend
     try:
         engine = get_db_engine()
         
-        # Use autocommit transaction for better error handling
-        with engine.begin() as connection:
-            # Try with interviewer column first
-            try:
+        # Try with interviewer column first
+        try:
+            with engine.connect() as connection:
                 query = text("""
                     INSERT INTO interviews (candidate_id, job_id, interview_date, interviewer, status, notes)
                     VALUES (:candidate_id, :job_id, :interview_date, :interviewer, 'scheduled', :notes)
@@ -1831,6 +1830,7 @@ async def schedule_interview(interview: InterviewSchedule, api_key: str = Depend
                     "interviewer": interview.interviewer or "HR Team",
                     "notes": interview.notes or ""
                 })
+                connection.commit()
                 interview_id = result.fetchone()[0]
                 
                 return {
@@ -1843,12 +1843,10 @@ async def schedule_interview(interview: InterviewSchedule, api_key: str = Depend
                     "status": "scheduled"
                 }
                 
-            except Exception as schema_error:
-                # If interviewer column doesn't exist, use fallback
-                if "interviewer" in str(schema_error).lower() or "column" in str(schema_error).lower():
-                    # Rollback current transaction and start fresh
-                    connection.rollback()
-                    
+        except Exception as schema_error:
+            # If interviewer column doesn't exist, use fallback
+            if "interviewer" in str(schema_error).lower() or "column" in str(schema_error).lower():
+                with engine.connect() as connection:
                     fallback_query = text("""
                         INSERT INTO interviews (candidate_id, job_id, interview_date, status, notes)
                         VALUES (:candidate_id, :job_id, :interview_date, 'scheduled', :notes)
@@ -1860,6 +1858,7 @@ async def schedule_interview(interview: InterviewSchedule, api_key: str = Depend
                         "interview_date": interview.interview_date,
                         "notes": f"Interviewer: {interview.interviewer or 'HR Team'}. {interview.notes or ''}"
                     })
+                    connection.commit()
                     interview_id = result.fetchone()[0]
                     
                     return {
@@ -1872,8 +1871,8 @@ async def schedule_interview(interview: InterviewSchedule, api_key: str = Depend
                         "status": "scheduled",
                         "schema_fallback": True
                     }
-                else:
-                    raise schema_error
+            else:
+                raise schema_error
                     
     except Exception as e:
         structured_logger.error("Interview scheduling failed", exception=e)
