@@ -361,19 +361,8 @@ class ErrorAggregator:
             "error_rate_per_hour": sum(recent_hourly.values()) / max(hours, 1),
             "hourly_breakdown": recent_hourly,
             "top_services": dict(sorted(self.service_errors.items(), key=lambda x: x[1], reverse=True)[:5]),
-            "top_categories": dict(sorted(self.category_errors.items(), key=lambda x: x[1], reverse=True)[:5])
-        }
-        
-        
-        total_errors = sum(recent_hourly.values())
-        
-        return {
-            'total_errors': total_errors,
-            'error_rate_per_hour': total_errors / hours if hours > 0 else 0,
-            'errors_by_service': dict(self.service_errors),
-            'errors_by_category': dict(self.category_errors),
-            'hourly_distribution': dict(recent_hourly),
-            'top_error_patterns': self._get_top_patterns()
+            "top_categories": dict(sorted(self.category_errors.items(), key=lambda x: x[1], reverse=True)[:5]),
+            "top_error_patterns": self._get_top_patterns()
         }
     
     def _get_top_patterns(self, limit: int = 10) -> List[Dict[str, Any]]:
@@ -486,6 +475,12 @@ class ErrorTracker:
         
         # Process alerts (log, send notifications, etc.)
         for alert in alerts:
+            self._process_alert(alert)
+    
+    def _process_alert(self, alert: Dict[str, Any]):
+        """Process alert by logging or sending notifications"""
+        # Log alert for now - can be extended for notifications
+        print(f"ALERT [{alert['type']}]: {alert['message']}")lert in alerts:
             self._process_alert(alert)
     
     def _process_alert(self, alert: Dict[str, Any]):
