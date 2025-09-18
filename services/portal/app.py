@@ -15,21 +15,51 @@ st.set_page_config(
     layout="wide"
 )
 
-# Security imports with error handling
+# Enhanced security imports with graceful fallback
 try:
     from security_config import secure_api
     from input_sanitizer import sanitizer
     from sql_protection import sql_guard
     from rate_limiter import form_limiter
     SECURITY_ENABLED = True
+    
+    # Get headers from enhanced security manager
+    headers = secure_api.get_headers()
+    
 except ImportError as e:
-    st.error(f"Security modules not available: {e}")
+    st.warning(f"Enhanced security modules not available: {e}. Using fallback security.")
     SECURITY_ENABLED = False
-    # Fallback to basic auth
+    
+    # Fallback security with proper error handling
     API_KEY = os.getenv("API_KEY_SECRET")
+    
+    # Handle demo key gracefully
+    if API_KEY == "myverysecureapikey123":
+        environment = os.getenv("ENVIRONMENT", "development").lower()
+        if environment == "production":
+            st.error("Demo API key detected in production. Please set a secure API_KEY_SECRET.")
+            st.stop()
+        else:
+            st.warning("Demo API key detected. For production, set API_KEY_SECRET to a secure value.")
+            # Generate temporary key for development
+            import secrets
+            API_KEY = "temp_dev_" + secrets.token_urlsafe(24)
+    
     if not API_KEY:
-        raise ValueError("API_KEY_SECRET environment variable is required")
+        environment = os.getenv("ENVIRONMENT", "development").lower()
+        if environment == "production":
+            st.error("API_KEY_SECRET environment variable is required for production.")
+            st.stop()
+        else:
+            st.warning("No API_KEY_SECRET found. Generating temporary key for development.")
+            import secrets
+            API_KEY = "temp_dev_" + secrets.token_urlsafe(24)
+    
     headers = {"Authorization": f"Bearer {API_KEY}"}
+except Exception as e:
+    st.error(f"Security configuration error: {e}")
+    st.info("Please check your environment configuration and security setup.")
+    st.stop()
 
 AGENT_URL = os.getenv("AGENT_SERVICE_URL", "http://agent:9000")
 API_BASE = os.getenv("GATEWAY_URL", "http://gateway:8000")
