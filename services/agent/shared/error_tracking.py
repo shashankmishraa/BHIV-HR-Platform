@@ -480,8 +480,9 @@ class ErrorTracker:
     def _process_alert(self, alert: Dict[str, Any]):
         """Process alert by logging or sending notifications"""
         # Log alert for now - can be extended for notifications
-        print(f"ALERT [{alert['type']}]: {alert['message']}")lert in alerts:
-            self._process_alert(alert)
+        print(f"ALERT [{alert['type']}]: {alert['message']}")
+    alert in alerts:
+        self._process_alert(alert)
     
     def _process_alert(self, alert: Dict[str, Any]):
         """Process alert (log, notify, etc.)"""

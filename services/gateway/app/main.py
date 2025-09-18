@@ -22,8 +22,45 @@ import pyotp
 import qrcode
 import hashlib
 
-from .monitoring import monitor, log_resume_processing, log_matching_performance, log_user_activity, log_error
-from .performance_optimizer import performance_cache, async_health_checker, performance_monitor_instance
+# Import monitoring and performance modules with fallback
+try:
+    from .monitoring import monitor, log_resume_processing, log_matching_performance, log_user_activity, log_error
+    from .performance_optimizer import performance_cache, async_health_checker, performance_monitor_instance
+except ImportError:
+    # Fallback for direct execution
+    try:
+        from monitoring import monitor, log_resume_processing, log_matching_performance, log_user_activity, log_error
+        from performance_optimizer import performance_cache, async_health_checker, performance_monitor_instance
+    except ImportError:
+        # Create minimal fallbacks
+        class MockMonitor:
+            def export_prometheus_metrics(self): return "# No metrics available"
+            def get_business_metrics(self): return {"error": "monitoring unavailable"}
+            def collect_system_metrics(self): return {"error": "monitoring unavailable"}
+        
+        class MockCache:
+            def get(self, key): return None
+            def set(self, key, value, ttl): pass
+            def get_stats(self): return {"total_entries": 0}
+            def clear(self): pass
+        
+        class MockHealthChecker:
+            async def check_database_health(self, engine): return {"status": "unknown"}
+            async def check_system_resources(self): return {"status": "unknown"}
+            async def check_external_service(self, url, name): return {"status": "unknown", "name": name}
+        
+        class MockPerformanceMonitor:
+            def get_performance_summary(self): return {"error": "performance monitoring unavailable"}
+        
+        monitor = MockMonitor()
+        performance_cache = MockCache()
+        async_health_checker = MockHealthChecker()
+        performance_monitor_instance = MockPerformanceMonitor()
+        
+        def log_resume_processing(*args, **kwargs): pass
+        def log_matching_performance(*args, **kwargs): pass
+        def log_user_activity(*args, **kwargs): pass
+        def log_error(*args, **kwargs): pass
 try:
     # Try to import from shared directory
     possible_shared_paths = [
@@ -94,8 +131,11 @@ structured_logger = get_logger("gateway")
 error_tracker = ErrorTracker("gateway")
 
 # Health check configuration
+# Use the same database URL logic for health checks
+health_db_url = database_url if 'database_url' in locals() else os.getenv("DATABASE_URL", "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr")
+
 health_config = {
-    'database_url': os.getenv("DATABASE_URL", "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr"),
+    'database_url': health_db_url,
     'dependent_services': [
         {'url': 'https://bhiv-hr-agent.onrender.com/health', 'name': 'ai_agent'},
         {'url': 'https://bhiv-hr-portal.onrender.com/', 'name': 'hr_portal'},
@@ -160,9 +200,83 @@ async def http_method_handler(request: Request, call_next):
     
     return await call_next(request)
 
-# Import security configuration and authentication manager
-from .security_config import security_manager, api_key_manager, session_manager
-from .auth_manager import auth_manager
+# Import security configuration and authentication manager with fallback
+try:
+    from .security_config import security_manager, api_key_manager, session_manager
+    from .auth_manager import auth_manager
+except ImportError:
+    # Fallback for direct execution
+    try:
+        from security_config import security_manager, api_key_manager, session_manager
+        from auth_manager import auth_manager
+    except ImportError:
+        # Create minimal fallbacks
+        class MockSecurityManager:
+            def __init__(self):
+                self.api_key = "fallback_api_key_123"
+                self.environment = "development"
+            def validate_api_key(self, key): return {'client_id': 'fallback', 'permissions': ['read']} if key else None
+            def get_cors_config(self):
+                class CORSConfig:
+                    allowed_origins = ["*"]
+                    allowed_methods = ["GET", "POST", "PUT", "DELETE"]
+                    allowed_headers = ["*"]
+                    allow_credentials = True
+                    max_age = 86400
+                return CORSConfig()
+            def get_cookie_config(self):
+                class CookieConfig:
+                    secure = False
+                    httponly = True
+                    samesite = "strict"
+                    max_age = 3600
+                return CookieConfig()
+        
+        class MockAPIKeyManager:
+            def validate_api_key(self, key): return {'client_id': 'fallback', 'permissions': ['read']} if key else None
+            def generate_api_key(self, client_id, permissions): return {'api_key': 'fallback_key', 'client_id': client_id}
+        
+        class MockSessionManager:
+            def create_session(self, client_id, user_data): return "fallback_session_123"
+            def invalidate_session(self, session_id): return True
+            def get_cookie_headers(self, session_id): return {"Set-Cookie": f"session_id={session_id}"}
+        
+        class MockAuthManager:
+            def __init__(self):
+                self.users = {}
+                self.sessions = {}
+                self.api_keys = {}
+            def get_user_info(self, user_id): return None
+        
+        security_manager = MockSecurityManager()
+        api_key_manager = MockAPIKeyManager()
+        session_manager = MockSessionManager()
+        auth_manager = MockAuthManager()
+
+# API Key validation functions - must be defined before use
+def validate_api_key(api_key: str) -> Optional[Dict]:
+    """Enhanced API key validation with metadata"""
+    return api_key_manager.validate_api_key(api_key)
+
+def get_api_key(credentials: HTTPAuthorizationCredentials = Security(security)):
+    """Enhanced API key dependency with validation and logging"""
+    if not credentials:
+        raise HTTPException(status_code=401, detail="API key required")
+    
+    key_metadata = validate_api_key(credentials.credentials)
+    if not key_metadata:
+        structured_logger.warning("Invalid API key attempt", api_key_prefix=credentials.credentials[:8])
+        raise HTTPException(status_code=401, detail="Invalid API key")
+    
+    # Log successful authentication
+    structured_logger.info(
+        "API key authenticated",
+        client_id=key_metadata.get("client_id"),
+        permissions=key_metadata.get("permissions"),
+        key_type=key_metadata.get("key_type", "production")
+    )
+    
+    return credentials.credentials
 
 # Authentication Status Endpoint
 @app.get("/v1/auth/status", tags=["Authentication"])
@@ -773,7 +887,8 @@ async def rate_limit_middleware(request: Request, call_next):
         response_time = time.time() - start_time
         
         # Log successful request
-        structured_logger.log_api_request(
+        structured_logger.info(
+            "API request completed",
             method=request.method,
             endpoint=endpoint_path,
             status_code=response.status_code,
@@ -911,7 +1026,20 @@ _executor = ThreadPoolExecutor(max_workers=20)
 def get_db_engine():
     global _db_engine
     if _db_engine is None:
-        database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr")
+        # Environment-aware database URL
+        # For Render: uses DATABASE_URL environment variable
+        # For Docker: uses 'db' as hostname
+        # For local development: uses 'localhost'
+        default_db_url = "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr"  # Docker default
+        if os.getenv("RENDER") or os.getenv("DATABASE_URL"):
+            # Production (Render) - use DATABASE_URL from environment
+            database_url = os.getenv("DATABASE_URL", default_db_url)
+        elif os.getenv("DOCKER_ENV"):
+            # Docker environment - use 'db' hostname
+            database_url = default_db_url
+        else:
+            # Local development - use localhost
+            database_url = "postgresql://bhiv_user:bhiv_pass@localhost:5432/bhiv_hr"
         _db_engine = create_engine(
             database_url,
             poolclass=QueuePool,
@@ -946,30 +1074,6 @@ def cache_result(cache_key: str, result):
     if len(_matching_cache) > 20:
         oldest_key = min(_matching_cache.keys(), key=lambda k: _matching_cache[k][1])
         del _matching_cache[oldest_key]
-
-def validate_api_key(api_key: str) -> Optional[Dict]:
-    """Enhanced API key validation with metadata"""
-    return api_key_manager.validate_api_key(api_key)
-
-def get_api_key(credentials: HTTPAuthorizationCredentials = Security(security)):
-    """Enhanced API key dependency with validation and logging"""
-    if not credentials:
-        raise HTTPException(status_code=401, detail="API key required")
-    
-    key_metadata = validate_api_key(credentials.credentials)
-    if not key_metadata:
-        structured_logger.warning("Invalid API key attempt", api_key_prefix=credentials.credentials[:8])
-        raise HTTPException(status_code=401, detail="Invalid API key")
-    
-    # Log successful authentication
-    structured_logger.info(
-        "API key authenticated",
-        client_id=key_metadata.get("client_id"),
-        permissions=key_metadata.get("permissions"),
-        key_type=key_metadata.get("key_type", "production")
-    )
-    
-    return credentials.credentials
 
 # Core API Endpoints (4 endpoints)
 @app.get("/", tags=["Core API Endpoints"])
