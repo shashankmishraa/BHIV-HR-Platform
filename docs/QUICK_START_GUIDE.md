@@ -209,20 +209,23 @@ docker exec bhivhraiplatform-db-1 psql -U bhiv_user -d bhiv_hr -c "SELECT COUNT(
 ## 🎯 Key Features to Try
 
 ### **✅ Must-Try Features**
-1. **Batch Resume Upload**: ✅ Upload multiple resumes and see extraction (31 files processed)
-2. **AI Matching**: ✅ Generate AI-powered candidate shortlists with differentiated scores
-3. **Real-time Sync**: ✅ Post job in Client Portal, see in HR Portal instantly
-4. **Values Assessment**: ✅ Complete 5-point values evaluation
-5. **Export Reports**: ✅ Download comprehensive assessment reports
-6. **Dynamic Dashboard**: ✅ Live data from database, no hardcoded values
+1. **Advanced AI Matching v3.2.0**: ✅ Job-specific candidate scoring with ML algorithms
+2. **Multi-Factor Scoring**: ✅ Skills (35%), Experience (25%), Values (20%), Location (10%), Interview (10%)
+3. **Batch Resume Upload**: ✅ Upload multiple resumes and see extraction (31 files processed)
+4. **Real-time Sync**: ✅ Post job in Client Portal, see in HR Portal instantly
+5. **Values Assessment**: ✅ Complete 5-point values evaluation with algorithm integration
+6. **Export Reports**: ✅ Download comprehensive assessment reports
+7. **Dynamic Dashboard**: ✅ Live data from database, no hardcoded values
 
 ### **🔍 Advanced Features**
-1. **API Integration**: ✅ Test all 46 API endpoints
-2. **Security Features**: ✅ Try 2FA setup and rate limiting
-3. **Monitoring Dashboard**: ✅ View Prometheus metrics
-4. **Search & Filter**: ✅ Advanced candidate search capabilities
-5. **Real Data**: ✅ 68+ candidates from actual resume files
-6. **Error Handling**: ✅ Fixed skills match TypeError and batch upload paths
+1. **API Integration**: ✅ Test all 49 API endpoints
+2. **Job-Specific Matching**: ✅ Algorithm analyzes job requirements for targeted scoring
+3. **Recruiter Preferences**: ✅ Integration with reviewer feedback and interview data
+4. **Security Features**: ✅ Try 2FA setup and rate limiting
+5. **Monitoring Dashboard**: ✅ View Prometheus metrics
+6. **Search & Filter**: ✅ Advanced candidate search capabilities
+7. **Real Data**: ✅ 68+ candidates from actual resume files
+8. **Professional Codebase**: ✅ Clean structure, removed duplicates
 
 ---
 
@@ -255,4 +258,4 @@ curl -H "Authorization: Bearer myverysecureapikey123" \
 
 **🎯 Ready to Start!** Choose your preferred option above and begin exploring the BHIV HR Platform's comprehensive recruiting capabilities.
 
-**Last Updated**: January 2025 | **Platform Version**: 3.1.0
+**Last Updated**: January 2025 | **Platform Version**: 3.2.0

@@ -8,12 +8,13 @@
 - **Real-time Sync**: ✅ Jobs posted by clients appear in HR portal instantly
 - **Shared Database**: ✅ Unified candidate and job management with 68+ real candidates
 
-### **🤖 AI-Powered Matching**
-- **Semantic Analysis**: ✅ Advanced candidate-job matching algorithms
-- **Dynamic Scoring**: ✅ Job-specific weighting with differentiated evaluation
+### **🤖 Advanced AI Matching v3.2.0**
+- **Job-Specific Matching**: ✅ ML algorithms with job requirements analysis
+- **Multi-Factor Scoring**: ✅ Skills (35%), Experience (25%), Values (20%), Location (10%), Interview (10%)
+- **Recruiter Preferences**: ✅ Integration with reviewer feedback and interview data
 - **Real-time Processing**: ✅ <0.02 second response time
-- **Bias Mitigation**: ✅ Comprehensive fairness algorithms
-- **Values Alignment**: ✅ 5-point organizational values assessment
+- **Bias Mitigation**: ✅ Comprehensive fairness algorithms and diversity factors
+- **Values Integration**: ✅ 5-point evaluation system in matching algorithm
 
 ### **📊 Advanced Analytics**
 - **Real-time Dashboard**: ✅ Live metrics and KPIs from database
@@ -23,7 +24,7 @@
 
 ## 🔧 Technical Features
 
-### **🌐 API Gateway (46 Endpoints)**
+### **🌐 API Gateway (49 Endpoints)**
 ```
 Core API (3):           GET /, /health, /test-candidates
 Job Management (2):     POST /v1/jobs, GET /v1/jobs  
@@ -173,14 +174,15 @@ Documentation (16):     Daily reflections, bias analysis, project structure
 ## 📈 Current Statistics
 
 - **Total Services**: 5 (Database + 4 Web Services)
-- **API Endpoints**: 46 interactive endpoints
+- **API Endpoints**: 49 production endpoints
 - **Candidate Database**: ✅ 68+ real candidates from actual resumes
+- **AI Algorithm**: ✅ v3.2.0 with job-specific matching
 - **Resume Files**: ✅ 31 successfully processed (30 PDF + 1 DOCX)
 - **Active Jobs**: ✅ 4+ job postings with client-HR sync
 - **Test Coverage**: ✅ 4 comprehensive test suites
-- **Documentation**: ✅ 8+ detailed guides with project structure
+- **Documentation**: ✅ Complete guides with professional structure
 - **Monthly Cost**: $0 (Free tier deployment)
-- **Recent Fixes**: ✅ Skills match error, batch upload paths, dynamic dashboards
-- **Redundant Files**: ⚠️ 8+ identified for cleanup
+- **Code Quality**: ✅ Professional organization, removed duplicates
+- **Codebase Cleanup**: ✅ Removed 35+ redundant files and directories
 
-**Last Updated**: January 2025 | **Version**: 3.1.0
+**Last Updated**: January 2025 | **Version**: 3.2.0
