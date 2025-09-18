@@ -92,6 +92,27 @@ class GatewaySecurityManager:
     def get_api_headers(self) -> Dict[str, str]:
         """Get API headers for service communication"""
         return {"Authorization": f"Bearer {self.api_key}"}
+    
+    def get_cors_config(self):
+        """Get CORS configuration"""
+        class CORSConfig:
+            allowed_origins = ["*"]
+            allowed_methods = ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"]
+            allowed_headers = ["*"]
+            allow_credentials = True
+            max_age = 86400
+        return CORSConfig()
+    
+    def get_cookie_config(self):
+        """Get cookie configuration"""
+        class CookieConfig:
+            secure = self.environment == "production"
+            httponly = True
+            samesite = "strict"
+            max_age = 3600
+            domain = None
+            path = "/"
+        return CookieConfig()
 
 # Initialize security manager
 try:

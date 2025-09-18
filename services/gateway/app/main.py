@@ -159,62 +159,7 @@ async def http_method_handler(request: Request, call_next):
     return await call_next(request)
 
 # Import security configuration
-try:
-    from .security_config import security_manager, api_key_manager, session_manager
-except ImportError:
-    # Fallback security configuration
-    import secrets
-    class FallbackSecurityManager:
-        def __init__(self):
-            self.api_key = os.getenv("API_KEY_SECRET", "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o")
-        def validate_api_key(self, key):
-            return {'client_id': 'system', 'permissions': ['read', 'write']} if key == self.api_key else None
-        def get_cors_config(self):
-            class CORSConfig:
-                allowed_origins = ["*"]
-                allowed_methods = ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"]
-                allowed_headers = ["*"]
-                allow_credentials = True
-                max_age = 86400
-            return CORSConfig()
-        def get_cookie_config(self):
-            class CookieConfig:
-                secure = True
-                httponly = True
-                samesite = "strict"
-                max_age = 3600
-                domain = None
-                path = "/"
-            return CookieConfig()
-    
-    class FallbackAPIKeyManager:
-        def __init__(self, security_manager):
-            self.security_manager = security_manager
-        def validate_api_key(self, key):
-            return self.security_manager.validate_api_key(key)
-        def generate_api_key(self, client_id, permissions=None):
-            return {'api_key': secrets.token_urlsafe(32), 'client_id': client_id}
-        def rotate_api_keys(self, client_id):
-            return {'rotated_keys_count': 1}
-        def revoke_api_key(self, key_id):
-            return True
-    
-    class FallbackSessionManager:
-        def __init__(self, security_manager):
-            self.security_manager = security_manager
-            self.sessions = {}
-        def create_session(self, client_id, user_data):
-            session_id = secrets.token_urlsafe(32)
-            self.sessions[session_id] = {'client_id': client_id, 'user_data': user_data}
-            return session_id
-        def invalidate_session(self, session_id):
-            return self.sessions.pop(session_id, None) is not None
-        def get_cookie_headers(self, session_id):
-            return {"Set-Cookie": f"session_id={session_id}; HttpOnly; Secure; SameSite=Strict"}
-    
-    security_manager = FallbackSecurityManager()
-    api_key_manager = FallbackAPIKeyManager(security_manager)
-    session_manager = FallbackSessionManager(security_manager)
+from .security_config import security_manager, api_key_manager, session_manager
 
 # Configure CORS
 cors_config = security_manager.get_cors_config()
@@ -664,7 +609,7 @@ def get_api_key(credentials: HTTPAuthorizationCredentials = Security(security)):
         "API key authenticated",
         client_id=key_metadata.get("client_id"),
         permissions=key_metadata.get("permissions"),
-        key_type=key_metadata.get("key_type", "dynamic")
+        key_type=key_metadata.get("key_type", "production")
     )
     
     return credentials.credentials
