@@ -199,7 +199,8 @@ class APIKeyManager:
             return {
                 "client_id": "static_client",
                 "permissions": ["admin"],
-                "key_type": "static"
+                "key_type": "static",
+                "valid": True
             }
         
         # Check dynamic keys in Redis
