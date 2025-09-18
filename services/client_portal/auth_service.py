@@ -21,13 +21,40 @@ class ClientAuthService:
     
     def __init__(self):
         self.database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr")
-        self.jwt_secret = os.getenv("JWT_SECRET")
-        if not self.jwt_secret:
-            raise ValueError("JWT_SECRET environment variable is required for security")
+        self.jwt_secret = self._get_jwt_secret()
         self.jwt_algorithm = "HS256"
         self.token_expiry_hours = 24
         self.engine = create_engine(self.database_url, pool_pre_ping=True, pool_recycle=300)
         self._initialize_database()
+    
+    def _get_jwt_secret(self) -> str:
+        """Get JWT secret with environment-aware fallback"""
+        jwt_secret = os.getenv("JWT_SECRET")
+        environment = os.getenv("ENVIRONMENT", "development").lower()
+        
+        if not jwt_secret:
+            if environment == "production":
+                raise ValueError(
+                    "JWT_SECRET environment variable is required for production. "
+                    "Generate a secure secret using: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
+                )
+            else:
+                logger.warning(
+                    "JWT_SECRET not found. Generating temporary secret for development. "
+                    "For production, set JWT_SECRET environment variable."
+                )
+                # Generate a temporary secure secret for development
+                import secrets
+                return "dev_jwt_secret_" + secrets.token_urlsafe(32)
+        
+        # Validate JWT secret length for production
+        if environment == "production" and len(jwt_secret) < 32:
+            raise ValueError(
+                "JWT_SECRET must be at least 32 characters for production security. "
+                "Generate a secure secret using: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
+            )
+        
+        return jwt_secret
     
     def _initialize_database(self):
         """Initialize client authentication tables"""
