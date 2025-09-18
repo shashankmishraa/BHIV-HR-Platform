@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS interviews (
     candidate_id INTEGER REFERENCES candidates(id),
     job_id INTEGER REFERENCES jobs(id),
     interview_date TIMESTAMP,
+    interviewer VARCHAR(255) DEFAULT 'HR Team',
     interview_type VARCHAR(100),
     notes TEXT,
     status VARCHAR(50) DEFAULT 'scheduled',
