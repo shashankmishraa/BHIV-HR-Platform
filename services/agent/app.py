@@ -4,12 +4,17 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import psycopg2
+from psycopg2 import pool
 import os
 import json
 from typing import List, Dict, Any
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 import sys
+import asyncio
+import psutil
+import re
+from contextlib import contextmanager
 
 # Add semantic engine and shared modules to path
 services_path = os.path.join(os.path.dirname(__file__), '..')
@@ -36,9 +41,25 @@ except ImportError as e:
         def semantic_match(self, job_dict, candidate_dict): 
             return {'score': 75.0, 'matched_skills': [], 'reasoning': 'Fallback matching'}
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Configure secure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler('agent.log', mode='a')
+    ]
+)
 logger = logging.getLogger(__name__)
+
+# Security: Input sanitization for logging
+def sanitize_for_logging(input_str: str) -> str:
+    """Sanitize input for safe logging to prevent log injection"""
+    if not isinstance(input_str, str):
+        input_str = str(input_str)
+    # Remove control characters and limit length
+    sanitized = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', input_str)
+    return sanitized[:200] + '...' if len(sanitized) > 200 else sanitized
 
 from fastapi.openapi.utils import get_openapi
 
@@ -140,6 +161,9 @@ advanced_matcher = None
 batch_matcher = None
 semantic_processor = None
 
+# Initialize connection pool
+initialize_connection_pool()
+
 if SEMANTIC_ENABLED:
     try:
         # Initialize all semantic components
@@ -149,10 +173,8 @@ if SEMANTIC_ENABLED:
         semantic_processor = SemanticProcessor()
         
         logger.info("SUCCESS: Complete semantic engine initialized")
-        print("SUCCESS: Complete semantic engine initialized")
     except Exception as e:
-        logger.error(f"Failed to initialize semantic engine: {e}")
-        print(f"Failed to initialize semantic engine: {e}")
+        logger.error(f"Failed to initialize semantic engine: {sanitize_for_logging(str(e))}")
         SEMANTIC_ENABLED = False
         semantic_matcher = None
         advanced_matcher = None
@@ -180,38 +202,83 @@ class MatchResponse(BaseModel):
     algorithm_version: str
     status: str
 
-def get_db_connection():
-    """Get database connection with fallback mechanism
-    
-    Returns:
-        psycopg2.connection: Database connection object or None if failed
-        
-    Connection Strategy:
-        1. Try DATABASE_URL (Render/production standard)
-        2. Fallback to individual DB parameters (local development)
-    """
+# Database connection pool for better resource management
+connection_pool = None
+
+def initialize_connection_pool():
+    """Initialize database connection pool"""
+    global connection_pool
     try:
-        # Primary: Use DATABASE_URL (Render standard format)
-        # Format: postgresql://user:password@host:port/database
         database_url = os.getenv("DATABASE_URL")
         if database_url:
-            logger.info("Connecting using DATABASE_URL")
-            conn = psycopg2.connect(database_url)
+            connection_pool = psycopg2.pool.SimpleConnectionPool(
+                1, 10, database_url
+            )
         else:
-            # Fallback: Individual parameters for local development
-            logger.info("Connecting using individual DB parameters")
-            conn = psycopg2.connect(
+            connection_pool = psycopg2.pool.SimpleConnectionPool(
+                1, 10,
                 host=os.getenv("DB_HOST", "db"),
                 database=os.getenv("DB_NAME", "bhiv_hr"),
                 user=os.getenv("DB_USER", "bhiv_user"),
                 password=os.getenv("DB_PASSWORD", "bhiv_pass"),
                 port=os.getenv("DB_PORT", "5432")
             )
-        logger.info("Database connection successful")
-        return conn
+        logger.info("Database connection pool initialized")
     except Exception as e:
-        logger.error(f"Database connection failed: {e}")
-        return None
+        logger.error(f"Failed to initialize connection pool: {sanitize_for_logging(str(e))}")
+        connection_pool = None
+
+@contextmanager
+def get_db_connection():
+    """Get database connection with proper resource management
+    
+    Yields:
+        psycopg2.connection: Database connection object
+        
+    Raises:
+        HTTPException: If connection fails
+    """
+    conn = None
+    try:
+        if connection_pool:
+            conn = connection_pool.getconn()
+        else:
+            # Fallback to direct connection
+            database_url = os.getenv("DATABASE_URL")
+            if database_url:
+                conn = psycopg2.connect(database_url)
+            else:
+                conn = psycopg2.connect(
+                    host=os.getenv("DB_HOST", "db"),
+                    database=os.getenv("DB_NAME", "bhiv_hr"),
+                    user=os.getenv("DB_USER", "bhiv_user"),
+                    password=os.getenv("DB_PASSWORD", "bhiv_pass"),
+                    port=os.getenv("DB_PORT", "5432")
+                )
+        
+        if not conn:
+            raise HTTPException(status_code=500, detail="Database connection failed")
+            
+        yield conn
+        
+    except psycopg2.OperationalError as e:
+        logger.error(f"Database operational error: {sanitize_for_logging(str(e))}")
+        raise HTTPException(status_code=503, detail="Database temporarily unavailable")
+    except psycopg2.DatabaseError as e:
+        logger.error(f"Database error: {sanitize_for_logging(str(e))}")
+        raise HTTPException(status_code=500, detail="Database error occurred")
+    except Exception as e:
+        logger.error(f"Unexpected database error: {sanitize_for_logging(str(e))}")
+        raise HTTPException(status_code=500, detail="Database connection failed")
+    finally:
+        if conn:
+            try:
+                if connection_pool:
+                    connection_pool.putconn(conn)
+                else:
+                    conn.close()
+            except Exception as e:
+                logger.error(f"Error closing connection: {sanitize_for_logging(str(e))}")
 
 def calculate_skills_match(job_requirements: str, candidate_skills: str) -> tuple:
     """Enhanced skills matching with dynamic keyword extraction"""
@@ -359,7 +426,7 @@ def health_check():
         "service": "BHIV AI Agent",
         "version": "3.1.0",
         "semantic_engine": "enabled" if SEMANTIC_ENABLED else "fallback",
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "uptime": "operational",
         "methods_supported": ["GET", "HEAD"]
     }
@@ -411,35 +478,30 @@ def test_database():
         dict: Database status with candidate count and samples
     """
     try:
-        # Attempt database connection
-        conn = get_db_connection()
-        if not conn:
-            logger.error("Database connection test failed")
-            return {"error": "Connection failed", "status": "disconnected"}
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                # Get candidate count
+                cursor.execute("SELECT COUNT(*) FROM candidates")
+                count = cursor.fetchone()[0]
+                
+                # Get sample candidates for verification
+                cursor.execute("SELECT id, name FROM candidates LIMIT 3")
+                samples = cursor.fetchall()
         
-        cursor = conn.cursor()
-        
-        # Get candidate count
-        cursor.execute("SELECT COUNT(*) FROM candidates")
-        count = cursor.fetchone()[0]
-        
-        # Get sample candidates for verification
-        cursor.execute("SELECT id, name FROM candidates LIMIT 3")
-        samples = cursor.fetchall()
-        
-        conn.close()
         logger.info(f"Database test successful: {count} candidates found")
         
         return {
             "status": "connected",
             "candidates_count": count,
             "samples": samples,
-            "timestamp": datetime.now().isoformat(),
-            "connection_pool": "healthy"
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "connection_pool": "healthy" if connection_pool else "direct"
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Database test error: {e}")
-        return {"error": str(e), "status": "error"}
+        logger.error(f"Database test error: {sanitize_for_logging(str(e))}")
+        return {"error": "Database connectivity issue", "status": "error"}
 
 @app.get("/http-methods-test", tags=["System Diagnostics"], summary="HTTP Methods Testing")
 @app.head("/http-methods-test", tags=["System Diagnostics"], summary="HTTP Methods Testing (HEAD)")
@@ -452,7 +514,7 @@ async def http_methods_test(request: Request):
         "service": "BHIV AI Agent",
         "method_received": method,
         "supported_methods": ["GET", "POST", "HEAD", "OPTIONS"],
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "semantic_engine": "enabled" if SEMANTIC_ENABLED else "fallback",
         "status": "method_handled_successfully"
     }
@@ -489,59 +551,53 @@ async def favicon():
 @app.post("/match", response_model=MatchResponse, tags=["AI Matching Engine"], summary="AI-Powered Candidate Matching")
 async def match_candidates(request: MatchRequest):
     """Dynamic AI-powered candidate matching based on job requirements"""
-    start_time = datetime.now()
-    logger.info(f"Starting dynamic match for job_id: {request.job_id}")
+    start_time = datetime.now(timezone.utc)
+    logger.info(f"Starting dynamic match for job_id: {sanitize_for_logging(str(request.job_id))}")
     
     try:
-        conn = get_db_connection()
-        if not conn:
-            logger.error("Database connection failed")
-            raise HTTPException(status_code=500, detail="Database connection failed")
-        
-        cursor = conn.cursor()
-        logger.info("Database connection successful")
-        
-        # Get job details with enhanced requirements parsing
-        cursor.execute("""
-            SELECT title, description, department, location, experience_level, requirements
-            FROM jobs WHERE id = %s
-        """, (request.job_id,))
-        
-        job_data = cursor.fetchone()
-        if not job_data:
-            return MatchResponse(
-                job_id=request.job_id,
-                top_candidates=[],
-                total_candidates=0,
-                processing_time=0.0,
-                algorithm_version="2.0.0-dynamic",
-                status="job_not_found"
-            )
-        
-        job_title, job_desc, job_dept, job_location, job_level, job_requirements = job_data
-        logger.info(f"Processing job: {job_title}")
-        
-        # Get ALL candidates globally (no job_id filtering for dynamic matching)
-        cursor.execute("""
-            SELECT id, name, email, phone, location, experience_years, 
-                   technical_skills, seniority_level, education_level
-            FROM candidates 
-            ORDER BY created_at DESC
-        """)
-        
-        candidates = cursor.fetchall()
-        logger.info(f"Found {len(candidates)} global candidates for dynamic matching to job {request.job_id}")
-        
-        if not candidates:
-            logger.warning("No candidates found in database")
-            return MatchResponse(
-                job_id=request.job_id,
-                top_candidates=[],
-                total_candidates=0,
-                processing_time=0.0,
-                algorithm_version="2.0.0-dynamic",
-                status="no_candidates"
-            )
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                # Get job details with enhanced requirements parsing
+                cursor.execute("""
+                    SELECT title, description, department, location, experience_level, requirements
+                    FROM jobs WHERE id = %s
+                """, (request.job_id,))
+                
+                job_data = cursor.fetchone()
+                if not job_data:
+                    return MatchResponse(
+                        job_id=request.job_id,
+                        top_candidates=[],
+                        total_candidates=0,
+                        processing_time=0.0,
+                        algorithm_version="2.0.0-dynamic",
+                        status="job_not_found"
+                    )
+                
+                job_title, job_desc, job_dept, job_location, job_level, job_requirements = job_data
+                logger.info(f"Processing job: {sanitize_for_logging(str(job_title))}")
+                
+                # Get ALL candidates globally (no job_id filtering for dynamic matching)
+                cursor.execute("""
+                    SELECT id, name, email, phone, location, experience_years, 
+                           technical_skills, seniority_level, education_level
+                    FROM candidates 
+                    ORDER BY created_at DESC
+                """)
+                
+                candidates = cursor.fetchall()
+                logger.info(f"Found {len(candidates)} global candidates for dynamic matching")
+                
+                if not candidates:
+                    logger.warning("No candidates found in database")
+                    return MatchResponse(
+                        job_id=request.job_id,
+                        top_candidates=[],
+                        total_candidates=0,
+                        processing_time=0.0,
+                        algorithm_version="2.0.0-dynamic",
+                        status="no_candidates"
+                    )
         
         # Use semantic engine if available, otherwise fallback
         if SEMANTIC_ENABLED and semantic_processor:
@@ -559,9 +615,7 @@ async def match_candidates(request: MatchRequest):
         scored_candidates.sort(key=lambda x: x.score, reverse=True)
         top_candidates = scored_candidates[:10]
         
-        processing_time = (datetime.now() - start_time).total_seconds()
-        
-        conn.close()
+        processing_time = (datetime.now(timezone.utc) - start_time).total_seconds()
         
         algorithm_version = "3.0.0-semantic" if SEMANTIC_ENABLED else "2.0.0-fallback"
         logger.info(f"Matching completed: {len(top_candidates)} candidates, algorithm: {algorithm_version}")
@@ -575,12 +629,14 @@ async def match_candidates(request: MatchRequest):
             status="success"
         )
         
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Matching error: {e}")
-        raise HTTPException(status_code=500, detail=f"Matching failed: {str(e)}")
+        logger.error(f"Matching error: {sanitize_for_logging(str(e))}")
+        raise HTTPException(status_code=500, detail="Matching process failed")
 
 async def process_with_semantic_engine(job_data: tuple, candidates: list, job_id: int) -> list:
-    """Process candidates using advanced semantic engine"""
+    """Process candidates using advanced semantic engine with error handling"""
     job_title, job_desc, job_dept, job_location, job_level, job_requirements = job_data
     
     # Prepare job data for semantic processing
@@ -596,38 +652,64 @@ async def process_with_semantic_engine(job_data: tuple, candidates: list, job_id
     
     scored_candidates = []
     
-    for candidate in candidates:
-        cand_id, name, email, phone, location, exp_years, skills, seniority, education = candidate
+    # Process candidates with async optimization
+    async def process_candidate(candidate):
+        try:
+            cand_id, name, email, phone, location, exp_years, skills, seniority, education = candidate
+            
+            # Prepare candidate data
+            candidate_dict = {
+                'id': cand_id,
+                'name': name,
+                'email': email,
+                'phone': phone,
+                'location': location,
+                'experience_years': exp_years or 0,
+                'technical_skills': skills or '',
+                'seniority_level': seniority or '',
+                'education_level': education or ''
+            }
+            
+            # Use semantic processor for matching with error handling
+            match_result = semantic_processor.semantic_match(job_dict, candidate_dict)
+            
+            # Create candidate score object
+            return CandidateScore(
+                candidate_id=cand_id,
+                name=name,
+                email=email,
+                score=match_result['score'],
+                skills_match=match_result.get('matched_skills', []),
+                experience_match=match_result.get('reasoning', 'Semantic analysis'),
+                location_match=location == job_location if job_location else True,
+                reasoning=match_result.get('reasoning', 'Advanced semantic matching')
+            )
+        except Exception as e:
+            logger.error(f"Error processing candidate {cand_id}: {sanitize_for_logging(str(e))}")
+            # Return fallback score for failed candidates
+            return CandidateScore(
+                candidate_id=cand_id,
+                name=name,
+                email=email,
+                score=50.0,
+                skills_match=[],
+                experience_match="Processing error",
+                location_match=False,
+                reasoning="Fallback due to processing error"
+            )
+    
+    # Process candidates in batches for better performance
+    batch_size = 10
+    for i in range(0, len(candidates), batch_size):
+        batch = candidates[i:i + batch_size]
+        tasks = [process_candidate(candidate) for candidate in batch]
+        batch_results = await asyncio.gather(*tasks, return_exceptions=True)
         
-        # Prepare candidate data
-        candidate_dict = {
-            'id': cand_id,
-            'name': name,
-            'email': email,
-            'phone': phone,
-            'location': location,
-            'experience_years': exp_years or 0,
-            'technical_skills': skills or '',
-            'seniority_level': seniority or '',
-            'education_level': education or ''
-        }
-        
-        # Use semantic processor for matching
-        match_result = semantic_processor.semantic_match(job_dict, candidate_dict)
-        
-        # Create candidate score object
-        candidate_score = CandidateScore(
-            candidate_id=cand_id,
-            name=name,
-            email=email,
-            score=match_result['score'],
-            skills_match=match_result.get('matched_skills', []),
-            experience_match=match_result.get('reasoning', 'Semantic analysis'),
-            location_match=location == job_location if job_location else True,
-            reasoning=match_result.get('reasoning', 'Advanced semantic matching')
-        )
-        
-        scored_candidates.append(candidate_score)
+        for result in batch_results:
+            if isinstance(result, CandidateScore):
+                scored_candidates.append(result)
+            else:
+                logger.error(f"Batch processing error: {sanitize_for_logging(str(result))}")
     
     return scored_candidates
 
@@ -718,38 +800,26 @@ def process_with_fallback_algorithm(job_data: tuple, candidates: list, job_id: i
 
 @app.get("/analyze/{candidate_id}", tags=["Candidate Analysis"], summary="Detailed Candidate Analysis")
 async def analyze_candidate(candidate_id: int):
-    """Detailed candidate analysis"""
+    """Detailed candidate analysis with proper error handling"""
     try:
-        conn = get_db_connection()
-        if not conn:
-            return {
-                "candidate_id": candidate_id,
-                "error": "Database connection failed",
-                "status": "error",
-                "fallback_analysis": {
-                    "name": f"Candidate {candidate_id}",
-                    "analysis_available": False,
-                    "reason": "Database connectivity issue"
-                }
-            }
-        
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT name, email, technical_skills, experience_years, 
-                   seniority_level, education_level, location
-            FROM candidates WHERE id = %s
-        """, (candidate_id,))
-        
-        candidate = cursor.fetchone()
-        if not candidate:
-            return {
-                "candidate_id": candidate_id,
-                "error": "Candidate not found",
-                "status": "not_found",
-                "available_candidates": "Check /test-db for available candidate IDs"
-            }
-        
-        name, email, skills, exp_years, seniority, education, location = candidate
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    SELECT name, email, technical_skills, experience_years, 
+                           seniority_level, education_level, location
+                    FROM candidates WHERE id = %s
+                """, (candidate_id,))
+                
+                candidate = cursor.fetchone()
+                if not candidate:
+                    return {
+                        "candidate_id": candidate_id,
+                        "error": "Candidate not found",
+                        "status": "not_found",
+                        "available_candidates": "Check /test-db for available candidate IDs"
+                    }
+                
+                name, email, skills, exp_years, seniority, education, location = candidate
         
         # Analyze skills
         skill_categories = {
@@ -768,8 +838,6 @@ async def analyze_candidate(candidate_id: int):
             if found_skills:
                 categorized_skills[category] = found_skills
         
-        conn.close()
-        
         return {
             "candidate_id": candidate_id,
             "name": name,
@@ -780,31 +848,47 @@ async def analyze_candidate(candidate_id: int):
             "location": location,
             "skills_analysis": categorized_skills,
             "total_skills": len(skills.split(',')) if skills else 0,
-            "analysis_timestamp": datetime.now().isoformat(),
+            "analysis_timestamp": datetime.now(timezone.utc).isoformat(),
             "status": "success"
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Analysis error: {e}")
+        logger.error(f"Analysis error: {sanitize_for_logging(str(e))}")
         return {
             "candidate_id": candidate_id,
-            "error": str(e),
+            "error": "Analysis failed",
             "status": "error",
-            "analysis_timestamp": datetime.now().isoformat()
+            "analysis_timestamp": datetime.now(timezone.utc).isoformat()
         }
 
 @app.get("/status", tags=["System Diagnostics"], summary="Agent Service Status")
 def get_agent_status():
-    """Agent Service Status"""
+    """Agent Service Status with real database connectivity check"""
+    # Test actual database connectivity
+    db_status = "disconnected"
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT 1")
+                db_status = "active"
+    except Exception:
+        db_status = "error"
+    
+    # Count actual endpoints dynamically
+    endpoint_count = len([route for route in app.routes if hasattr(route, 'methods')])
+    
     return {
         "service": "BHIV AI Agent",
         "status": "operational",
         "version": "3.1.0",
         "semantic_engine": "enabled" if SEMANTIC_ENABLED else "fallback",
         "uptime": "healthy",
-        "endpoints_available": 8,
-        "database_connection": "active",
-        "last_health_check": datetime.now().isoformat()
+        "endpoints_available": endpoint_count,
+        "database_connection": db_status,
+        "connection_pool": "active" if connection_pool else "direct",
+        "last_health_check": datetime.now(timezone.utc).isoformat()
     }
 
 @app.get("/version", tags=["System Diagnostics"], summary="Agent Version Information")
@@ -827,29 +911,61 @@ def get_agent_version():
 
 @app.get("/metrics", tags=["System Diagnostics"], summary="Agent Metrics Endpoint")
 def get_agent_metrics():
-    """Agent Metrics Endpoint"""
-    return {
-        "service_metrics": {
-            "total_requests": 1250,
-            "successful_matches": 1180,
-            "failed_requests": 70,
-            "average_response_time_ms": 450,
-            "semantic_engine_usage": "85%" if SEMANTIC_ENABLED else "0%"
-        },
-        "performance_metrics": {
-            "cpu_usage": "15%",
-            "memory_usage": "128MB",
-            "database_connections": 5,
-            "cache_hit_rate": "78%"
-        },
-        "algorithm_metrics": {
-            "matching_accuracy": "92%",
-            "processing_speed": "0.45s average",
-            "candidate_analysis_rate": "95%",
-            "semantic_confidence": "88%" if SEMANTIC_ENABLED else "N/A"
-        },
-        "timestamp": datetime.now().isoformat()
-    }
+    """Agent Metrics Endpoint with real system metrics"""
+    try:
+        # Get real system metrics
+        cpu_percent = psutil.cpu_percent(interval=1)
+        memory = psutil.virtual_memory()
+        memory_usage_mb = memory.used / (1024 * 1024)
+        memory_percent = memory.percent
+        
+        # Test database connectivity and get connection info
+        db_connections = 0
+        db_status = "disconnected"
+        candidate_count = 0
+        
+        try:
+            with get_db_connection() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT COUNT(*) FROM candidates")
+                    candidate_count = cursor.fetchone()[0]
+                    db_status = "connected"
+                    db_connections = 1 if not connection_pool else connection_pool.minconn
+        except Exception:
+            pass
+        
+        return {
+            "service_metrics": {
+                "database_status": db_status,
+                "total_candidates": candidate_count,
+                "semantic_engine_status": "enabled" if SEMANTIC_ENABLED else "fallback",
+                "connection_pool_status": "active" if connection_pool else "direct"
+            },
+            "performance_metrics": {
+                "cpu_usage_percent": round(cpu_percent, 2),
+                "memory_usage_mb": round(memory_usage_mb, 2),
+                "memory_usage_percent": round(memory_percent, 2),
+                "database_connections": db_connections,
+                "available_memory_mb": round(memory.available / (1024 * 1024), 2)
+            },
+            "system_info": {
+                "python_version": sys.version.split()[0],
+                "platform": sys.platform,
+                "process_id": os.getpid()
+            },
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Metrics collection error: {sanitize_for_logging(str(e))}")
+        return {
+            "error": "Metrics collection failed",
+            "fallback_metrics": {
+                "service": "BHIV AI Agent",
+                "status": "operational",
+                "semantic_engine": "enabled" if SEMANTIC_ENABLED else "fallback"
+            },
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
 
 if __name__ == "__main__":
     import uvicorn
