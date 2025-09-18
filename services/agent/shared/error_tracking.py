@@ -356,6 +356,15 @@ class ErrorAggregator:
             if datetime.strptime(k, '%Y-%m-%d-%H') > cutoff_time
         }
         
+        return {
+            "total_errors": sum(recent_hourly.values()),
+            "error_rate_per_hour": sum(recent_hourly.values()) / max(hours, 1),
+            "hourly_breakdown": recent_hourly,
+            "top_services": dict(sorted(self.service_errors.items(), key=lambda x: x[1], reverse=True)[:5]),
+            "top_categories": dict(sorted(self.category_errors.items(), key=lambda x: x[1], reverse=True)[:5])
+        }
+        
+        
         total_errors = sum(recent_hourly.values())
         
         return {
