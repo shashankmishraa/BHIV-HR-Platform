@@ -1735,7 +1735,7 @@ async def get_interviews(api_key: str = Depends(get_api_key)):
     try:
         engine = get_db_engine()
         with engine.connect() as connection:
-            # Try with interviewer column first, fallback if not exists
+            # Try with interviewer column first
             try:
                 query = text("""
                     SELECT i.id, i.candidate_id, i.job_id, i.interview_date, i.interviewer, i.status,
@@ -1743,7 +1743,8 @@ async def get_interviews(api_key: str = Depends(get_api_key)):
                     FROM interviews i
                     LEFT JOIN candidates c ON i.candidate_id = c.id
                     LEFT JOIN jobs j ON i.job_id = j.id
-                    ORDER BY i.interview_date DESC
+                    ORDER BY i.interview_date DESC NULLS LAST
+                    LIMIT 50
                 """)
                 result = connection.execute(query)
                 interviews = [{
@@ -1752,46 +1753,60 @@ async def get_interviews(api_key: str = Depends(get_api_key)):
                     "job_id": row[2],
                     "interview_date": row[3].isoformat() if row[3] else None,
                     "interviewer": row[4] or "HR Team",
-                    "status": row[5],
-                    "candidate_name": row[6],
-                    "job_title": row[7]
+                    "status": row[5] or "scheduled",
+                    "candidate_name": row[6] or f"Candidate {row[1]}",
+                    "job_title": row[7] or f"Job {row[2]}"
                 } for row in result]
+                
+                return {
+                    "interviews": interviews, 
+                    "count": len(interviews),
+                    "schema_compatible": True,
+                    "has_interviewer_column": True
+                }
+                
             except Exception as schema_error:
-                if "interviewer" in str(schema_error):
+                if "interviewer" in str(schema_error).lower() or "column" in str(schema_error).lower():
                     # Fallback query without interviewer column
-                    query = text("""
+                    fallback_query = text("""
                         SELECT i.id, i.candidate_id, i.job_id, i.interview_date, i.status,
                                c.name as candidate_name, j.title as job_title
                         FROM interviews i
                         LEFT JOIN candidates c ON i.candidate_id = c.id
                         LEFT JOIN jobs j ON i.job_id = j.id
-                        ORDER BY i.interview_date DESC
+                        ORDER BY i.interview_date DESC NULLS LAST
+                        LIMIT 50
                     """)
-                    result = connection.execute(query)
+                    result = connection.execute(fallback_query)
                     interviews = [{
                         "id": row[0],
                         "candidate_id": row[1],
                         "job_id": row[2],
                         "interview_date": row[3].isoformat() if row[3] else None,
                         "interviewer": "HR Team",
-                        "status": row[4],
-                        "candidate_name": row[5],
-                        "job_title": row[6]
+                        "status": row[4] or "scheduled",
+                        "candidate_name": row[5] or f"Candidate {row[1]}",
+                        "job_title": row[6] or f"Job {row[2]}"
                     } for row in result]
+                    
+                    return {
+                        "interviews": interviews, 
+                        "count": len(interviews),
+                        "schema_compatible": True,
+                        "has_interviewer_column": False,
+                        "fallback_mode": True
+                    }
                 else:
                     raise schema_error
-        
-        return {
-            "interviews": interviews, 
-            "count": len(interviews),
-            "schema_compatible": True
-        }
+                    
     except Exception as e:
+        structured_logger.error("Get interviews failed", exception=e)
         return {
             "interviews": [], 
             "count": 0, 
             "error": str(e),
-            "schema_compatible": False
+            "schema_compatible": False,
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
 @app.post("/v1/interviews", tags=["Assessment & Workflow"])
@@ -1799,8 +1814,10 @@ async def schedule_interview(interview: InterviewSchedule, api_key: str = Depend
     """Schedule Interview"""
     try:
         engine = get_db_engine()
-        with engine.connect() as connection:
-            # Check if interviewer column exists, if not use fallback
+        
+        # Use autocommit transaction for better error handling
+        with engine.begin() as connection:
+            # Try with interviewer column first
             try:
                 query = text("""
                     INSERT INTO interviews (candidate_id, job_id, interview_date, interviewer, status, notes)
@@ -1812,38 +1829,52 @@ async def schedule_interview(interview: InterviewSchedule, api_key: str = Depend
                     "job_id": interview.job_id,
                     "interview_date": interview.interview_date,
                     "interviewer": interview.interviewer or "HR Team",
-                    "notes": interview.notes
+                    "notes": interview.notes or ""
                 })
+                interview_id = result.fetchone()[0]
+                
+                return {
+                    "message": "Interview scheduled successfully",
+                    "interview_id": interview_id,
+                    "candidate_id": interview.candidate_id,
+                    "job_id": interview.job_id,
+                    "interview_date": interview.interview_date,
+                    "interviewer": interview.interviewer or "HR Team",
+                    "status": "scheduled"
+                }
+                
             except Exception as schema_error:
-                # Fallback for missing interviewer column
-                if "interviewer" in str(schema_error):
-                    query = text("""
+                # If interviewer column doesn't exist, use fallback
+                if "interviewer" in str(schema_error).lower() or "column" in str(schema_error).lower():
+                    # Rollback current transaction and start fresh
+                    connection.rollback()
+                    
+                    fallback_query = text("""
                         INSERT INTO interviews (candidate_id, job_id, interview_date, status, notes)
                         VALUES (:candidate_id, :job_id, :interview_date, 'scheduled', :notes)
                         RETURNING id
                     """)
-                    result = connection.execute(query, {
+                    result = connection.execute(fallback_query, {
                         "candidate_id": interview.candidate_id,
                         "job_id": interview.job_id,
                         "interview_date": interview.interview_date,
                         "notes": f"Interviewer: {interview.interviewer or 'HR Team'}. {interview.notes or ''}"
                     })
+                    interview_id = result.fetchone()[0]
+                    
+                    return {
+                        "message": "Interview scheduled successfully (fallback mode)",
+                        "interview_id": interview_id,
+                        "candidate_id": interview.candidate_id,
+                        "job_id": interview.job_id,
+                        "interview_date": interview.interview_date,
+                        "interviewer": interview.interviewer or "HR Team",
+                        "status": "scheduled",
+                        "schema_fallback": True
+                    }
                 else:
                     raise schema_error
-            
-            connection.commit()
-            interview_id = result.fetchone()[0]
-        
-        return {
-            "message": "Interview scheduled successfully",
-            "interview_id": interview_id,
-            "candidate_id": interview.candidate_id,
-            "job_id": interview.job_id,
-            "interview_date": interview.interview_date,
-            "interviewer": interview.interviewer or "HR Team",
-            "status": "scheduled",
-            "schema_compatible": True
-        }
+                    
     except Exception as e:
         structured_logger.error("Interview scheduling failed", exception=e)
         return {
@@ -1852,7 +1883,7 @@ async def schedule_interview(interview: InterviewSchedule, api_key: str = Depend
             "candidate_id": interview.candidate_id,
             "job_id": interview.job_id,
             "status": "failed",
-            "fallback_mode": True
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
 @app.post("/v1/offers", tags=["Assessment & Workflow"])
@@ -2612,28 +2643,50 @@ async def add_interviewer_column(api_key: str = Depends(get_api_key)):
     """Add Missing Interviewer Column to Interviews Table"""
     try:
         engine = get_db_engine()
-        with engine.connect() as connection:
-            # Check if column already exists
+        
+        # Use separate connections for check and migration
+        # First check if column exists
+        with engine.connect() as check_conn:
             try:
-                connection.execute(text("SELECT interviewer FROM interviews LIMIT 1"))
+                check_conn.execute(text("SELECT interviewer FROM interviews LIMIT 1"))
                 return {
                     "message": "Interviewer column already exists",
                     "column_exists": True,
-                    "migration_needed": False
+                    "migration_needed": False,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
                 }
             except Exception:
-                # Column doesn't exist, add it
-                connection.execute(text("ALTER TABLE interviews ADD COLUMN interviewer VARCHAR(255) DEFAULT 'HR Team'"))
-                connection.execute(text("UPDATE interviews SET interviewer = 'HR Team' WHERE interviewer IS NULL"))
-                connection.commit()
+                pass  # Column doesn't exist, proceed with migration
+        
+        # Add column in separate transaction
+        with engine.begin() as migration_conn:
+            try:
+                migration_conn.execute(text("ALTER TABLE interviews ADD COLUMN IF NOT EXISTS interviewer VARCHAR(255) DEFAULT 'HR Team'"))
+                migration_conn.execute(text("UPDATE interviews SET interviewer = 'HR Team' WHERE interviewer IS NULL"))
                 
                 return {
                     "message": "Interviewer column added successfully",
                     "column_added": True,
                     "migration_timestamp": datetime.now(timezone.utc).isoformat()
                 }
+            except Exception as migration_error:
+                if "already exists" in str(migration_error).lower():
+                    return {
+                        "message": "Interviewer column already exists",
+                        "column_exists": True,
+                        "migration_needed": False,
+                        "timestamp": datetime.now(timezone.utc).isoformat()
+                    }
+                else:
+                    raise migration_error
+                    
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Migration failed: {str(e)}")
+        return {
+            "message": "Migration failed",
+            "error": str(e),
+            "migration_needed": True,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
 
 # Enhanced API Key Management (5 endpoints)
 @app.post("/v1/security/api-keys/generate", tags=["Enhanced Security"])
