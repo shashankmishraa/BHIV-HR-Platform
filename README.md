@@ -18,8 +18,8 @@ Username: TECH001
 Password: demo123
 
 # API Testing
-API Key: myverysecureapikey123
-curl -H "Authorization: Bearer myverysecureapikey123" https://bhiv-hr-gateway.onrender.com/health
+API Key: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
+curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" https://bhiv-hr-gateway.onrender.com/health
 ```
 
 ## 📋 Documentation Structure
@@ -228,11 +228,11 @@ curl https://bhiv-hr-gateway.onrender.com/health
 curl https://bhiv-hr-agent.onrender.com/health
 
 # Authenticated Endpoints
-curl -H "Authorization: Bearer myverysecureapikey123" \
+curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
      https://bhiv-hr-gateway.onrender.com/v1/jobs
 
 # Security Testing
-curl -H "Authorization: Bearer myverysecureapikey123" \
+curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
      https://bhiv-hr-gateway.onrender.com/v1/security/rate-limit-status
 ```
 
