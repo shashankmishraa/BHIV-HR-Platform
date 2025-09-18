@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS candidates (
     seniority_level VARCHAR(100),
     education_level VARCHAR(255),
     resume_path VARCHAR(500),
+    status VARCHAR(50) DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

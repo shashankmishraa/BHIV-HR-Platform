@@ -639,6 +639,41 @@ async def test_candidates_db(api_key: str = Depends(get_api_key)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database connectivity test failed: {str(e)}")
 
+@app.get("/v1/database/health", tags=["Database Management"])
+async def database_health_check(api_key: str = Depends(get_api_key)):
+    """Comprehensive Database Health Check"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            tables_info = {}
+            tables = ["candidates", "jobs", "interviews", "feedback", "offers"]
+            
+            for table in tables:
+                try:
+                    result = connection.execute(text(f"SELECT COUNT(*) FROM {table}"))
+                    count = result.fetchone()[0]
+                    tables_info[table] = {"count": count, "status": "ok"}
+                except Exception as e:
+                    tables_info[table] = {"count": 0, "status": "error", "error": str(e)}
+            
+            try:
+                connection.execute(text("SELECT status FROM candidates LIMIT 1"))
+                has_status_column = True
+            except Exception:
+                has_status_column = False
+            
+            return {
+                "database_status": "healthy",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "tables": tables_info,
+                "schema_status": {
+                    "candidates_has_status_column": has_status_column,
+                    "schema_version": "v3.1.0"
+                }
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database health check failed: {str(e)}")
+
 @app.get("/http-methods-test", tags=["Core API Endpoints"])
 @app.head("/http-methods-test", tags=["Core API Endpoints"])
 @app.options("/http-methods-test", tags=["Core API Endpoints"])
@@ -791,7 +826,18 @@ async def search_candidates(skills: Optional[str] = None, location: Optional[str
                 where_conditions.append("experience_years >= :experience_min")
                 params["experience_min"] = experience_min
             
-            base_query = "SELECT id, name, email, phone, location, technical_skills, experience_years, seniority_level, education_level, status FROM candidates"
+            # Check if status column exists
+            try:
+                connection.execute(text("SELECT status FROM candidates LIMIT 1"))
+                has_status_column = True
+            except Exception:
+                has_status_column = False
+            
+            # Build query based on schema
+            if has_status_column:
+                base_query = "SELECT id, name, email, phone, location, technical_skills, experience_years, seniority_level, education_level, status FROM candidates"
+            else:
+                base_query = "SELECT id, name, email, phone, location, technical_skills, experience_years, seniority_level, education_level FROM candidates"
             
             if where_conditions:
                 query = text(f"{base_query} WHERE {' AND '.join(where_conditions)} LIMIT 50")
@@ -800,18 +846,28 @@ async def search_candidates(skills: Optional[str] = None, location: Optional[str
                 query = text(f"{base_query} LIMIT 50")
                 result = connection.execute(query)
             
-            candidates = [{
-                "id": row[0],
-                "name": row[1],
-                "email": row[2],
-                "phone": row[3],
-                "location": row[4],
-                "technical_skills": row[5],
-                "experience_years": row[6],
-                "seniority_level": row[7],
-                "education_level": row[8],
-                "status": row[9]
-            } for row in result]
+            # Build candidate objects based on available columns
+            candidates = []
+            for row in result:
+                candidate = {
+                    "id": row[0],
+                    "name": row[1],
+                    "email": row[2],
+                    "phone": row[3],
+                    "location": row[4],
+                    "technical_skills": row[5],
+                    "experience_years": row[6],
+                    "seniority_level": row[7],
+                    "education_level": row[8]
+                }
+                
+                # Add status if column exists
+                if has_status_column:
+                    candidate["status"] = row[9]
+                else:
+                    candidate["status"] = "active"  # Default value
+                
+                candidates.append(candidate)
         
         return {
             "candidates": candidates, 
@@ -835,9 +891,15 @@ async def bulk_upload_candidates(candidates: CandidateBulk, api_key: str = Depen
         errors = []
         
         with engine.connect() as connection:
+            # Check if status column exists
+            try:
+                connection.execute(text("SELECT status FROM candidates LIMIT 1"))
+                has_status_column = True
+            except Exception:
+                has_status_column = False
+            
             for i, candidate in enumerate(candidates.candidates):
                 try:
-                    # Handle email uniqueness by checking first
                     email = candidate.get("email", "")
                     if email:
                         check_query = text("SELECT COUNT(*) FROM candidates WHERE email = :email")
@@ -846,22 +908,42 @@ async def bulk_upload_candidates(candidates: CandidateBulk, api_key: str = Depen
                             errors.append(f"Candidate {i+1}: Email {email} already exists")
                             continue
                     
-                    query = text("""
-                        INSERT INTO candidates (name, email, phone, location, experience_years, technical_skills, seniority_level, education_level, resume_path, status)
-                        VALUES (:name, :email, :phone, :location, :experience_years, :technical_skills, :seniority_level, :education_level, :resume_path, :status)
-                    """)
-                    connection.execute(query, {
-                        "name": candidate.get("name", ""),
-                        "email": email,
-                        "phone": candidate.get("phone", ""),
-                        "location": candidate.get("location", ""),
-                        "experience_years": int(candidate.get("experience_years", 0)) if candidate.get("experience_years") else 0,
-                        "technical_skills": candidate.get("technical_skills", ""),
-                        "seniority_level": candidate.get("designation", candidate.get("seniority_level", "")),
-                        "education_level": candidate.get("education_level", ""),
-                        "resume_path": candidate.get("cv_url", candidate.get("resume_path", "")),
-                        "status": candidate.get("status", "applied")
-                    })
+                    # Build query based on schema
+                    if has_status_column:
+                        query = text("""
+                            INSERT INTO candidates (name, email, phone, location, experience_years, technical_skills, seniority_level, education_level, resume_path, status)
+                            VALUES (:name, :email, :phone, :location, :experience_years, :technical_skills, :seniority_level, :education_level, :resume_path, :status)
+                        """)
+                        params = {
+                            "name": candidate.get("name", ""),
+                            "email": email,
+                            "phone": candidate.get("phone", ""),
+                            "location": candidate.get("location", ""),
+                            "experience_years": int(candidate.get("experience_years", 0)) if candidate.get("experience_years") else 0,
+                            "technical_skills": candidate.get("technical_skills", ""),
+                            "seniority_level": candidate.get("designation", candidate.get("seniority_level", "")),
+                            "education_level": candidate.get("education_level", ""),
+                            "resume_path": candidate.get("cv_url", candidate.get("resume_path", "")),
+                            "status": candidate.get("status", "applied")
+                        }
+                    else:
+                        query = text("""
+                            INSERT INTO candidates (name, email, phone, location, experience_years, technical_skills, seniority_level, education_level, resume_path)
+                            VALUES (:name, :email, :phone, :location, :experience_years, :technical_skills, :seniority_level, :education_level, :resume_path)
+                        """)
+                        params = {
+                            "name": candidate.get("name", ""),
+                            "email": email,
+                            "phone": candidate.get("phone", ""),
+                            "location": candidate.get("location", ""),
+                            "experience_years": int(candidate.get("experience_years", 0)) if candidate.get("experience_years") else 0,
+                            "technical_skills": candidate.get("technical_skills", ""),
+                            "seniority_level": candidate.get("designation", candidate.get("seniority_level", "")),
+                            "education_level": candidate.get("education_level", ""),
+                            "resume_path": candidate.get("cv_url", candidate.get("resume_path", ""))
+                        }
+                    
+                    connection.execute(query, params)
                     inserted_count += 1
                 except Exception as e:
                     errors.append(f"Candidate {i+1}: {str(e)}")
@@ -872,9 +954,10 @@ async def bulk_upload_candidates(candidates: CandidateBulk, api_key: str = Depen
             "message": "Bulk upload completed",
             "candidates_received": len(candidates.candidates),
             "candidates_inserted": inserted_count,
-            "errors": errors[:5] if errors else [],  # Show first 5 errors
+            "errors": errors[:5] if errors else [],
             "total_errors": len(errors),
-            "status": "success" if inserted_count > 0 else "failed"
+            "status": "success" if inserted_count > 0 else "failed",
+            "schema_compatible": has_status_column
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Bulk upload failed: {str(e)}")
@@ -1010,6 +1093,40 @@ async def create_job_offer(offer: JobOffer, api_key: str = Depends(get_api_key))
         "start_date": offer.start_date,
         "status": "pending"
     }
+
+@app.post("/v1/database/migrate", tags=["Database Management"])
+async def run_database_migration(api_key: str = Depends(get_api_key)):
+    """Run Database Migration to Fix Schema Issues"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            try:
+                connection.execute(text("SELECT status FROM candidates LIMIT 1"))
+                return {
+                    "message": "Database schema is already up to date",
+                    "status_column_exists": True,
+                    "migration_needed": False
+                }
+            except Exception:
+                pass
+            
+            migration_sql = """
+                ALTER TABLE candidates ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active';
+                UPDATE candidates SET status = 'active' WHERE status IS NULL;
+                CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status);
+            """
+            
+            connection.execute(text(migration_sql))
+            connection.commit()
+            
+            return {
+                "message": "Database migration completed successfully",
+                "status_column_added": True,
+                "migration_timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Migration failed: {str(e)}")
 
 # Analytics & Statistics (2 endpoints)
 @app.get("/candidates/stats", tags=["Analytics & Statistics"])
