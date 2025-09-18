@@ -199,7 +199,7 @@ class ErrorClassifier:
             ]
         }
     
-    def classify_error(self, error_message: str, error_type: str, stack_trace: str) -> tuple[ErrorCategory, ErrorSeverity]:
+    def classify_error(self, error_message: str, error_type: str, stack_trace: str) -> tuple:
         """Classify error into category and severity"""
         full_text = f"{error_type} {error_message} {stack_trace}".lower()
         
@@ -481,13 +481,6 @@ class ErrorTracker:
         """Process alert by logging or sending notifications"""
         # Log alert for now - can be extended for notifications
         print(f"ALERT [{alert['type']}]: {alert['message']}")
-    alert in alerts:
-        self._process_alert(alert)
-    
-    def _process_alert(self, alert: Dict[str, Any]):
-        """Process alert (log, notify, etc.)"""
-        # For now, just log the alert
-        print(f"ALERT: {alert['type']} - {alert['message']}")
     
     def get_error_summary(self, hours: int = 24) -> Dict[str, Any]:
         """Get comprehensive error summary"""
