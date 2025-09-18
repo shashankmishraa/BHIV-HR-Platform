@@ -217,7 +217,8 @@ def test_interview_endpoint():
         "candidate_id": 1,
         "job_id": 1,
         "interview_date": "2025-02-01T10:00:00Z",
-        "interviewer": "Test Interviewer"
+        "interviewer": "Test Interviewer",
+        "notes": "Test interview scheduling"
     }
     
     try:

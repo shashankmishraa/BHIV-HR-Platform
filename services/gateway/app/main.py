@@ -1538,10 +1538,11 @@ async def search_candidates(skills: Optional[str] = None, location: Optional[str
 @app.post("/v1/candidates/bulk", tags=["Candidate Management"])
 async def bulk_upload_candidates(candidates: CandidateBulk, api_key: str = Depends(get_api_key)):
     """Bulk Upload Candidates"""
+    # Validate input first - before try block to ensure 400 status
+    if not candidates.candidates or len(candidates.candidates) == 0:
+        raise HTTPException(status_code=400, detail="Candidates list cannot be empty")
+    
     try:
-        # Validate input
-        if not candidates.candidates or len(candidates.candidates) == 0:
-            raise HTTPException(status_code=400, detail="Candidates list cannot be empty")
         
         engine = get_db_engine()
         inserted_count = 0

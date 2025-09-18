@@ -179,9 +179,9 @@ class AggressiveTester:
             {"description": "Valid interview", "headers": HEADERS, "data": {
                 "candidate_id": 1,
                 "job_id": 1,
-                "scheduled_time": "2024-12-01T10:00:00",
+                "interview_date": "2024-12-01T10:00:00",
                 "interviewer": "John Doe",
-                "type": "technical"
+                "notes": "Technical interview"
             }, "expected_codes": [200, 201]},
             {"description": "Missing fields", "headers": HEADERS, "data": {"candidate_id": 1}, "expected_codes": [400, 422]}
         ])
