@@ -1473,12 +1473,14 @@ async def get_top_matches(job_id: int, limit: int = 10, request: Request = None,
         cache_result(cache_key, response_data.copy())
         
         # Log performance metrics
-        log_matching_performance(
-            job_id=job_id,
-            candidates_processed=len(matches),
-            processing_time=processing_time,
-            db_query_time=db_time
-        )
+        try:
+            log_matching_performance(
+                job_id=job_id,
+                candidates_processed=len(matches),
+                processing_time=processing_time
+            )
+        except Exception as log_error:
+            structured_logger.warning("Performance logging failed", error=str(log_error))
         
         structured_logger.info(
             "Advanced job-specific AI matching completed",
