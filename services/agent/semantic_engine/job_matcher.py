@@ -1,9 +1,9 @@
-import numpy as np
-import re
-from typing import Dict, List, Tuple, Optional
 from collections import defaultdict
+from typing import Dict, List, Tuple, Optional
 import logging
+import re
 
+import numpy as np
 logger = logging.getLogger(__name__)
 
 class SemanticJobMatcher:

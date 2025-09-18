@@ -4,11 +4,10 @@ BHIV HR Platform - HTTP Methods Testing Script
 Tests HTTP method handling including HEAD, OPTIONS, and unsupported methods
 """
 
-import requests
-import time
 from datetime import datetime
+import time
 
-# Configuration
+import requests
 API_BASE = "http://localhost:8000"
 AI_BASE = "http://localhost:9000"
 API_KEY = "myverysecureapikey123"

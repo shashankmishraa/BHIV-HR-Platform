@@ -3,15 +3,15 @@ BHIV HR Platform - Database-Based API Key Manager
 Alternative to Redis for API key management using PostgreSQL
 """
 
-import os
-import secrets
-import hashlib
-import json
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
-import psycopg2
-from psycopg2.extras import RealDictCursor
+import hashlib
+import json
+import os
+import secrets
 
+from psycopg2.extras import RealDictCursor
+import psycopg2
 class DatabaseKeyManager:
     """PostgreSQL-based API key management (Redis alternative)"""
     

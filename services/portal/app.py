@@ -1,11 +1,9 @@
-import streamlit as st
-import httpx
-import pandas as pd
 from datetime import datetime
-import numpy as np
 import os
 
-# Configure favicon
+import httpx
+import pandas as pd
+import streamlit as st
 favicon_path = os.path.join(os.path.dirname(__file__), "static", "favicon.ico")
 page_icon = favicon_path if os.path.exists(favicon_path) else "🎯"
 
@@ -117,8 +115,6 @@ menu = st.sidebar.selectbox("Select HR Task", [
     "🔄 Live Client Jobs Monitor",
     "📁 Batch Operations"
 ])
-
-
 
 # Real-time refresh button
 if st.sidebar.button("🔄 Refresh All Data"):

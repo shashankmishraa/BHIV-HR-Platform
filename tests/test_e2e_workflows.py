@@ -4,13 +4,13 @@ BHIV HR Platform - End-to-End Workflow Testing
 Comprehensive multi-service workflow validation covering complete user journeys
 """
 
-import requests
+from datetime import datetime, timedelta
+from typing import Dict, List, Any, Optional
 import json
 import time
 import uuid
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
 
+import requests
 class E2ETestConfig:
     """Configuration for end-to-end tests"""
     API_BASE = "http://localhost:8000"

@@ -1,18 +1,17 @@
 # Advanced Monitoring System for BHIV HR Platform
 
+from collections import defaultdict, deque
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional
+import asyncio
+import json
 import logging
 import time
-from datetime import datetime, timedelta
-from collections import defaultdict, deque
-from typing import Dict, List, Optional
-import json
-import asyncio
-from prometheus_client import Counter, Histogram, Gauge, generate_latest
+
 from dataclasses import dataclass
+from prometheus_client import Counter, Histogram, Gauge, generate_latest
 import psutil
 import requests
-
-# Use centralized logging configuration
 try:
     from logging_config import setup_service_logging
     logger = setup_service_logging('gateway')

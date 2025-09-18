@@ -1,0 +1,99 @@
+# BHIV HR Platform - Docker Compose Configuration
+# This file is for LOCAL DEVELOPMENT only
+# Production deployment is on Render: https://bhiv-hr-gateway.onrender.com
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: bhiv_hr
+      POSTGRES_USER: bhiv_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-bhiv_pass}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./services/db/init_complete.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bhiv_user -d bhiv_hr"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  gateway:
+    build:
+      context: ./services/gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD:-bhiv_pass}@db:5432/bhiv_hr
+      API_KEY_SECRET: ${API_KEY_SECRET:-myverysecureapikey123}
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Production URL: https://bhiv-hr-gateway.onrender.com
+
+  agent:
+    build:
+      context: ./services/agent
+      dockerfile: Dockerfile
+    ports:
+      - "9000:9000"
+    environment:
+      DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD:-bhiv_pass}@db:5432/bhiv_hr
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:9000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Production URL: https://bhiv-hr-agent.onrender.com
+
+  portal:
+    build:
+      context: ./services/portal
+      dockerfile: Dockerfile
+    ports:
+      - "8501:8501"
+    environment:
+      GATEWAY_URL: http://gateway:8000
+      API_KEY_SECRET: ${API_KEY_SECRET:-myverysecureapikey123}
+    depends_on:
+      gateway:
+        condition: service_healthy
+    restart: unless-stopped
+    # Production URL: https://bhiv-hr-portal.onrender.com
+
+  client_portal:
+    build:
+      context: ./services/client_portal
+      dockerfile: Dockerfile
+    ports:
+      - "8502:8502"
+    environment:
+      GATEWAY_URL: http://gateway:8000
+      API_KEY_SECRET: ${API_KEY_SECRET:-myverysecureapikey123}
+    depends_on:
+      gateway:
+        condition: service_healthy
+    restart: unless-stopped
+    # Production URL: https://bhiv-hr-client-portal.onrender.com
+
+volumes:
+  postgres_data:

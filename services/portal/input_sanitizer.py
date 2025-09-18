@@ -1,10 +1,10 @@
 """
 Input sanitization module to prevent XSS vulnerabilities
 """
-import html
-import re
 from typing import Any, Dict, List, Union
+import re
 
+import html
 class InputSanitizer:
     """Sanitizes user input to prevent XSS attacks"""
     

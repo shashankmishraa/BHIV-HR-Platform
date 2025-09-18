@@ -2,13 +2,11 @@
 Enhanced Security Configuration for Portal
 Addresses CWE-798 and provides comprehensive security management
 """
-import os
-import sys
-import secrets
-import logging
 from typing import Optional, Dict, Any
-
-# Configure logging
+import logging
+import os
+import secrets
+import sys
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 

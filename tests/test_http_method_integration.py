@@ -4,14 +4,13 @@ BHIV HR Platform - HTTP Method Integration Testing
 Comprehensive integration tests for HTTP method handling across all services
 """
 
-import requests
-import json
-import time
-import concurrent.futures
 from datetime import datetime
 from typing import Dict, List, Tuple
+import json
+import time
 
-# Configuration
+import concurrent.futures
+import requests
 API_BASE = "http://localhost:8000"
 AI_BASE = "http://localhost:9000"
 API_KEY = "myverysecureapikey123"

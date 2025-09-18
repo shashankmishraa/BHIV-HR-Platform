@@ -1,11 +1,10 @@
 """
 CSRF protection for Streamlit forms
 """
-import secrets
-import hashlib
-import time
 from typing import Optional
-
+import hashlib
+import secrets
+import time
 class CSRFProtection:
     """CSRF token generation and validation"""
     

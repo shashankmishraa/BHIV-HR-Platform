@@ -1,10 +1,9 @@
 """
 Centralized logging configuration for BHIV HR Platform
 """
-import os
-import logging
 from pathlib import Path
-
+import logging
+import os
 def setup_service_logging(service_name: str, log_level: str = "INFO"):
     """Setup centralized logging for a service"""
     

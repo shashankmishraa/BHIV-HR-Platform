@@ -4,14 +4,13 @@ BHIV HR Platform - Enhanced Security Testing Suite
 Tests: CORS Configuration, Cookie Security, API Key Management
 """
 
-import sys
-import os
-import requests
-import json
-import time
 from datetime import datetime
+import json
+import os
+import sys
+import time
 
-# Add project root to path
+import requests
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 class SecurityTestSuite:

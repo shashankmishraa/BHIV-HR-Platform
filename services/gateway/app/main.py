@@ -1,29 +1,27 @@
-from fastapi import FastAPI, HTTPException, Depends, Security, Response, Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse, FileResponse
-from fastapi.staticfiles import StaticFiles
 from datetime import datetime, timezone
-from sqlalchemy import create_engine, text
-from sqlalchemy.pool import QueuePool
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel
-from concurrent.futures import ThreadPoolExecutor
-from .monitoring import monitor, log_resume_processing, log_matching_performance, log_user_activity, log_error
-
-# Standard library imports
+import asyncio
+import base64
+import io
 import os
 import secrets
+import sys
+import time
+import traceback
+
+from concurrent.futures import ThreadPoolExecutor
+from fastapi import FastAPI, HTTPException, Depends, Security, Response, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse, FileResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+from sqlalchemy import create_engine, text
+from sqlalchemy.pool import QueuePool
 import pyotp
 import qrcode
-import io
-import base64
-import time
-import asyncio
-import traceback
-import sys
 
-# Enhanced monitoring - graceful fallback for production
+from .monitoring import monitor, log_resume_processing, log_matching_performance, log_user_activity, log_error
 try:
     # Try to import from shared directory
     possible_shared_paths = [
@@ -1726,8 +1724,6 @@ async def submit_feedback(feedback: FeedbackSubmission, api_key: str = Depends(g
                          feedback.hard_work + feedback.gratitude) / 5,
         "submitted_at": datetime.now(timezone.utc).isoformat()
     }
-
-
 
 @app.get("/v1/interviews", tags=["Assessment & Workflow"])
 async def get_interviews(api_key: str = Depends(get_api_key)):

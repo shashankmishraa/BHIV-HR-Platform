@@ -1,22 +1,21 @@
+from contextlib import contextmanager
+from datetime import datetime, timezone
+from typing import List, Dict, Any
+import asyncio
+import json
+import logging
+import os
+import re
+import sys
+
 from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-import psycopg2
 from psycopg2 import pool
-import os
-import json
-from typing import List, Dict, Any
-import logging
-from datetime import datetime, timezone
-import sys
-import asyncio
+from pydantic import BaseModel
 import psutil
-import re
-from contextlib import contextmanager
-
-# Add semantic engine and shared modules to path
+import psycopg2
 services_path = os.path.join(os.path.dirname(__file__), '..')
 sys.path.insert(0, services_path)
 sys.path.insert(0, os.path.join(services_path, 'shared'))
@@ -178,8 +177,6 @@ if SEMANTIC_ENABLED:
         batch_matcher = None
         semantic_processor = None
 
-
-
 class MatchRequest(BaseModel):
     job_id: int
 
@@ -200,8 +197,6 @@ class MatchResponse(BaseModel):
     processing_time: float
     algorithm_version: str
     status: str
-
-
 
 @contextmanager
 def get_db_connection():

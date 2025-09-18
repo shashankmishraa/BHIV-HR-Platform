@@ -3,16 +3,15 @@ Enterprise Client Authentication Service
 Secure, scalable authentication with JWT tokens and bcrypt hashing
 """
 
-import bcrypt
-import jwt
-import os
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
+import logging
+import os
+
 from sqlalchemy import create_engine, text, MetaData, Table, Column, String, DateTime, Integer
 from sqlalchemy.exc import IntegrityError
-import logging
-
-# Configure logging
+import bcrypt
+import jwt
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 

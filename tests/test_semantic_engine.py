@@ -4,14 +4,13 @@ Comprehensive test suite for semantic engine functionality
 Tests all components and verifies proper integration
 """
 
-import sys
-import os
-import unittest
-import json
-import time
 from pathlib import Path
+import json
+import os
+import sys
+import time
 
-# Add project root to path
+import unittest
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 

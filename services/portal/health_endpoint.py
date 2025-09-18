@@ -1,9 +1,9 @@
 """
 Health endpoint for Streamlit HR Portal
 """
-import streamlit as st
 from datetime import datetime
 
+import streamlit as st
 def add_health_endpoint():
     """Add health check functionality to Streamlit app"""
     

@@ -1,9 +1,8 @@
 """
 SQL injection protection utilities
 """
-import re
 from typing import Any, Dict, List
-
+import re
 class SQLProtection:
     """Protects against SQL injection attacks"""
     

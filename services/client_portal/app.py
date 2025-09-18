@@ -1,9 +1,8 @@
-import streamlit as st
-import requests
 from datetime import datetime
-
-# Configuration
 import os
+
+import requests
+import streamlit as st
 API_BASE_URL = os.getenv("GATEWAY_URL", "http://gateway:8000")
 API_KEY = os.getenv("API_KEY_SECRET", "myverysecureapikey123")
 
@@ -120,9 +119,7 @@ def show_client_login():
                             st.error(f"❌ {result.get('error', 'Authentication failed')}")
                 else:
                     st.warning("⚠️ Please enter both Client ID and Password")
-            
 
-    
     with tab2:
         st.subheader("New Client Registration")
         with st.form("client_register"):

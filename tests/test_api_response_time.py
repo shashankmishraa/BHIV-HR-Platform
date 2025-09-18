@@ -4,10 +4,10 @@ Simple API Response Time Test
 Test individual API calls to identify bottlenecks
 """
 
-import requests
-import time
 from datetime import datetime
+import time
 
+import requests
 def test_single_api_call():
     """Test single API call response time"""
     api_base = "https://bhiv-hr-gateway.onrender.com"

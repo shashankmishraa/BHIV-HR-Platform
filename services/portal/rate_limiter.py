@@ -1,10 +1,9 @@
 """
 Rate limiting to prevent abuse and DoS attacks
 """
-import time
 from collections import defaultdict, deque
 from typing import Dict, Optional
-
+import time
 class RateLimiter:
     """Rate limiting implementation"""
     

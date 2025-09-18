@@ -2,9 +2,9 @@
 Final Verification Test - Port 8000 Enterprise Validation
 """
 
-import requests
 import time
 
+import requests
 BASE_URL = "http://localhost:8000"
 API_KEY = "myverysecureapikey123"
 HEADERS = {"Authorization": f"Bearer {API_KEY}"}

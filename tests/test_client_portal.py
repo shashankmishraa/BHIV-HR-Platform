@@ -1,6 +1,6 @@
-import requests
 import time
 
+import requests
 def test_client_portal_matching():
     """Test client portal AI matching functionality"""
     

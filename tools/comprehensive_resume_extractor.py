@@ -1,10 +1,10 @@
+from pathlib import Path
 import os
-import pandas as pd
+import re
+
 import PyPDF2
 import docx
-import re
-from pathlib import Path
-
+import pandas as pd
 class ComprehensiveResumeExtractor:
     def __init__(self, resume_folder="resume", output_csv="data/candidates.csv"):
         self.resume_folder = resume_folder

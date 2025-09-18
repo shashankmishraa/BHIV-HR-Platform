@@ -4,14 +4,13 @@ Dynamic Job Creator - Replaces create_demo_jobs.py
 Creates jobs dynamically based on real market data and client needs
 """
 
-import requests
-import json
-import random
 from datetime import datetime, timedelta
 from typing import List, Dict
+import json
 import os
 
-# API Configuration
+import random
+import requests
 API_BASE = os.getenv("GATEWAY_URL", "http://localhost:8000")
 API_KEY = os.getenv("API_KEY_SECRET", "myverysecureapikey123")
 headers = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}

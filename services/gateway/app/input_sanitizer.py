@@ -3,13 +3,13 @@ Input Sanitization and XSS Protection Module
 Comprehensive security layer for all user inputs
 """
 
-import re
-import html
-import bleach
 from typing import Any, Dict, List, Optional, Union
-from urllib.parse import quote, unquote
 import logging
+import re
 
+from urllib.parse import quote, unquote
+import bleach
+import html
 logger = logging.getLogger(__name__)
 
 class InputSanitizer:

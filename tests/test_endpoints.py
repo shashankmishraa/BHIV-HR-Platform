@@ -4,12 +4,11 @@ BHIV HR Platform - Endpoint Testing Script
 Tests all core endpoints to verify system functionality
 """
 
-import requests
+from datetime import datetime
 import json
 import time
-from datetime import datetime
 
-# Configuration
+import requests
 API_BASE = "http://localhost:8000"
 AI_BASE = "http://localhost:9000"
 API_KEY = "myverysecureapikey123"

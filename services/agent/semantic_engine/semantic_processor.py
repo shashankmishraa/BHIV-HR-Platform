@@ -1,11 +1,10 @@
-import re
-import numpy as np
 from typing import Dict, List, Tuple, Optional, Any
-from .model_manager import ModelManager
-from .job_matcher import SemanticJobMatcher
-from .advanced_matcher import AdvancedSemanticMatcher
 import logging
+import re
 
+from .advanced_matcher import AdvancedSemanticMatcher
+from .job_matcher import SemanticJobMatcher
+from .model_manager import ModelManager
 logger = logging.getLogger(__name__)
 
 class SemanticProcessor:

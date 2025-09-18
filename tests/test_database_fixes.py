@@ -4,10 +4,10 @@ BHIV HR Platform - Database Fixes Testing Suite
 Tests database schema fixes and data population
 """
 
-import requests
 import json
 import time
 
+import requests
 def test_database_fixes():
     """Test all database fixes and functionality"""
     base_url = "https://bhiv-hr-gateway.onrender.com"

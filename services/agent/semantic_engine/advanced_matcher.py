@@ -1,10 +1,10 @@
-import numpy as np
 from typing import Dict, List, Tuple, Any, Optional
-from .job_matcher import SemanticJobMatcher
 import logging
-from concurrent.futures import ThreadPoolExecutor
 import time
 
+from concurrent.futures import ThreadPoolExecutor
+
+from .job_matcher import SemanticJobMatcher
 logger = logging.getLogger(__name__)
 
 class AdvancedSemanticMatcher:

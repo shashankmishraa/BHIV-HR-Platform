@@ -4,13 +4,11 @@ Integration test for AI Agent service with semantic engine
 Tests the complete workflow from API endpoints to semantic matching
 """
 
-import sys
-import os
-import json
-import time
 from pathlib import Path
-
-# Add project root to path
+import json
+import os
+import sys
+import time
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
