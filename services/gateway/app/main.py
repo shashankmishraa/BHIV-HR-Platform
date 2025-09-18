@@ -886,7 +886,7 @@ async def get_top_matches(job_id: int, limit: int = 10, api_key: str = Depends(g
             "top_candidates": matches,
             "job_id": job_id, 
             "limit": limit, 
-            "algorithm_version": "v2.0.0-fallback",
+            "algorithm_version": "v3.0.0-semantic",
             "processing_time": "0.05s",
             "ai_analysis": "Database fallback matching with sample scoring"
         }

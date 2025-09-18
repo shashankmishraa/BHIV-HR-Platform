@@ -45,7 +45,7 @@ from fastapi.openapi.utils import get_openapi
 app = FastAPI(
     title="BHIV AI Matching Engine",
     description="Advanced AI-Powered Semantic Candidate Matching Service",
-    version="2.1.0"
+    version="3.1.0"
 )
 
 # Mount static files for favicon and assets
@@ -119,7 +119,7 @@ def custom_openapi():
         return app.openapi_schema
     openapi_schema = get_openapi(
         title="BHIV AI Matching Engine",
-        version="2.1.0",
+        version="3.1.0",
         description="Advanced AI-Powered Semantic Candidate Matching Service",
         routes=app.routes,
     )
@@ -337,7 +337,7 @@ def calculate_location_match(job_location: str, candidate_location: str) -> tupl
 def read_root():
     return {
         "service": "BHIV AI Agent",
-        "version": "2.1.0",
+        "version": "3.1.0",
         "semantic_engine": "enabled" if SEMANTIC_ENABLED else "fallback",
         "endpoints": {
             "match": "POST /match - Get top candidates for job",
@@ -357,7 +357,7 @@ def health_check():
     return {
         "status": "healthy",
         "service": "BHIV AI Agent",
-        "version": "2.1.0",
+        "version": "3.1.0",
         "semantic_engine": "enabled" if SEMANTIC_ENABLED else "fallback",
         "timestamp": datetime.now().isoformat(),
         "uptime": "operational",
