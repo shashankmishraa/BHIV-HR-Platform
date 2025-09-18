@@ -27,16 +27,17 @@ curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr
 ### **📚 Core Documentation**
 - **[📋 PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - ✅ Complete architecture and folder organization
 - **[🚀 DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** - ✅ Complete deployment instructions (Render + Local)
-- **[🔧 TECHNICAL_RESOLUTIONS.md](TECHNICAL_RESOLUTIONS.md)** - ✅ All technical issues and resolutions
+- **[🔧 docs/resolutions/TECHNICAL_RESOLUTIONS.md](docs/resolutions/TECHNICAL_RESOLUTIONS.md)** - ✅ All technical issues and resolutions
 - **[⚡ docs/QUICK_START_GUIDE.md](docs/QUICK_START_GUIDE.md)** - ✅ Get started in 5 minutes
 - **[🎯 docs/CURRENT_FEATURES.md](docs/CURRENT_FEATURES.md)** - ✅ Complete feature list and capabilities
 
 ### **🔧 Technical Guides**
 - **[🔍 docs/batch_upload_verification_guide.md](docs/batch_upload_verification_guide.md)** - ✅ Batch upload verification methods
-- **[🔒 docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md)** - Security analysis and features
+- **[🔒 docs/security/SECURITY_AUDIT.md](docs/security/SECURITY_AUDIT.md)** - Security analysis and features
 - **[🤖 docs/BIAS_ANALYSIS.md](docs/BIAS_ANALYSIS.md)** - AI bias analysis & mitigation
-- **[👥 docs/USER_GUIDE.md](docs/USER_GUIDE.md)** - Complete user manual
+- **[👥 docs/user/USER_GUIDE.md](docs/user/USER_GUIDE.md)** - Complete user manual
 - **[📝 docs/REFLECTION.md](docs/REFLECTION.md)** - ✅ Daily development reflections
+- **[📁 docs/README.md](docs/README.md)** - ✅ Complete documentation index
 
 ## ⚡ Quick Start
 
@@ -314,16 +315,18 @@ python tools/auto_sync_watcher.py
 
 ### **Complete Guides**
 - **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** - Complete deployment guide (Render + Local)
-- **[TECHNICAL_RESOLUTIONS.md](TECHNICAL_RESOLUTIONS.md)** - All technical issues and solutions
+- **[docs/resolutions/TECHNICAL_RESOLUTIONS.md](docs/resolutions/TECHNICAL_RESOLUTIONS.md)** - All technical issues and solutions
 - **[DEPLOYMENT_STATUS.md](DEPLOYMENT_STATUS.md)** - Current deployment status
+- **[docs/README.md](docs/README.md)** - Complete documentation index
 
 ### **Technical Documentation**
 - **[docs/REFLECTION.md](docs/REFLECTION.md)** - Daily development reflections with values
 - **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - Complete architecture guide
 - **[docs/BIAS_ANALYSIS.md](docs/BIAS_ANALYSIS.md)** - AI bias analysis & mitigation
-- **[docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md)** - Security analysis
-- **[docs/USER_GUIDE.md](docs/USER_GUIDE.md)** - Complete user manual
+- **[docs/security/SECURITY_AUDIT.md](docs/security/SECURITY_AUDIT.md)** - Security analysis
+- **[docs/user/USER_GUIDE.md](docs/user/USER_GUIDE.md)** - Complete user manual
 - **[docs/SERVICES_GUIDE.md](docs/SERVICES_GUIDE.md)** - Service architecture
+- **[ORGANIZATION_SUMMARY.md](ORGANIZATION_SUMMARY.md)** - Project organization summary
 
 ---
 
