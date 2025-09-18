@@ -178,8 +178,7 @@ if SEMANTIC_ENABLED:
         batch_matcher = None
         semantic_processor = None
 
-# Initialize connection pool after function definition
-initialize_connection_pool()
+
 
 class MatchRequest(BaseModel):
     job_id: int
@@ -202,31 +201,7 @@ class MatchResponse(BaseModel):
     algorithm_version: str
     status: str
 
-# Database connection pool for better resource management
-connection_pool = None
 
-def initialize_connection_pool():
-    """Initialize database connection pool"""
-    global connection_pool
-    try:
-        database_url = os.getenv("DATABASE_URL")
-        if database_url:
-            connection_pool = psycopg2.pool.SimpleConnectionPool(
-                1, 10, database_url
-            )
-        else:
-            connection_pool = psycopg2.pool.SimpleConnectionPool(
-                1, 10,
-                host=os.getenv("DB_HOST", "db"),
-                database=os.getenv("DB_NAME", "bhiv_hr"),
-                user=os.getenv("DB_USER", "bhiv_user"),
-                password=os.getenv("DB_PASSWORD", "bhiv_pass"),
-                port=os.getenv("DB_PORT", "5432")
-            )
-        logger.info("Database connection pool initialized")
-    except Exception as e:
-        logger.error(f"Failed to initialize connection pool: {sanitize_for_logging(str(e))}")
-        connection_pool = None
 
 @contextmanager
 def get_db_connection():
@@ -240,21 +215,17 @@ def get_db_connection():
     """
     conn = None
     try:
-        if connection_pool:
-            conn = connection_pool.getconn()
+        database_url = os.getenv("DATABASE_URL")
+        if database_url:
+            conn = psycopg2.connect(database_url)
         else:
-            # Fallback to direct connection
-            database_url = os.getenv("DATABASE_URL")
-            if database_url:
-                conn = psycopg2.connect(database_url)
-            else:
-                conn = psycopg2.connect(
-                    host=os.getenv("DB_HOST", "db"),
-                    database=os.getenv("DB_NAME", "bhiv_hr"),
-                    user=os.getenv("DB_USER", "bhiv_user"),
-                    password=os.getenv("DB_PASSWORD", "bhiv_pass"),
-                    port=os.getenv("DB_PORT", "5432")
-                )
+            conn = psycopg2.connect(
+                host=os.getenv("DB_HOST", "db"),
+                database=os.getenv("DB_NAME", "bhiv_hr"),
+                user=os.getenv("DB_USER", "bhiv_user"),
+                password=os.getenv("DB_PASSWORD", "bhiv_pass"),
+                port=os.getenv("DB_PORT", "5432")
+            )
         
         if not conn:
             raise HTTPException(status_code=500, detail="Database connection failed")
@@ -273,10 +244,7 @@ def get_db_connection():
     finally:
         if conn:
             try:
-                if connection_pool:
-                    connection_pool.putconn(conn)
-                else:
-                    conn.close()
+                conn.close()
             except Exception as e:
                 logger.error(f"Error closing connection: {sanitize_for_logging(str(e))}")
 
@@ -495,7 +463,7 @@ def test_database():
             "candidates_count": count,
             "samples": samples,
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "connection_pool": "healthy" if connection_pool else "direct"
+            "connection_pool": "direct"
         }
     except HTTPException:
         raise
@@ -887,7 +855,7 @@ def get_agent_status():
         "uptime": "healthy",
         "endpoints_available": endpoint_count,
         "database_connection": db_status,
-        "connection_pool": "active" if connection_pool else "direct",
+        "connection_pool": "direct",
         "last_health_check": datetime.now(timezone.utc).isoformat()
     }
 
@@ -930,7 +898,7 @@ def get_agent_metrics():
                     cursor.execute("SELECT COUNT(*) FROM candidates")
                     candidate_count = cursor.fetchone()[0]
                     db_status = "connected"
-                    db_connections = 1 if not connection_pool else connection_pool.minconn
+                    db_connections = 1
         except Exception:
             pass
         
@@ -939,7 +907,7 @@ def get_agent_metrics():
                 "database_status": db_status,
                 "total_candidates": candidate_count,
                 "semantic_engine_status": "enabled" if SEMANTIC_ENABLED else "fallback",
-                "connection_pool_status": "active" if connection_pool else "direct"
+                "connection_pool_status": "direct"
             },
             "performance_metrics": {
                 "cpu_usage_percent": round(cpu_percent, 2),
