@@ -1,0 +1,268 @@
+{
+  "overall_status": "POOR",
+  "message": "AI matching requires significant performance improvements",
+  "max_concurrent_users": 3,
+  "breaking_point": 5,
+  "recommendations": [
+    "AI matching requires significant performance improvements",
+    "Maximum concurrent users handled successfully: 3",
+    "Performance degrades at 5 concurrent users",
+    "Consider implementing caching or load balancing",
+    "Response times are high - consider database optimization"
+  ],
+  "detailed_results": {
+    "1": {
+      "status": "GOOD",
+      "concurrent_users": 1,
+      "total_requests": 3,
+      "successful_requests": 3,
+      "failed_requests": 0,
+      "success_rate": 1.0,
+      "error_rate": 0.0,
+      "avg_response_time": 0.9899036089579264,
+      "min_response_time": 0.970999002456665,
+      "max_response_time": 1.0014595985412598,
+      "p50_response_time": 0.9972522258758545,
+      "p95_response_time": 1.0014595985412598,
+      "p99_response_time": 1.0014595985412598,
+      "throughput_rps": 1.0085540537616051,
+      "avg_candidates_returned": 0,
+      "total_time": 2.974555492401123,
+      "performance_checks": {
+        "avg_response_time": true,
+        "max_response_time": true,
+        "error_rate": true,
+        "throughput": false
+      },
+      "thresholds": {
+        "max_response_time": 5.0,
+        "avg_response_time": 2.0,
+        "error_rate": 0.05,
+        "min_throughput": 5.0,
+        "concurrent_users_target": 20
+      }
+    },
+    "3": {
+      "status": "GOOD",
+      "concurrent_users": 3,
+      "total_requests": 9,
+      "successful_requests": 9,
+      "failed_requests": 0,
+      "success_rate": 1.0,
+      "error_rate": 0.0,
+      "avg_response_time": 1.6999741130405002,
+      "min_response_time": 0.9259765148162842,
+      "max_response_time": 2.3109915256500244,
+      "p50_response_time": 1.8037760257720947,
+      "p95_response_time": 2.3109915256500244,
+      "p99_response_time": 2.3109915256500244,
+      "throughput_rps": 1.5684896783482964,
+      "avg_candidates_returned": 0,
+      "total_time": 5.738003969192505,
+      "performance_checks": {
+        "avg_response_time": true,
+        "max_response_time": true,
+        "error_rate": true,
+        "throughput": false
+      },
+      "thresholds": {
+        "max_response_time": 5.0,
+        "avg_response_time": 2.0,
+        "error_rate": 0.05,
+        "min_throughput": 5.0,
+        "concurrent_users_target": 20
+      }
+    },
+    "5": {
+      "status": "ACCEPTABLE",
+      "concurrent_users": 5,
+      "total_requests": 15,
+      "successful_requests": 15,
+      "failed_requests": 0,
+      "success_rate": 1.0,
+      "error_rate": 0.0,
+      "avg_response_time": 2.7694368998209637,
+      "min_response_time": 1.444244623184204,
+      "max_response_time": 3.8290164470672607,
+      "p50_response_time": 2.6881768703460693,
+      "p95_response_time": 3.8290164470672607,
+      "p99_response_time": 3.8290164470672607,
+      "throughput_rps": 1.6905655704878473,
+      "avg_candidates_returned": 0,
+      "total_time": 8.872770309448242,
+      "performance_checks": {
+        "avg_response_time": false,
+        "max_response_time": true,
+        "error_rate": true,
+        "throughput": false
+      },
+      "thresholds": {
+        "max_response_time": 5.0,
+        "avg_response_time": 2.0,
+        "error_rate": 0.05,
+        "min_throughput": 5.0,
+        "concurrent_users_target": 20
+      }
+    },
+    "10": {
+      "status": "POOR",
+      "concurrent_users": 10,
+      "total_requests": 30,
+      "successful_requests": 30,
+      "failed_requests": 0,
+      "success_rate": 1.0,
+      "error_rate": 0.0,
+      "avg_response_time": 5.570193123817444,
+      "min_response_time": 1.6408896446228027,
+      "max_response_time": 7.131539583206177,
+      "p50_response_time": 5.836986303329468,
+      "p95_response_time": 6.045882225036621,
+      "p99_response_time": 7.131539583206177,
+      "throughput_rps": 1.7096125994560805,
+      "avg_candidates_returned": 0,
+      "total_time": 17.547835111618042,
+      "performance_checks": {
+        "avg_response_time": false,
+        "max_response_time": false,
+        "error_rate": true,
+        "throughput": false
+      },
+      "thresholds": {
+        "max_response_time": 5.0,
+        "avg_response_time": 2.0,
+        "error_rate": 0.05,
+        "min_throughput": 5.0,
+        "concurrent_users_target": 20
+      }
+    },
+    "15": {
+      "status": "POOR",
+      "concurrent_users": 15,
+      "total_requests": 45,
+      "successful_requests": 45,
+      "failed_requests": 0,
+      "success_rate": 1.0,
+      "error_rate": 0.0,
+      "avg_response_time": 8.298112763298882,
+      "min_response_time": 0.9459013938903809,
+      "max_response_time": 17.25280451774597,
+      "p50_response_time": 8.521947145462036,
+      "p95_response_time": 9.005697965621948,
+      "p99_response_time": 17.25280451774597,
+      "throughput_rps": 1.6958394360140108,
+      "avg_candidates_returned": 0,
+      "total_time": 26.535531044006348,
+      "performance_checks": {
+        "avg_response_time": false,
+        "max_response_time": false,
+        "error_rate": true,
+        "throughput": false
+      },
+      "thresholds": {
+        "max_response_time": 5.0,
+        "avg_response_time": 2.0,
+        "error_rate": 0.05,
+        "min_throughput": 5.0,
+        "concurrent_users_target": 20
+      }
+    },
+    "20": {
+      "status": "POOR",
+      "concurrent_users": 20,
+      "total_requests": 60,
+      "successful_requests": 60,
+      "failed_requests": 0,
+      "success_rate": 1.0,
+      "error_rate": 0.0,
+      "avg_response_time": 10.967412531375885,
+      "min_response_time": 1.072744607925415,
+      "max_response_time": 23.74698042869568,
+      "p50_response_time": 11.16595196723938,
+      "p95_response_time": 14.907786846160889,
+      "p99_response_time": 23.74698042869568,
+      "throughput_rps": 1.6754697351665415,
+      "avg_candidates_returned": 0,
+      "total_time": 35.81085276603699,
+      "performance_checks": {
+        "avg_response_time": false,
+        "max_response_time": false,
+        "error_rate": true,
+        "throughput": false
+      },
+      "thresholds": {
+        "max_response_time": 5.0,
+        "avg_response_time": 2.0,
+        "error_rate": 0.05,
+        "min_throughput": 5.0,
+        "concurrent_users_target": 20
+      }
+    },
+    "25": {
+      "status": "POOR",
+      "concurrent_users": 25,
+      "total_requests": 75,
+      "successful_requests": 75,
+      "failed_requests": 0,
+      "success_rate": 1.0,
+      "error_rate": 0.0,
+      "avg_response_time": 13.370069290796916,
+      "min_response_time": 0.934394359588623,
+      "max_response_time": 27.371593713760376,
+      "p50_response_time": 13.645408630371094,
+      "p95_response_time": 14.926697492599487,
+      "p99_response_time": 27.371593713760376,
+      "throughput_rps": 1.7247471861792667,
+      "avg_candidates_returned": 0,
+      "total_time": 43.484633922576904,
+      "performance_checks": {
+        "avg_response_time": false,
+        "max_response_time": false,
+        "error_rate": true,
+        "throughput": false
+      },
+      "thresholds": {
+        "max_response_time": 5.0,
+        "avg_response_time": 2.0,
+        "error_rate": 0.05,
+        "min_throughput": 5.0,
+        "concurrent_users_target": 20
+      }
+    },
+    "30": {
+      "status": "POOR",
+      "concurrent_users": 30,
+      "total_requests": 90,
+      "successful_requests": 86,
+      "failed_requests": 4,
+      "success_rate": 0.9555555555555556,
+      "error_rate": 0.044444444444444446,
+      "avg_response_time": 16.102528818818026,
+      "min_response_time": 1.4668281078338623,
+      "max_response_time": 19.999481439590454,
+      "p50_response_time": 16.87323832511902,
+      "p95_response_time": 17.89261817932129,
+      "p99_response_time": 19.999481439590454,
+      "throughput_rps": 1.630077247310335,
+      "avg_candidates_returned": 0,
+      "total_time": 52.758235931396484,
+      "performance_checks": {
+        "avg_response_time": false,
+        "max_response_time": false,
+        "error_rate": true,
+        "throughput": false
+      },
+      "thresholds": {
+        "max_response_time": 5.0,
+        "avg_response_time": 2.0,
+        "error_rate": 0.05,
+        "min_throughput": 5.0,
+        "concurrent_users_target": 20
+      }
+    }
+  },
+  "test_summary": {
+    "total_test_levels": 8,
+    "successful_levels": 2,
+    "test_timestamp": "2025-09-18T11:11:08.138473"
+  }
+}
