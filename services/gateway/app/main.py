@@ -808,6 +808,16 @@ async def search_candidates(skills: Optional[str] = None, location: Optional[str
         location = location.strip()[:100]
     
     try:
+        # Check if status column exists first with separate connection
+        has_status_column = False
+        try:
+            schema_engine = get_db_engine()
+            with schema_engine.connect() as schema_conn:
+                schema_conn.execute(text("SELECT status FROM candidates LIMIT 1"))
+                has_status_column = True
+        except Exception:
+            has_status_column = False
+        
         engine = get_db_engine()
         with engine.connect() as connection:
             # Build dynamic query
@@ -825,13 +835,6 @@ async def search_candidates(skills: Optional[str] = None, location: Optional[str
             if experience_min is not None:
                 where_conditions.append("experience_years >= :experience_min")
                 params["experience_min"] = experience_min
-            
-            # Check if status column exists
-            try:
-                connection.execute(text("SELECT status FROM candidates LIMIT 1"))
-                has_status_column = True
-            except Exception:
-                has_status_column = False
             
             # Build query based on schema
             if has_status_column:
@@ -890,13 +893,17 @@ async def bulk_upload_candidates(candidates: CandidateBulk, api_key: str = Depen
         inserted_count = 0
         errors = []
         
-        with engine.connect() as connection:
-            # Check if status column exists
-            try:
-                connection.execute(text("SELECT status FROM candidates LIMIT 1"))
+        # Check if status column exists first
+        has_status_column = False
+        try:
+            schema_engine = get_db_engine()
+            with schema_engine.connect() as schema_conn:
+                schema_conn.execute(text("SELECT status FROM candidates LIMIT 1"))
                 has_status_column = True
-            except Exception:
-                has_status_column = False
+        except Exception:
+            has_status_column = False
+        
+        with engine.connect() as connection:
             
             for i, candidate in enumerate(candidates.candidates):
                 try:
@@ -1098,25 +1105,25 @@ async def create_job_offer(offer: JobOffer, api_key: str = Depends(get_api_key))
 async def run_database_migration(api_key: str = Depends(get_api_key)):
     """Run Database Migration to Fix Schema Issues"""
     try:
-        engine = get_db_engine()
-        with engine.connect() as connection:
-            try:
-                connection.execute(text("SELECT status FROM candidates LIMIT 1"))
+        # Check if status column exists first
+        try:
+            check_engine = get_db_engine()
+            with check_engine.connect() as check_conn:
+                check_conn.execute(text("SELECT status FROM candidates LIMIT 1"))
                 return {
                     "message": "Database schema is already up to date",
                     "status_column_exists": True,
                     "migration_needed": False
                 }
-            except Exception:
-                pass
-            
-            migration_sql = """
-                ALTER TABLE candidates ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active';
-                UPDATE candidates SET status = 'active' WHERE status IS NULL;
-                CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status);
-            """
-            
-            connection.execute(text(migration_sql))
+        except Exception:
+            pass
+        
+        # Run migration with autocommit
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            connection.execute(text("ALTER TABLE candidates ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active'"))
+            connection.execute(text("UPDATE candidates SET status = 'active' WHERE status IS NULL"))
+            connection.execute(text("CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status)"))
             connection.commit()
             
             return {
