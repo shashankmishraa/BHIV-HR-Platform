@@ -8,7 +8,7 @@ favicon_path = os.path.join(os.path.dirname(__file__), "static", "favicon.ico")
 page_icon = favicon_path if os.path.exists(favicon_path) else "🎯"
 
 st.set_page_config(
-    page_title="BHIV HR Platform v2.0", 
+    page_title="BHIV HR Platform v3.2.0", 
     page_icon=page_icon, 
     layout="wide"
 )

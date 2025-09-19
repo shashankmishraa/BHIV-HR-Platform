@@ -62,7 +62,7 @@ from fastapi.openapi.utils import get_openapi
 app = FastAPI(
     title="BHIV AI Matching Engine",
     description="Advanced AI-Powered Semantic Candidate Matching Service",
-    version="3.1.0"
+    version="3.2.0"
 )
 
 # Mount static files for favicon and assets
