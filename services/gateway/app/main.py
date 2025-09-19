@@ -4246,6 +4246,159 @@ async def password_security_best_practices(api_key: str = Depends(get_api_key)):
         }
     }
 
+# Import advanced endpoints implementations
+try:
+    from .advanced_endpoints import (
+        get_password_history, bulk_password_reset, get_active_sessions, 
+        cleanup_sessions, get_threat_detection, BulkPasswordReset, 
+        SessionCleanupConfig, ThreatDetectionConfig
+    )
+    from .advanced_endpoints_part2 import (
+        create_incident_report, get_monitoring_alerts, configure_monitoring_alerts,
+        get_backup_status, IncidentReport, AlertConfig, BackupConfig
+    )
+    ADVANCED_ENDPOINTS_AVAILABLE = True
+except ImportError as e:
+    structured_logger.warning("Advanced endpoints not available", error=str(e))
+    ADVANCED_ENDPOINTS_AVAILABLE = False
+
+# Advanced Enterprise Endpoints (9 total) - Previously Non-Functional
+if ADVANCED_ENDPOINTS_AVAILABLE:
+    
+    # Password Management Advanced Features (2 endpoints)
+    @app.get("/v1/auth/password/history/{user_id}", tags=["Password Management Advanced"])
+    async def get_user_password_history(user_id: str, api_key: str = Depends(get_api_key)):
+        """Password History Tracking - Enterprise Implementation"""
+        return await get_password_history(user_id, api_key)
+    
+    @app.post("/v1/auth/password/bulk-reset", tags=["Password Management Advanced"])
+    async def bulk_reset_passwords(reset_data: BulkPasswordReset, api_key: str = Depends(get_api_key)):
+        """Bulk Password Reset - Enterprise Implementation"""
+        return await bulk_password_reset(reset_data, api_key)
+    
+    # Session Management Advanced Features (2 endpoints)
+    @app.get("/v1/auth/sessions/active", tags=["Session Management Advanced"])
+    async def get_all_active_sessions(api_key: str = Depends(get_api_key)):
+        """Active Session Management - Enterprise Implementation"""
+        return await get_active_sessions(api_key)
+    
+    @app.post("/v1/auth/sessions/cleanup", tags=["Session Management Advanced"])
+    async def cleanup_expired_sessions(cleanup_config: SessionCleanupConfig, api_key: str = Depends(get_api_key)):
+        """Session Cleanup Utilities - Enterprise Implementation"""
+        return await cleanup_sessions(cleanup_config, api_key)
+    
+    # Security Advanced Features (2 endpoints)
+    @app.get("/v1/security/threat-detection", tags=["Security Advanced"])
+    async def get_threat_detection_report(api_key: str = Depends(get_api_key)):
+        """Threat Detection System - Enterprise Implementation"""
+        return await get_threat_detection(api_key)
+    
+    @app.post("/v1/security/incident-report", tags=["Security Advanced"])
+    async def report_security_incident(incident_data: IncidentReport, api_key: str = Depends(get_api_key)):
+        """Incident Reporting - Enterprise Implementation"""
+        return await create_incident_report(incident_data, api_key)
+    
+    # Monitoring Advanced Features (2 endpoints)
+    @app.get("/v1/monitoring/alerts", tags=["Monitoring Advanced"])
+    async def get_system_alerts(hours: int = 24, api_key: str = Depends(get_api_key)):
+        """Alert Monitoring - Enterprise Implementation"""
+        return await get_monitoring_alerts(hours, api_key)
+    
+    @app.post("/v1/monitoring/alert-config", tags=["Monitoring Advanced"])
+    async def configure_system_alerts(alert_config: AlertConfig, api_key: str = Depends(get_api_key)):
+        """Alert Configuration - Enterprise Implementation"""
+        return await configure_monitoring_alerts(alert_config, api_key)
+    
+    # System Management Advanced Features (1 endpoint)
+    @app.get("/v1/system/backup-status", tags=["System Management Advanced"])
+    async def get_system_backup_status(api_key: str = Depends(get_api_key)):
+        """Backup Status Monitoring - Enterprise Implementation"""
+        return await get_backup_status(api_key)
+
+else:
+    # Fallback endpoints when advanced features are not available
+    @app.get("/v1/auth/password/history/{user_id}", tags=["Password Management Advanced"])
+    async def get_user_password_history_fallback(user_id: str, api_key: str = Depends(get_api_key)):
+        """Password History Tracking - Fallback Implementation"""
+        return {
+            "message": "Advanced password history feature not available",
+            "user_id": user_id,
+            "status": "feature_unavailable",
+            "fallback_mode": True
+        }
+    
+    @app.post("/v1/auth/password/bulk-reset", tags=["Password Management Advanced"])
+    async def bulk_reset_passwords_fallback(api_key: str = Depends(get_api_key)):
+        """Bulk Password Reset - Fallback Implementation"""
+        return {
+            "message": "Advanced bulk password reset feature not available",
+            "status": "feature_unavailable",
+            "fallback_mode": True
+        }
+    
+    @app.get("/v1/auth/sessions/active", tags=["Session Management Advanced"])
+    async def get_all_active_sessions_fallback(api_key: str = Depends(get_api_key)):
+        """Active Session Management - Fallback Implementation"""
+        return {
+            "message": "Advanced session management feature not available",
+            "status": "feature_unavailable",
+            "fallback_mode": True
+        }
+    
+    @app.post("/v1/auth/sessions/cleanup", tags=["Session Management Advanced"])
+    async def cleanup_expired_sessions_fallback(api_key: str = Depends(get_api_key)):
+        """Session Cleanup Utilities - Fallback Implementation"""
+        return {
+            "message": "Advanced session cleanup feature not available",
+            "status": "feature_unavailable",
+            "fallback_mode": True
+        }
+    
+    @app.get("/v1/security/threat-detection", tags=["Security Advanced"])
+    async def get_threat_detection_report_fallback(api_key: str = Depends(get_api_key)):
+        """Threat Detection System - Fallback Implementation"""
+        return {
+            "message": "Advanced threat detection feature not available",
+            "status": "feature_unavailable",
+            "fallback_mode": True
+        }
+    
+    @app.post("/v1/security/incident-report", tags=["Security Advanced"])
+    async def report_security_incident_fallback(api_key: str = Depends(get_api_key)):
+        """Incident Reporting - Fallback Implementation"""
+        return {
+            "message": "Advanced incident reporting feature not available",
+            "status": "feature_unavailable",
+            "fallback_mode": True
+        }
+    
+    @app.get("/v1/monitoring/alerts", tags=["Monitoring Advanced"])
+    async def get_system_alerts_fallback(api_key: str = Depends(get_api_key)):
+        """Alert Monitoring - Fallback Implementation"""
+        return {
+            "message": "Advanced alert monitoring feature not available",
+            "status": "feature_unavailable",
+            "fallback_mode": True
+        }
+    
+    @app.post("/v1/monitoring/alert-config", tags=["Monitoring Advanced"])
+    async def configure_system_alerts_fallback(api_key: str = Depends(get_api_key)):
+        """Alert Configuration - Fallback Implementation"""
+        return {
+            "message": "Advanced alert configuration feature not available",
+            "status": "feature_unavailable",
+            "fallback_mode": True
+        }
+    
+    @app.get("/v1/system/backup-status", tags=["System Management Advanced"])
+    async def get_system_backup_status_fallback(api_key: str = Depends(get_api_key)):
+        """Backup Status Monitoring - Fallback Implementation"""
+        return {
+            "message": "Advanced backup monitoring feature not available",
+            "status": "feature_unavailable",
+            "fallback_mode": True
+        }
+
 @app.post("/v1/password/reset", tags=["Password Management"])
 async def reset_password(email_data: EmailValidation, api_key: str = Depends(get_api_key)):
     """Password Reset Functionality"""

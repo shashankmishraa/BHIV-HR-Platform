@@ -1,26 +1,21 @@
+#!/usr/bin/env python3
 """
-Advanced Authentication Manager
-Handles 2FA, API key management, and session management
+Enhanced Authentication Manager
+Provides comprehensive authentication, session management, and security features
 """
 
-import secrets
 import hashlib
+import secrets
+import time
+import jwt
 import pyotp
 import qrcode
 import io
 import base64
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional, Any
-from dataclasses import dataclass
 from enum import Enum
-import json
-import jwt
-
-class AuthenticationMethod(Enum):
-    API_KEY = "api_key"
-    JWT_TOKEN = "jwt_token"
-    TWO_FACTOR = "2fa"
-    SESSION = "session"
+from dataclasses import dataclass, field
 
 class UserRole(Enum):
     ADMIN = "admin"
@@ -38,20 +33,11 @@ class User:
     is_active: bool = True
     two_factor_enabled: bool = False
     two_factor_secret: Optional[str] = None
-    created_at: datetime = None
+    password_hash: Optional[str] = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     last_login: Optional[datetime] = None
-
-@dataclass
-class APIKey:
-    key_id: str
-    key_hash: str
-    name: str
-    user_id: str
-    permissions: List[str]
-    created_at: datetime
-    expires_at: Optional[datetime] = None
-    last_used: Optional[datetime] = None
-    is_active: bool = True
+    failed_login_attempts: int = 0
+    account_locked_until: Optional[datetime] = None
 
 @dataclass
 class Session:
@@ -62,56 +48,82 @@ class Session:
     ip_address: str
     user_agent: str
     is_active: bool = True
+    last_activity: Optional[datetime] = None
+    session_type: str = "web"
+    two_factor_verified: bool = False
 
-class AuthenticationManager:
-    """Comprehensive authentication management system"""
-    
+@dataclass
+class APIKey:
+    key_id: str
+    api_key: str
+    user_id: str
+    name: str
+    permissions: List[str]
+    created_at: datetime
+    expires_at: Optional[datetime] = None
+    is_active: bool = True
+    last_used: Optional[datetime] = None
+
+class AuthManager:
     def __init__(self):
         self.users: Dict[str, User] = {}
-        self.api_keys: Dict[str, APIKey] = {}
         self.sessions: Dict[str, Session] = {}
+        self.api_keys: Dict[str, APIKey] = {}
+        self.password_history: Dict[str, List[Dict[str, Any]]] = {}
         self.jwt_secret = secrets.token_urlsafe(32)
-        self.session_timeout = timedelta(hours=24)
-        self.api_key_timeout = timedelta(days=90)
         
-        # Initialize demo users
+        # Initialize with demo users
         self._initialize_demo_users()
     
     def _initialize_demo_users(self):
         """Initialize demo users for testing"""
         demo_users = [
-            User(
-                user_id="user_001",
-                username="admin",
-                email="admin@bhiv.com",
-                role=UserRole.ADMIN,
-                created_at=datetime.now(timezone.utc)
-            ),
-            User(
-                user_id="user_002", 
-                username="hr_manager",
-                email="hr@bhiv.com",
-                role=UserRole.HR_MANAGER,
-                created_at=datetime.now(timezone.utc)
-            ),
-            User(
-                user_id="user_003",
-                username="TECH001",
-                email="tech001@client.com",
-                role=UserRole.CLIENT,
-                created_at=datetime.now(timezone.utc)
-            )
+            {
+                "user_id": "demo_user",
+                "username": "demo_user",
+                "email": "demo@bhiv.com",
+                "role": UserRole.CLIENT
+            },
+            {
+                "user_id": "admin_user",
+                "username": "admin",
+                "email": "admin@bhiv.com", 
+                "role": UserRole.ADMIN
+            },
+            {
+                "user_id": "hr_manager",
+                "username": "hr_manager",
+                "email": "hr@bhiv.com",
+                "role": UserRole.HR_MANAGER
+            }
         ]
         
-        for user in demo_users:
+        for user_data in demo_users:
+            user = User(**user_data)
             self.users[user.user_id] = user
     
-    def setup_2fa(self, user_id: str) -> Dict[str, Any]:
-        """Setup 2FA for a user"""
-        if user_id not in self.users:
-            raise ValueError("User not found")
+    def get_user_info(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """Get user information"""
+        user = self.users.get(user_id)
+        if not user:
+            return None
         
-        user = self.users[user_id]
+        return {
+            "user_id": user.user_id,
+            "username": user.username,
+            "email": user.email,
+            "role": user.role.value,
+            "is_active": user.is_active,
+            "two_factor_enabled": user.two_factor_enabled,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+            "last_login": user.last_login.isoformat() if user.last_login else None
+        }
+    
+    def setup_2fa(self, user_id: str) -> Dict[str, Any]:
+        """Setup 2FA for user"""
+        user = self.users.get(user_id)
+        if not user:
+            raise ValueError("User not found")
         
         # Generate secret
         secret = pyotp.random_base32()
@@ -123,6 +135,7 @@ class AuthenticationManager:
             issuer_name="BHIV HR Platform"
         )
         
+        # Create QR code
         qr = qrcode.QRCode(version=1, box_size=10, border=5)
         qr.add_data(totp_uri)
         qr.make(fit=True)
@@ -130,191 +143,94 @@ class AuthenticationManager:
         img = qr.make_image(fill_color="black", back_color="white")
         img_buffer = io.BytesIO()
         img.save(img_buffer, format='PNG')
-        img_str = base64.b64encode(img_buffer.getvalue()).decode()
+        img_buffer.seek(0)
+        qr_code_b64 = base64.b64encode(img_buffer.getvalue()).decode()
+        
+        # Generate backup codes
+        backup_codes = [f"BACKUP-{secrets.token_hex(4).upper()}" for _ in range(10)]
         
         return {
-            "user_id": user_id,
             "secret": secret,
-            "qr_code": f"data:image/png;base64,{img_str}",
+            "qr_code": f"data:image/png;base64,{qr_code_b64}",
             "manual_entry_key": secret,
-            "backup_codes": self._generate_backup_codes(),
+            "backup_codes": backup_codes,
             "setup_complete": False
         }
     
     def verify_2fa_setup(self, user_id: str, token: str) -> bool:
-        """Verify 2FA setup with token"""
-        if user_id not in self.users:
-            return False
-        
-        user = self.users[user_id]
-        if not user.two_factor_secret:
+        """Verify 2FA setup token"""
+        user = self.users.get(user_id)
+        if not user or not user.two_factor_secret:
             return False
         
         totp = pyotp.TOTP(user.two_factor_secret)
         if totp.verify(token, valid_window=1):
             user.two_factor_enabled = True
             return True
-        
         return False
     
     def verify_2fa_token(self, user_id: str, token: str) -> bool:
-        """Verify 2FA token for authentication"""
-        if user_id not in self.users:
-            return False
-        
-        user = self.users[user_id]
-        if not user.two_factor_enabled or not user.two_factor_secret:
+        """Verify 2FA token for login"""
+        user = self.users.get(user_id)
+        if not user or not user.two_factor_enabled or not user.two_factor_secret:
             return False
         
         totp = pyotp.TOTP(user.two_factor_secret)
         return totp.verify(token, valid_window=1)
     
     def disable_2fa(self, user_id: str) -> bool:
-        """Disable 2FA for a user"""
-        if user_id not in self.users:
+        """Disable 2FA for user"""
+        user = self.users.get(user_id)
+        if not user:
             return False
         
-        user = self.users[user_id]
         user.two_factor_enabled = False
         user.two_factor_secret = None
         return True
     
-    def generate_api_key(self, user_id: str, name: str, permissions: List[str] = None) -> Dict[str, Any]:
-        """Generate new API key for user"""
-        if user_id not in self.users:
-            raise ValueError("User not found")
-        
-        # Generate key
-        api_key = secrets.token_urlsafe(32)
-        key_id = f"key_{secrets.token_hex(8)}"
-        key_hash = hashlib.sha256(api_key.encode()).hexdigest()
-        
-        # Create API key record
-        api_key_record = APIKey(
-            key_id=key_id,
-            key_hash=key_hash,
-            name=name,
-            user_id=user_id,
-            permissions=permissions or ["read", "write"],
-            created_at=datetime.now(timezone.utc),
-            expires_at=datetime.now(timezone.utc) + self.api_key_timeout
-        )
-        
-        self.api_keys[key_id] = api_key_record
-        
-        return {
-            "key_id": key_id,
-            "api_key": api_key,
-            "name": name,
-            "permissions": api_key_record.permissions,
-            "expires_at": api_key_record.expires_at.isoformat(),
-            "created_at": api_key_record.created_at.isoformat()
-        }
-    
-    def validate_api_key(self, api_key: str) -> Optional[Dict[str, Any]]:
-        """Validate API key and return metadata"""
-        key_hash = hashlib.sha256(api_key.encode()).hexdigest()
-        
-        for key_record in self.api_keys.values():
-            if (key_record.key_hash == key_hash and 
-                key_record.is_active and
-                (not key_record.expires_at or key_record.expires_at > datetime.now(timezone.utc))):
-                
-                # Update last used
-                key_record.last_used = datetime.now(timezone.utc)
-                
-                return {
-                    "key_id": key_record.key_id,
-                    "user_id": key_record.user_id,
-                    "permissions": key_record.permissions,
-                    "name": key_record.name
-                }
-        
-        return None
-    
-    def list_api_keys(self, user_id: str) -> List[Dict[str, Any]]:
-        """List API keys for user"""
-        user_keys = []
-        for key_record in self.api_keys.values():
-            if key_record.user_id == user_id and key_record.is_active:
-                user_keys.append({
-                    "key_id": key_record.key_id,
-                    "name": key_record.name,
-                    "permissions": key_record.permissions,
-                    "created_at": key_record.created_at.isoformat(),
-                    "expires_at": key_record.expires_at.isoformat() if key_record.expires_at else None,
-                    "last_used": key_record.last_used.isoformat() if key_record.last_used else None
-                })
-        
-        return user_keys
-    
-    def revoke_api_key(self, key_id: str) -> bool:
-        """Revoke API key"""
-        if key_id in self.api_keys:
-            self.api_keys[key_id].is_active = False
-            return True
-        return False
-    
-    def create_session(self, user_id: str, ip_address: str, user_agent: str) -> str:
+    def create_session(self, user_id: str, ip_address: str = "unknown", user_agent: str = "unknown") -> str:
         """Create new session"""
-        if user_id not in self.users:
-            raise ValueError("User not found")
-        
         session_id = secrets.token_urlsafe(32)
+        current_time = datetime.now(timezone.utc)
+        
         session = Session(
             session_id=session_id,
             user_id=user_id,
-            created_at=datetime.now(timezone.utc),
-            expires_at=datetime.now(timezone.utc) + self.session_timeout,
+            created_at=current_time,
+            expires_at=current_time + timedelta(hours=24),
             ip_address=ip_address,
-            user_agent=user_agent
+            user_agent=user_agent,
+            last_activity=current_time
         )
         
         self.sessions[session_id] = session
         
         # Update user last login
-        self.users[user_id].last_login = datetime.now(timezone.utc)
+        user = self.users.get(user_id)
+        if user:
+            user.last_login = current_time
         
         return session_id
     
-    def validate_session(self, session_id: str) -> Optional[Dict[str, Any]]:
-        """Validate session"""
-        if session_id not in self.sessions:
-            return None
-        
-        session = self.sessions[session_id]
-        
-        if (session.is_active and 
-            session.expires_at > datetime.now(timezone.utc)):
-            
-            return {
-                "session_id": session_id,
-                "user_id": session.user_id,
-                "created_at": session.created_at.isoformat(),
-                "expires_at": session.expires_at.isoformat(),
-                "ip_address": session.ip_address
-            }
-        
-        return None
-    
     def invalidate_session(self, session_id: str) -> bool:
         """Invalidate session"""
-        if session_id in self.sessions:
-            self.sessions[session_id].is_active = False
+        session = self.sessions.get(session_id)
+        if session:
+            session.is_active = False
             return True
         return False
     
-    def generate_jwt_token(self, user_id: str, permissions: List[str] = None) -> str:
+    def generate_jwt_token(self, user_id: str, permissions: List[str]) -> str:
         """Generate JWT token"""
-        if user_id not in self.users:
+        user = self.users.get(user_id)
+        if not user:
             raise ValueError("User not found")
         
-        user = self.users[user_id]
         payload = {
             "user_id": user_id,
             "username": user.username,
             "role": user.role.value,
-            "permissions": permissions or ["read"],
+            "permissions": permissions,
             "iat": datetime.now(timezone.utc),
             "exp": datetime.now(timezone.utc) + timedelta(hours=24)
         }
@@ -331,26 +247,99 @@ class AuthenticationManager:
         except jwt.InvalidTokenError:
             return None
     
-    def _generate_backup_codes(self) -> List[str]:
-        """Generate backup codes for 2FA"""
-        return [f"BACKUP-{secrets.token_hex(4).upper()}" for _ in range(10)]
-    
-    def get_user_info(self, user_id: str) -> Optional[Dict[str, Any]]:
-        """Get user information"""
-        if user_id not in self.users:
-            return None
+    def generate_api_key(self, user_id: str, name: str, permissions: List[str]) -> Dict[str, Any]:
+        """Generate API key"""
+        key_id = f"key_{secrets.token_hex(8)}"
+        api_key = f"bhiv_{secrets.token_urlsafe(32)}"
+        current_time = datetime.now(timezone.utc)
         
-        user = self.users[user_id]
+        api_key_obj = APIKey(
+            key_id=key_id,
+            api_key=api_key,
+            user_id=user_id,
+            name=name,
+            permissions=permissions,
+            created_at=current_time,
+            expires_at=current_time + timedelta(days=90)
+        )
+        
+        self.api_keys[key_id] = api_key_obj
+        
         return {
-            "user_id": user.user_id,
-            "username": user.username,
-            "email": user.email,
-            "role": user.role.value,
-            "is_active": user.is_active,
-            "two_factor_enabled": user.two_factor_enabled,
-            "created_at": user.created_at.isoformat() if user.created_at else None,
-            "last_login": user.last_login.isoformat() if user.last_login else None
+            "key_id": key_id,
+            "api_key": api_key,
+            "name": name,
+            "permissions": permissions,
+            "created_at": current_time.isoformat(),
+            "expires_at": api_key_obj.expires_at.isoformat() if api_key_obj.expires_at else None
         }
+    
+    def list_api_keys(self, user_id: str) -> List[Dict[str, Any]]:
+        """List API keys for user"""
+        user_keys = []
+        for key_id, api_key in self.api_keys.items():
+            if api_key.user_id == user_id:
+                user_keys.append({
+                    "key_id": key_id,
+                    "name": api_key.name,
+                    "permissions": api_key.permissions,
+                    "created_at": api_key.created_at.isoformat(),
+                    "expires_at": api_key.expires_at.isoformat() if api_key.expires_at else None,
+                    "is_active": api_key.is_active,
+                    "last_used": api_key.last_used.isoformat() if api_key.last_used else None
+                })
+        return user_keys
+    
+    def revoke_api_key(self, key_id: str) -> bool:
+        """Revoke API key"""
+        api_key = self.api_keys.get(key_id)
+        if api_key:
+            api_key.is_active = False
+            return True
+        return False
+    
+    def get_password_history(self, user_id: str) -> List[Dict[str, Any]]:
+        """Get password history for user"""
+        return self.password_history.get(user_id, [])
+    
+    def reset_password(self, user_id: str, new_password: str, force_change: bool = True, reset_reason: str = "user_request") -> bool:
+        """Reset user password"""
+        user = self.users.get(user_id)
+        if not user:
+            return False
+        
+        # Hash new password
+        password_hash = hashlib.sha256(new_password.encode()).hexdigest()
+        
+        # Store in password history
+        if user_id not in self.password_history:
+            self.password_history[user_id] = []
+        
+        self.password_history[user_id].append({
+            "hash": password_hash,
+            "changed_at": datetime.now(timezone.utc).isoformat(),
+            "reason": reset_reason,
+            "ip_address": "system",
+            "user_agent": "admin_reset"
+        })
+        
+        # Keep only last 12 passwords
+        self.password_history[user_id] = self.password_history[user_id][-12:]
+        
+        user.password_hash = password_hash
+        return True
+    
+    def optimize_session_storage(self):
+        """Optimize session storage by removing expired sessions"""
+        current_time = datetime.now(timezone.utc)
+        expired_sessions = []
+        
+        for session_id, session in self.sessions.items():
+            if session.expires_at <= current_time or not session.is_active:
+                expired_sessions.append(session_id)
+        
+        for session_id in expired_sessions:
+            del self.sessions[session_id]
 
-# Global authentication manager instance
-auth_manager = AuthenticationManager()
+# Global auth manager instance
+auth_manager = AuthManager()

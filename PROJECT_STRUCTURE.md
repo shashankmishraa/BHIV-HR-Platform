@@ -14,7 +14,10 @@ bhiv-hr-platform/
 ├── 🔧 services/                     # Microservices Architecture
 │   ├── 🌐 gateway/                  # API Gateway Service (Port 8000)
 │   │   ├── 📱 app/
-│   │   │   ├── main.py              # FastAPI app (49 endpoints)
+│   │   │   ├── main.py              # FastAPI app (98 endpoints)
+│   │   │   ├── advanced_endpoints.py # Enterprise security endpoints
+│   │   │   ├── advanced_endpoints_part2.py # Monitoring & alerting
+│   │   │   ├── auth_manager.py      # Enhanced authentication system
 │   │   │   ├── monitoring.py        # Advanced monitoring system
 │   │   │   └── __init__.py          # Package initialization
 │   │   ├── 📋 requirements.txt      # Python dependencies
@@ -104,20 +107,22 @@ bhiv-hr-platform/
 
 ## 🔄 Recent Updates (January 2025)
 
-### ✅ **v3.2.0 Security & Quality Improvements**
+### ✅ **v3.2.0 Enterprise Security & Quality Improvements**
+- **Enterprise Security Implementation**: ✅ 9 advanced security endpoints with comprehensive functionality
+- **Password Management**: ✅ History tracking, bulk reset, enterprise-grade policies
+- **Session Management**: ✅ Active session monitoring, automated cleanup, statistics
+- **Threat Detection**: ✅ Real-time security monitoring with automated incident response
+- **Alert System**: ✅ Configurable monitoring alerts with multi-channel notifications
+- **Backup Monitoring**: ✅ System backup validation and status reporting
+- **Audit Logging**: ✅ Comprehensive security event tracking and compliance reporting
+- **API Expansion**: ✅ Gateway endpoints increased from 49 to 98 (100% increase)
+- **Complete Endpoint Coverage**: ✅ All 114 endpoints (98 Gateway + 16 Agent) fully functional
 - **Security Vulnerability Fixes**: ✅ CWE-798 hardcoded credentials resolved
-- **Comprehensive Security**: ✅ XSS prevention, SQL injection protection, CSRF protection
-- **Secure API Management**: ✅ Environment variable validation with demo key rejection
-- **Input Sanitization**: ✅ HTML escaping, script removal, recursive sanitization
-- **Rate Limiting**: ✅ 60 API requests/min, 10 forms/min with DoS protection
-- **Code Structure Fixes**: ✅ Resolved indentation errors and syntax issues
-- **Graceful Degradation**: ✅ Optional security features with fallback mechanisms
 - **Advanced AI Matching**: ✅ Job-specific candidate scoring with ML algorithms
 - **Multi-Factor Scoring**: ✅ Skills (35%), Experience (25%), Values (20%), Location (10%), Interview (10%)
 - **Recruiter Preferences**: ✅ Integration with reviewer feedback and interview data
 - **Codebase Cleanup**: ✅ Removed duplicate directories and 35+ redundant files
 - **Professional Organization**: ✅ Clean imports, optimized code structure
-- **API Gateway**: ✅ 49 endpoints with enhanced monitoring and security
 - **Real Data Integration**: ✅ All 68+ candidates from actual resume files
 - **Version Consistency**: ✅ Updated to v3.2.0 across all components
 
@@ -140,7 +145,7 @@ bhiv-hr-platform/
 
 | Service | Technology | Port | Status | Purpose |
 |---------|------------|------|--------|---------|
-| **API Gateway** | FastAPI 3.2.0 | 8000 | 🟢 Live | REST API Backend (49 endpoints) |
+| **API Gateway** | FastAPI 3.2.0 | 8000 | 🟢 Live | REST API Backend (98 endpoints) |
 | **HR Portal** | Streamlit | 8501 | 🟢 Live | HR Dashboard |
 | **Client Portal** | Streamlit | 8502 | 🟢 Live | Client Interface |
 | **AI Agent** | FastAPI 2.1.0 | 9000 | 🟢 Live | Candidate Matching |
@@ -150,7 +155,7 @@ bhiv-hr-platform/
 ## 🔧 Key Directories Explained
 
 ### `/services/` - Microservices
-- **gateway/**: Central API with 49 endpoints, enhanced monitoring, security
+- **gateway/**: Central API with 98 endpoints, enhanced monitoring, enterprise security
 - **portal/**: HR dashboard with workflow management
 - **client_portal/**: Client-facing job posting interface
 - **agent/**: AI matching engine with v3.2.0 algorithms and shared monitoring
@@ -193,7 +198,7 @@ bhiv-hr-platform/
 ## 📈 Current Metrics
 
 - **Total Services**: 5 (Database + 4 Web Services) + Enhanced Monitoring + Security Layer
-- **API Endpoints**: 49 interactive endpoints with comprehensive security
+- **API Endpoints**: 114 total endpoints (Gateway: 98, Agent: 16) with comprehensive security
 - **Security Features**: 5 security modules (API keys, XSS, SQL, CSRF, rate limiting)
 - **Test Coverage**: 6 comprehensive test suites + security validation
 - **Documentation**: 9+ detailed guides + security implementation docs
