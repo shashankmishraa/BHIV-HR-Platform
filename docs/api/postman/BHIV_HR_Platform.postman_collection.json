@@ -1,0 +1,180 @@
+{
+  "info": {
+    "name": "BHIV HR Platform API",
+    "description": "Complete API collection for BHIV HR Platform with 121 endpoints",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{api_key}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://bhiv-hr-gateway.onrender.com",
+      "type": "string"
+    },
+    {
+      "key": "agent_url", 
+      "value": "https://bhiv-hr-agent.onrender.com",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Core API",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "API Information",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Job Management",
+      "item": [
+        {
+          "name": "List Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/jobs",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "jobs"]
+            }
+          }
+        },
+        {
+          "name": "Create Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Senior Software Engineer\",\n  \"description\": \"Full-stack development role\",\n  \"required_skills\": [\"Python\", \"React\", \"PostgreSQL\"],\n  \"experience_level\": \"Senior\",\n  \"location\": \"Remote\",\n  \"salary_range\": \"$120,000 - $150,000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/jobs",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "jobs"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Candidate Management",
+      "item": [
+        {
+          "name": "List Candidates",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/candidates",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "candidates"]
+            }
+          }
+        },
+        {
+          "name": "Create Candidate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"phone\": \"+1-555-0123\",\n  \"skills\": [\"Python\", \"React\", \"PostgreSQL\"],\n  \"experience_years\": 5,\n  \"location\": \"Remote\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/candidates",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "candidates"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Matching",
+      "item": [
+        {
+          "name": "Get Top Matches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/match/{{job_id}}/top",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "match", "{{job_id}}", "top"]
+            }
+          }
+        },
+        {
+          "name": "AI Agent - Basic Match",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job_id\": \"{{job_id}}\",\n  \"candidate_id\": \"{{candidate_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{agent_url}}/match",
+              "host": ["{{agent_url}}"],
+              "path": ["match"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

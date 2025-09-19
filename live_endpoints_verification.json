@@ -1,0 +1,986 @@
+{
+  "Gateway Service": {
+    "service": "Gateway Service",
+    "url": "https://bhiv-hr-gateway.onrender.com",
+    "status": "success",
+    "total_endpoints": 106,
+    "endpoints": [
+      {
+        "method": "GET",
+        "path": "/v1/auth/status",
+        "summary": "Get Auth Status",
+        "tags": [
+          "Authentication"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/auth/user/info",
+        "summary": "Get Current User Info",
+        "tags": [
+          "Authentication"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/metrics",
+        "summary": "Get Prometheus Metrics",
+        "tags": [
+          "Monitoring"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/health/simple",
+        "summary": "Simple Health Check",
+        "tags": [
+          "Monitoring"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/monitoring/errors",
+        "summary": "Get Error Analytics",
+        "tags": [
+          "Monitoring"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/monitoring/logs/search",
+        "summary": "Search Logs",
+        "tags": [
+          "Monitoring"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/monitoring/dependencies",
+        "summary": "Check Dependencies",
+        "tags": [
+          "Monitoring"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/health/detailed",
+        "summary": "Detailed Health Check",
+        "tags": [
+          "Monitoring"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/metrics/dashboard",
+        "summary": "Metrics Dashboard",
+        "tags": [
+          "Monitoring"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/",
+        "summary": "Read Root",
+        "tags": [
+          "Core API Endpoints"
+        ]
+      },
+      {
+        "method": "HEAD",
+        "path": "/",
+        "summary": "Read Root",
+        "tags": [
+          "Core API Endpoints"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/health",
+        "summary": "Health Check",
+        "tags": [
+          "Core API Endpoints"
+        ]
+      },
+      {
+        "method": "HEAD",
+        "path": "/health",
+        "summary": "Health Check",
+        "tags": [
+          "Core API Endpoints"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/test-candidates",
+        "summary": "Test Candidates Db",
+        "tags": [
+          "Core API Endpoints"
+        ]
+      },
+      {
+        "method": "HEAD",
+        "path": "/test-candidates",
+        "summary": "Test Candidates Db",
+        "tags": [
+          "Core API Endpoints"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/database/health",
+        "summary": "Database Health Check",
+        "tags": [
+          "Database Management"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/http-methods-test",
+        "summary": "Http Methods Test",
+        "tags": [
+          "Core API Endpoints"
+        ]
+      },
+      {
+        "method": "OPTIONS",
+        "path": "/http-methods-test",
+        "summary": "Http Methods Test",
+        "tags": [
+          "Core API Endpoints"
+        ]
+      },
+      {
+        "method": "HEAD",
+        "path": "/http-methods-test",
+        "summary": "Http Methods Test",
+        "tags": [
+          "Core API Endpoints"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/jobs",
+        "summary": "List Jobs",
+        "tags": [
+          "Job Management"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/jobs",
+        "summary": "Create Job",
+        "tags": [
+          "Job Management"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/candidates",
+        "summary": "Get All Candidates",
+        "tags": [
+          "Candidate Management"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/candidates/job/{job_id}",
+        "summary": "Get Candidates By Job",
+        "tags": [
+          "Candidate Management"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/candidates/search",
+        "summary": "Search Candidates",
+        "tags": [
+          "Candidate Management"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/candidates/bulk",
+        "summary": "Bulk Upload Candidates",
+        "tags": [
+          "Candidate Management"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/match/{job_id}/top",
+        "summary": "Get Top Matches",
+        "tags": [
+          "AI Matching Engine"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/match/performance-test",
+        "summary": "Ai Matching Performance Test",
+        "tags": [
+          "AI Matching Engine"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/match/cache-status",
+        "summary": "Get Cache Status",
+        "tags": [
+          "AI Matching Engine"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/match/cache-clear",
+        "summary": "Clear Matching Cache",
+        "tags": [
+          "AI Matching Engine"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/feedback",
+        "summary": "Submit Feedback",
+        "tags": [
+          "Assessment & Workflow"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/interviews",
+        "summary": "Get Interviews",
+        "tags": [
+          "Assessment & Workflow"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/interviews",
+        "summary": "Schedule Interview",
+        "tags": [
+          "Assessment & Workflow"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/offers",
+        "summary": "Create Job Offer",
+        "tags": [
+          "Assessment & Workflow"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/database/migrate",
+        "summary": "Run Database Migration",
+        "tags": [
+          "Database Management"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/candidates/stats",
+        "summary": "Get Candidate Stats",
+        "tags": [
+          "Analytics & Statistics"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/reports/summary",
+        "summary": "Get Summary Report",
+        "tags": [
+          "Analytics & Statistics"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/reports/job/{job_id}/export.csv",
+        "summary": "Export Job Report",
+        "tags": [
+          "Analytics & Statistics"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/sessions/create",
+        "summary": "Create Secure Session",
+        "tags": [
+          "Session Management"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/sessions/validate",
+        "summary": "Validate Session",
+        "tags": [
+          "Session Management"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/sessions/logout",
+        "summary": "Logout Session",
+        "tags": [
+          "Session Management"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/client/login",
+        "summary": "Client Login",
+        "tags": [
+          "Client Portal API"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/security/rate-limit-status",
+        "summary": "Check Rate Limit Status",
+        "tags": [
+          "Security Testing"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/security/blocked-ips",
+        "summary": "View Blocked Ips",
+        "tags": [
+          "Security Testing"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/security/test-input-validation",
+        "summary": "Test Input Validation",
+        "tags": [
+          "Security Testing"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/security/test-email-validation",
+        "summary": "Test Email Validation",
+        "tags": [
+          "Security Testing"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/security/test-phone-validation",
+        "summary": "Test Phone Validation",
+        "tags": [
+          "Security Testing"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/security/security-headers-test",
+        "summary": "Test Security Headers",
+        "tags": [
+          "Security Testing"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/security/penetration-test-endpoints",
+        "summary": "Penetration Test Endpoints",
+        "tags": [
+          "Security Testing"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/security/headers",
+        "summary": "Get Security Headers",
+        "tags": [
+          "Security Testing"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/security/test-xss",
+        "summary": "Test Xss Protection",
+        "tags": [
+          "Security Testing"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/security/test-sql-injection",
+        "summary": "Test Sql Injection Protection",
+        "tags": [
+          "Security Testing"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/security/audit-log",
+        "summary": "Get Security Audit Log",
+        "tags": [
+          "Security Testing"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/security/status",
+        "summary": "Get Security Status",
+        "tags": [
+          "Security Testing"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/security/rotate-keys",
+        "summary": "Rotate Security Keys",
+        "tags": [
+          "Security Testing"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/security/policy",
+        "summary": "Get Security Policy",
+        "tags": [
+          "Security Testing"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/security/csp-report",
+        "summary": "Csp Violation Reporting",
+        "tags": [
+          "CSP Management"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/security/csp-violations",
+        "summary": "View Csp Violations",
+        "tags": [
+          "CSP Management"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/security/csp-policies",
+        "summary": "Current Csp Policies",
+        "tags": [
+          "CSP Management"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/security/test-csp-policy",
+        "summary": "Test Csp Policy",
+        "tags": [
+          "CSP Management"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/csp/policy",
+        "summary": "Get Csp Policy",
+        "tags": [
+          "CSP Management"
+        ]
+      },
+      {
+        "method": "PUT",
+        "path": "/v1/csp/policy",
+        "summary": "Update Csp Policy",
+        "tags": [
+          "CSP Management"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/csp/report",
+        "summary": "Report Csp Violation",
+        "tags": [
+          "CSP Management"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/auth/test",
+        "summary": "Test Authentication System",
+        "tags": [
+          "Authentication"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/auth/2fa/setup",
+        "summary": "Setup 2Fa For User",
+        "tags": [
+          "Two-Factor Authentication"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/auth/logout",
+        "summary": "Logout User",
+        "tags": [
+          "Authentication"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/auth/2fa/verify",
+        "summary": "Verify 2Fa Setup",
+        "tags": [
+          "Two-Factor Authentication"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/auth/config",
+        "summary": "Get Auth Configuration",
+        "tags": [
+          "Authentication"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/auth/2fa/login",
+        "summary": "Login With 2Fa",
+        "tags": [
+          "Two-Factor Authentication"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/auth/system/health",
+        "summary": "Get Auth System Health",
+        "tags": [
+          "Authentication"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/auth/api-keys",
+        "summary": "List User Api Keys",
+        "tags": [
+          "API Key Management"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/auth/api-keys",
+        "summary": "Create New Api Key",
+        "tags": [
+          "API Key Management"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/auth/metrics",
+        "summary": "Get Auth Metrics",
+        "tags": [
+          "Authentication"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/auth/users",
+        "summary": "List System Users",
+        "tags": [
+          "Authentication"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/auth/sessions/invalidate",
+        "summary": "Invalidate User Sessions",
+        "tags": [
+          "Authentication"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/auth/2fa/status/{user_id}",
+        "summary": "Get 2Fa Status",
+        "tags": [
+          "Two-Factor Authentication"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/auth/audit/log",
+        "summary": "Get Auth Audit Log",
+        "tags": [
+          "Authentication"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/auth/2fa/disable",
+        "summary": "Disable 2Fa",
+        "tags": [
+          "Two-Factor Authentication"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/auth/tokens/generate",
+        "summary": "Generate Jwt Token",
+        "tags": [
+          "Authentication"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/auth/2fa/regenerate-backup-codes",
+        "summary": "Regenerate Backup Codes",
+        "tags": [
+          "Two-Factor Authentication"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/2fa/test-token/{client_id}/{token}",
+        "summary": "Test 2Fa Token",
+        "tags": [
+          "Two-Factor Authentication"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/auth/sessions",
+        "summary": "List Active Sessions",
+        "tags": [
+          "Authentication"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/2fa/demo-setup",
+        "summary": "Demo 2Fa Setup",
+        "tags": [
+          "Two-Factor Authentication"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/database/add-interviewer-column",
+        "summary": "Add Interviewer Column",
+        "tags": [
+          "Database Management"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/security/api-keys/generate",
+        "summary": "Generate New Api Key",
+        "tags": [
+          "Enhanced Security"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/security/api-keys/rotate",
+        "summary": "Rotate Client Api Keys",
+        "tags": [
+          "Enhanced Security"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/auth/tokens/validate",
+        "summary": "Validate Jwt Token",
+        "tags": [
+          "Authentication"
+        ]
+      },
+      {
+        "method": "DELETE",
+        "path": "/v1/auth/api-keys/{key_id}",
+        "summary": "Revoke Api Key",
+        "tags": [
+          "API Key Management"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/auth/permissions",
+        "summary": "Get Available Permissions",
+        "tags": [
+          "Authentication"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/security/cors-config",
+        "summary": "Get Cors Configuration",
+        "tags": [
+          "Enhanced Security"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/security/cookie-config",
+        "summary": "Get Cookie Configuration",
+        "tags": [
+          "Enhanced Security"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/password/validate",
+        "summary": "Validate Password Strength",
+        "tags": [
+          "Password Management"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/password/generate",
+        "summary": "Generate Secure Password",
+        "tags": [
+          "Password Management"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/password/policy",
+        "summary": "Get Password Policy",
+        "tags": [
+          "Password Management"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/password/change",
+        "summary": "Change Password",
+        "tags": [
+          "Password Management"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/password/strength-test",
+        "summary": "Password Strength Testing Tool",
+        "tags": [
+          "Password Management"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/password/security-tips",
+        "summary": "Password Security Best Practices",
+        "tags": [
+          "Password Management"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/auth/password/history/{user_id}",
+        "summary": "Get User Password History",
+        "tags": [
+          "Password Management Advanced"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/auth/password/bulk-reset",
+        "summary": "Bulk Reset Passwords",
+        "tags": [
+          "Password Management Advanced"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/auth/sessions/active",
+        "summary": "Get All Active Sessions",
+        "tags": [
+          "Session Management Advanced"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/auth/sessions/cleanup",
+        "summary": "Cleanup Expired Sessions",
+        "tags": [
+          "Session Management Advanced"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/security/threat-detection",
+        "summary": "Get Threat Detection Report",
+        "tags": [
+          "Security Advanced"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/security/incident-report",
+        "summary": "Report Security Incident",
+        "tags": [
+          "Security Advanced"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/monitoring/alerts",
+        "summary": "Get System Alerts",
+        "tags": [
+          "Monitoring Advanced"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/monitoring/alert-config",
+        "summary": "Configure System Alerts",
+        "tags": [
+          "Monitoring Advanced"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/v1/system/backup-status",
+        "summary": "Get System Backup Status",
+        "tags": [
+          "System Management Advanced"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/v1/password/reset",
+        "summary": "Reset Password",
+        "tags": [
+          "Password Management"
+        ]
+      }
+    ]
+  },
+  "AI Agent Service": {
+    "service": "AI Agent Service",
+    "url": "https://bhiv-hr-agent.onrender.com",
+    "status": "success",
+    "total_endpoints": 15,
+    "endpoints": [
+      {
+        "method": "GET",
+        "path": "/",
+        "summary": "AI Service Information",
+        "tags": [
+          "Core API Endpoints"
+        ]
+      },
+      {
+        "method": "HEAD",
+        "path": "/",
+        "summary": "AI Service Information (HEAD)",
+        "tags": [
+          "Core API Endpoints"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/health",
+        "summary": "Health Check",
+        "tags": [
+          "Core API Endpoints"
+        ]
+      },
+      {
+        "method": "HEAD",
+        "path": "/health",
+        "summary": "Health Check (HEAD)",
+        "tags": [
+          "Core API Endpoints"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/semantic-status",
+        "summary": "Semantic Engine Status",
+        "tags": [
+          "System Diagnostics"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/test-db",
+        "summary": "Database Connectivity Test",
+        "tags": [
+          "System Diagnostics"
+        ]
+      },
+      {
+        "method": "HEAD",
+        "path": "/test-db",
+        "summary": "Database Connectivity Test (HEAD)",
+        "tags": [
+          "System Diagnostics"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/http-methods-test",
+        "summary": "HTTP Methods Testing",
+        "tags": [
+          "System Diagnostics"
+        ]
+      },
+      {
+        "method": "OPTIONS",
+        "path": "/http-methods-test",
+        "summary": "HTTP Methods Testing (OPTIONS)",
+        "tags": [
+          "System Diagnostics"
+        ]
+      },
+      {
+        "method": "HEAD",
+        "path": "/http-methods-test",
+        "summary": "HTTP Methods Testing (HEAD)",
+        "tags": [
+          "System Diagnostics"
+        ]
+      },
+      {
+        "method": "POST",
+        "path": "/match",
+        "summary": "AI-Powered Candidate Matching",
+        "tags": [
+          "AI Matching Engine"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/analyze/{candidate_id}",
+        "summary": "Detailed Candidate Analysis",
+        "tags": [
+          "Candidate Analysis"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/status",
+        "summary": "Agent Service Status",
+        "tags": [
+          "System Diagnostics"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/version",
+        "summary": "Agent Version Information",
+        "tags": [
+          "System Diagnostics"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/metrics",
+        "summary": "Agent Metrics Endpoint",
+        "tags": [
+          "System Diagnostics"
+        ]
+      }
+    ]
+  }
+}
