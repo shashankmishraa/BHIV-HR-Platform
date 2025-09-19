@@ -1168,11 +1168,7 @@ async def rate_limit_middleware(request: Request, call_next):
         if len(rate_limit_storage[key]) >= rate_limit:
             # Log rate limit violation
             structured_logger.warning(
-                "Rate limit exceeded",
-                client_ip=client_ip,
-                endpoint=endpoint_path,
-                limit=rate_limit,
-                current_requests=len(rate_limit_storage[key])
+                f"Rate limit exceeded - client_ip={client_ip}, endpoint={endpoint_path}, limit={rate_limit}, current_requests={len(rate_limit_storage[key])}"
             )
             
             raise HTTPException(
@@ -1190,13 +1186,7 @@ async def rate_limit_middleware(request: Request, call_next):
         
         # Log successful request
         structured_logger.info(
-            "API request completed",
-            method=request.method,
-            endpoint=endpoint_path,
-            status_code=response.status_code,
-            response_time=response_time,
-            client_ip=client_ip,
-            user_tier=user_tier
+            f"API request completed - method={request.method}, endpoint={endpoint_path}, status_code={response.status_code}, response_time={response_time:.3f}s, client_ip={client_ip}, user_tier={user_tier}"
         )
         
         response.headers["X-RateLimit-Limit"] = str(rate_limit)
@@ -1233,9 +1223,7 @@ async def rate_limit_middleware(request: Request, call_next):
         track_exception(error_tracker, e, context)
         
         structured_logger.error(
-            "Unexpected error in rate limit middleware",
-            exception=e,
-            endpoint=endpoint_path
+            f"Unexpected error in rate limit middleware - endpoint={endpoint_path}, error={str(e)}"
         )
         raise
     finally:
