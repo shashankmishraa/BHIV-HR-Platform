@@ -16,10 +16,7 @@ from psycopg2 import pool
 from pydantic import BaseModel
 import psutil
 import psycopg2
-services_path = os.path.join(os.path.dirname(__file__), '..')
-sys.path.insert(0, services_path)
-sys.path.insert(0, os.path.join(services_path, 'shared'))
-
+# Import semantic engine components
 try:
     from semantic_engine import SemanticJobMatcher, AdvancedSemanticMatcher, BatchMatcher, SemanticProcessor
     SEMANTIC_ENABLED = True
