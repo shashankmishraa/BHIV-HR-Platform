@@ -16,7 +16,7 @@ class TestConfig:
     CLIENT_PORTAL_BASE = os.getenv("TEST_CLIENT_PORTAL_BASE", "http://localhost:8502")
     
     # Authentication
-    API_KEY = os.getenv("TEST_API_KEY", "myverysecureapikey123")
+    API_KEY = os.getenv("TEST_API_KEY", "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o")
     
     # Test timeouts (seconds)
     REQUEST_TIMEOUT = 10
@@ -272,10 +272,10 @@ class TestEnvironments:
     
     PRODUCTION = {
         "name": "Production Environment",
-        "api_base": "https://bhiv-hr-gateway.onrender.com",
-        "ai_base": "https://bhiv-hr-agent.onrender.com",
-        "portal_base": "https://bhiv-hr-portal.onrender.com",
-        "client_portal_base": "https://bhiv-hr-client-portal.onrender.com",
+        "api_base": "https://bhiv-hr-gateway-901a.onrender.com",
+        "ai_base": "https://bhiv-hr-agent-o6nx.onrender.com",
+        "portal_base": "https://bhiv-hr-portal-xk2k.onrender.com",
+        "client_portal_base": "https://bhiv-hr-client-portal-zdbt.onrender.com",
         "database_cleanup": False,
         "performance_mode": True
     }

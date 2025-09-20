@@ -6,10 +6,10 @@
 ## 🌐 Live Production Services
 | Service | URL | Status |
 |---------|-----|--------|
-| **API Gateway** | https://bhiv-hr-gateway.onrender.com/docs | 🟢 Live |
-| **AI Agent** | https://bhiv-hr-agent.onrender.com/docs | 🟢 Live |
-| **HR Portal** | https://bhiv-hr-portal.onrender.com/ | 🟢 Live |
-| **Client Portal** | https://bhiv-hr-client-portal.onrender.com/ | 🟢 Live |
+| **API Gateway** | https://bhiv-hr-gateway-901a.onrender.com/docs | 🟢 Live |
+| **AI Agent** | https://bhiv-hr-agent-o6nx.onrender.com/docs | 🟢 Live |
+| **HR Portal** | https://bhiv-hr-portal-xk2k.onrender.com/ | 🟢 Live |
+| **Client Portal** | https://bhiv-hr-client-portal-zdbt.onrender.com/ | 🟢 Live |
 
 **Demo Access**: Username: `TECH001` | Password: `demo123`
 
@@ -58,8 +58,8 @@ Name: bhiv-hr-portal
 Root Directory: services/portal
 Start Command: streamlit run app.py --server.port $PORT --server.address 0.0.0.0
 Environment Variables:
-  - GATEWAY_URL: https://bhiv-hr-gateway.onrender.com
-  - API_KEY_SECRET: myverysecureapikey123
+  - GATEWAY_URL: https://bhiv-hr-gateway-901a.onrender.com
+  - API_KEY_SECRET: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
 ```
 
 **Client Portal:**
@@ -68,19 +68,19 @@ Name: bhiv-hr-client-portal
 Root Directory: services/client_portal
 Start Command: streamlit run app.py --server.port $PORT --server.address 0.0.0.0
 Environment Variables:
-  - GATEWAY_URL: https://bhiv-hr-gateway.onrender.com
-  - API_KEY_SECRET: myverysecureapikey123
+  - GATEWAY_URL: https://bhiv-hr-gateway-901a.onrender.com
+  - API_KEY_SECRET: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
 ```
 
 ### Verification
 ```bash
 # Test services
-curl https://bhiv-hr-gateway.onrender.com/health
-curl https://bhiv-hr-agent.onrender.com/health
+curl https://bhiv-hr-gateway-901a.onrender.com/health
+curl https://bhiv-hr-agent-o6nx.onrender.com/health
 
 # Test authentication
-curl -H "Authorization: Bearer myverysecureapikey123" \
-     https://bhiv-hr-gateway.onrender.com/v1/jobs
+curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
+     https://bhiv-hr-gateway-901a.onrender.com/v1/jobs
 ```
 
 ## 🐳 Local Docker Deployment
@@ -109,14 +109,14 @@ open http://localhost:8000/docs  # API Docs
 ### Production (.env for Render)
 ```bash
 DATABASE_URL=postgresql://bhiv_user:password@host:5432/bhiv_hr
-API_KEY_SECRET=myverysecureapikey123
-GATEWAY_URL=https://bhiv-hr-gateway.onrender.com
+API_KEY_SECRET=prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
+GATEWAY_URL=https://bhiv-hr-gateway-901a.onrender.com
 ```
 
 ### Local (.env for Docker)
 ```bash
 DATABASE_URL=postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr
-API_KEY_SECRET=myverysecureapikey123
+API_KEY_SECRET=prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
 GATEWAY_URL=http://gateway:8000
 ```
 
@@ -124,8 +124,8 @@ GATEWAY_URL=http://gateway:8000
 
 ### Production Health Checks
 ```bash
-curl https://bhiv-hr-gateway.onrender.com/health/detailed
-curl https://bhiv-hr-gateway.onrender.com/metrics
+curl https://bhiv-hr-gateway-901a.onrender.com/health/detailed
+curl https://bhiv-hr-gateway-901a.onrender.com/metrics
 ```
 
 ### Local Health Checks
@@ -135,7 +135,7 @@ docker-compose -f docker-compose.production.yml ps
 ```
 
 ## 🔒 Security & Authentication
-- **API Key**: `myverysecureapikey123`
+- **API Key**: `prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o`
 - **Client Login**: TECH001 / demo123
 - **Rate Limiting**: 60 requests/minute
 - **2FA Support**: TOTP compatible

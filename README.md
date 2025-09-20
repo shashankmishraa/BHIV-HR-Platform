@@ -5,10 +5,10 @@
 ## 🌐 Live Production Platform
 
 ### **✅ Currently Deployed on Render**
-- **API Gateway**: https://bhiv-hr-gateway.onrender.com/docs ✅
-- **AI Matching Engine**: https://bhiv-hr-agent.onrender.com/docs ✅
-- **HR Portal**: https://bhiv-hr-portal.onrender.com/ ✅
-- **Client Portal**: https://bhiv-hr-client-portal.onrender.com/ ✅
+- **API Gateway**: https://bhiv-hr-gateway-901a.onrender.com/docs ✅
+- **AI Matching Engine**: https://bhiv-hr-agent-o6nx.onrender.com/docs ✅
+- **HR Portal**: https://bhiv-hr-portal-xk2k.onrender.com/ ✅
+- **Client Portal**: https://bhiv-hr-client-portal-zdbt.onrender.com/ ✅
 - **Status**: 🟢 **ALL SERVICES LIVE & OPERATIONAL** | **Cost**: $0/month (Free tier)
 
 ### **🔑 Demo Access**
@@ -19,7 +19,7 @@ Password: demo123
 
 # API Testing
 API Key: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
-curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" https://bhiv-hr-gateway.onrender.com/health
+curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" https://bhiv-hr-gateway-901a.onrender.com/health
 ```
 
 ## 📋 Documentation Structure
@@ -238,16 +238,16 @@ curl http://localhost:9000/health
 ### **API Testing**
 ```bash
 # Health Checks
-curl https://bhiv-hr-gateway.onrender.com/health
-curl https://bhiv-hr-agent.onrender.com/health
+curl https://bhiv-hr-gateway-901a.onrender.com/health
+curl https://bhiv-hr-agent-o6nx.onrender.com/health
 
 # Authenticated Endpoints
 curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
-     https://bhiv-hr-gateway.onrender.com/v1/jobs
+     https://bhiv-hr-gateway-901a.onrender.com/v1/jobs
 
 # Security Testing
 curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
-     https://bhiv-hr-gateway.onrender.com/v1/security/rate-limit-status
+     https://bhiv-hr-gateway-901a.onrender.com/v1/security/rate-limit-status
 ```
 
 ### **Test Suite**
@@ -279,10 +279,10 @@ python tests/test_final_verification.py  # Complete system test
 ### **Enhanced Monitoring**
 ```bash
 # Production Monitoring
-curl https://bhiv-hr-gateway.onrender.com/health/detailed     # Enhanced health checks
-curl https://bhiv-hr-gateway.onrender.com/monitoring/errors   # Error analytics
-curl https://bhiv-hr-gateway.onrender.com/monitoring/dependencies # Service dependencies
-curl https://bhiv-hr-gateway.onrender.com/metrics/dashboard   # Enhanced dashboard
+curl https://bhiv-hr-gateway-901a.onrender.com/health/detailed     # Enhanced health checks
+curl https://bhiv-hr-gateway-901a.onrender.com/monitoring/errors   # Error analytics
+curl https://bhiv-hr-gateway-901a.onrender.com/monitoring/dependencies # Service dependencies
+curl https://bhiv-hr-gateway-901a.onrender.com/metrics/dashboard   # Enhanced dashboard
 
 # Local Monitoring  
 curl http://localhost:8000/health/simple        # Simple health check
@@ -402,10 +402,10 @@ python tools/auto_sync_watcher.py
 ## 🚀 Getting Started (Choose Your Path)
 
 ### **🌐 For Users (Recommended)**
-1. **Visit Live Platform**: https://bhiv-hr-gateway.onrender.com/docs
-2. **Access HR Portal**: https://bhiv-hr-portal.onrender.com/
-3. **Login to Client Portal**: https://bhiv-hr-client-portal.onrender.com/ (TECH001/demo123)
-4. **Test API**: Use Bearer token `myverysecureapikey123`
+1. **Visit Live Platform**: https://bhiv-hr-gateway-901a.onrender.com/docs
+2. **Access HR Portal**: https://bhiv-hr-portal-xk2k.onrender.com/
+3. **Login to Client Portal**: https://bhiv-hr-client-portal-zdbt.onrender.com/ (TECH001/demo123)
+4. **Test API**: Use Bearer token `prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o`
 
 ### **💻 For Developers**
 1. **Clone Repository**: `git clone https://github.com/shashankmishraa/BHIV-HR-Platform.git`
@@ -429,15 +429,15 @@ python tools/auto_sync_watcher.py
 ## 📞 Support & Resources
 
 ### **Live Platform Access**
-- **API Documentation**: https://bhiv-hr-gateway.onrender.com/docs
+- **API Documentation**: https://bhiv-hr-gateway-901a.onrender.com/docs
 - **GitHub Repository**: https://github.com/shashankmishraa/BHIV-HR-Platform
 - **Deployment Platform**: Render Cloud (Oregon, US West)
 
 ### **Quick Links**
-- **🔗 Live API**: https://bhiv-hr-gateway.onrender.com/docs
-- **🔗 HR Dashboard**: https://bhiv-hr-portal.onrender.com/
-- **🔗 Client Portal**: https://bhiv-hr-client-portal.onrender.com/
-- **🔗 AI Agent**: https://bhiv-hr-agent.onrender.com/docs
+- **🔗 Live API**: https://bhiv-hr-gateway-901a.onrender.com/docs
+- **🔗 HR Dashboard**: https://bhiv-hr-portal-xk2k.onrender.com/
+- **🔗 Client Portal**: https://bhiv-hr-client-portal-zdbt.onrender.com/
+- **🔗 AI Agent**: https://bhiv-hr-agent-o6nx.onrender.com/docs
 
 ---
 
@@ -445,7 +445,7 @@ python tools/auto_sync_watcher.py
 
 *Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
 
-**Last Updated**: January 18, 2025 | **Version**: v3.2.0 | **Status**: 🟢 Production Ready (135.2% Complete) | **Cost**: $0/month | **Quality**: Enterprise-Grade
+**Last Updated**: January 19, 2025 | **Version**: v3.2.0 | **Status**: 🟢 Production Ready (135.2% Complete) | **Cost**: $0/month | **Quality**: Enterprise-Grade
 
 ---
 

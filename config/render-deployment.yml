@@ -26,16 +26,16 @@ services:
     root_directory: services/gateway
     build_command: pip install -r requirements.txt
     start_command: uvicorn app.main:app --host 0.0.0.0 --port $PORT
-    public_url: https://bhiv-hr-gateway.onrender.com
-    docs_url: https://bhiv-hr-gateway.onrender.com/docs
+    public_url: https://bhiv-hr-gateway-901a.onrender.com
+    docs_url: https://bhiv-hr-gateway-901a.onrender.com/docs
     status: ✅ Active
     environment_variables:
       - DATABASE_URL: [Internal Database URL]
-      - API_KEY_SECRET: myverysecureapikey123
-    endpoints: 46
+      - API_KEY_SECRET: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
+    endpoints: 154
     features:
       - API Gateway with FastAPI
-      - 46 REST endpoints
+      - 154 REST endpoints
       - Authentication & Security
       - Granular rate limiting by endpoint
       - 2FA implementation with QR codes
@@ -53,8 +53,8 @@ services:
     root_directory: services/agent
     build_command: pip install -r requirements.txt
     start_command: uvicorn app:app --host 0.0.0.0 --port $PORT
-    public_url: https://bhiv-hr-agent.onrender.com
-    docs_url: https://bhiv-hr-agent.onrender.com/docs
+    public_url: https://bhiv-hr-agent-o6nx.onrender.com
+    docs_url: https://bhiv-hr-agent-o6nx.onrender.com/docs
     status: ✅ Active
     environment_variables:
       - DATABASE_URL: [Internal Database URL]
@@ -76,11 +76,11 @@ services:
     root_directory: services/portal
     build_command: pip install -r requirements.txt
     start_command: streamlit run app.py --server.port $PORT --server.address 0.0.0.0
-    public_url: https://bhiv-hr-portal.onrender.com
+    public_url: https://bhiv-hr-portal-xk2k.onrender.com
     status: ✅ Active
     environment_variables:
-      - GATEWAY_URL: https://bhiv-hr-gateway.onrender.com
-      - API_KEY_SECRET: myverysecureapikey123
+      - GATEWAY_URL: https://bhiv-hr-gateway-901a.onrender.com
+      - API_KEY_SECRET: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
     features:
       - HR dashboard interface
       - Candidate management
@@ -100,11 +100,11 @@ services:
     root_directory: services/client_portal
     build_command: pip install -r requirements.txt
     start_command: streamlit run app.py --server.port $PORT --server.address 0.0.0.0
-    public_url: https://bhiv-hr-client-portal.onrender.com
+    public_url: https://bhiv-hr-client-portal-zdbt.onrender.com
     status: ✅ Active
     environment_variables:
-      - GATEWAY_URL: https://bhiv-hr-gateway.onrender.com
-      - API_KEY_SECRET: myverysecureapikey123
+      - GATEWAY_URL: https://bhiv-hr-gateway-901a.onrender.com
+      - API_KEY_SECRET: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
     features:
       - Client authentication system
       - Job posting interface
@@ -121,7 +121,7 @@ deployment_info:
   platform: Render
   region: Oregon (US West)
   total_services: 5
-  deployment_date: "2025-01-03"
+  deployment_date: "2025-01-19"
   repository: https://github.com/shashankmishraa/BHIV-HR-Platform
   deployment_method: GitHub integration
   auto_deploy: enabled
@@ -146,9 +146,9 @@ performance:
 # Monitoring & Health
 monitoring:
   health_endpoints:
-    - https://bhiv-hr-gateway.onrender.com/health
-    - https://bhiv-hr-agent.onrender.com/health
-  metrics_endpoint: https://bhiv-hr-gateway.onrender.com/metrics
+    - https://bhiv-hr-gateway-901a.onrender.com/health
+    - https://bhiv-hr-agent-o6nx.onrender.com/health
+  metrics_endpoint: https://bhiv-hr-gateway-901a.onrender.com/metrics
   logs_access: Render dashboard
   alerts: Basic (upgrade for advanced)
 

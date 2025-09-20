@@ -11,7 +11,7 @@ import time
 import requests
 API_BASE = "http://localhost:8000"
 AI_BASE = "http://localhost:9000"
-API_KEY = "myverysecureapikey123"
+API_KEY = "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o"
 HEADERS = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
 
 def test_health_endpoints():
