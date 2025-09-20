@@ -25,8 +25,9 @@ curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr
 ## 📋 Documentation Structure
 
 ### **📚 Core Documentation**
-- **[📋 PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - ✅ Complete architecture and folder organization
-- **[🚀 DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** - ✅ Complete deployment instructions (Render + Local)
+- **[📊 docs/STATUS.md](docs/STATUS.md)** - ✅ Current system status and metrics
+- **[📋 docs/technical/PROJECT_STRUCTURE.md](docs/technical/PROJECT_STRUCTURE.md)** - ✅ Complete architecture and folder organization
+- **[🚀 docs/deployment/DEPLOYMENT_GUIDE.md](docs/deployment/DEPLOYMENT_GUIDE.md)** - ✅ Complete deployment instructions (Render + Local)
 - **[🔧 docs/resolutions/TECHNICAL_RESOLUTIONS.md](docs/resolutions/TECHNICAL_RESOLUTIONS.md)** - ✅ All technical issues and resolutions
 - **[⚡ docs/QUICK_START_GUIDE.md](docs/QUICK_START_GUIDE.md)** - ✅ Get started in 5 minutes
 - **[🎯 docs/CURRENT_FEATURES.md](docs/CURRENT_FEATURES.md)** - ✅ Complete feature list and capabilities
@@ -327,19 +328,20 @@ python tools/auto_sync_watcher.py
 ## 📚 Documentation
 
 ### **Complete Guides**
-- **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** - Complete deployment guide (Render + Local)
+- **[docs/deployment/DEPLOYMENT_GUIDE.md](docs/deployment/DEPLOYMENT_GUIDE.md)** - Complete deployment guide (Render + Local)
 - **[docs/resolutions/TECHNICAL_RESOLUTIONS.md](docs/resolutions/TECHNICAL_RESOLUTIONS.md)** - All technical issues and solutions
-- **[DEPLOYMENT_STATUS.md](DEPLOYMENT_STATUS.md)** - Current deployment status
+- **[docs/deployment/DEPLOYMENT_STATUS.md](docs/deployment/DEPLOYMENT_STATUS.md)** - Current deployment status
 - **[docs/README.md](docs/README.md)** - Complete documentation index
 
 ### **Technical Documentation**
 - **[docs/REFLECTION.md](docs/REFLECTION.md)** - Daily development reflections with values
-- **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - Complete architecture guide
+- **[docs/technical/PROJECT_STRUCTURE.md](docs/technical/PROJECT_STRUCTURE.md)** - Complete architecture guide
+- **[docs/technical/architecture.md](docs/technical/architecture.md)** - System architecture
 - **[docs/BIAS_ANALYSIS.md](docs/BIAS_ANALYSIS.md)** - AI bias analysis & mitigation
 - **[docs/security/SECURITY_AUDIT.md](docs/security/SECURITY_AUDIT.md)** - Security analysis
 - **[docs/user/USER_GUIDE.md](docs/user/USER_GUIDE.md)** - Complete user manual
 - **[docs/SERVICES_GUIDE.md](docs/SERVICES_GUIDE.md)** - Service architecture
-- **[ORGANIZATION_SUMMARY.md](ORGANIZATION_SUMMARY.md)** - Project organization summary
+- **[docs/technical/ORGANIZATION_SUMMARY.md](docs/technical/ORGANIZATION_SUMMARY.md)** - Project organization summary
 
 ### **New Documentation**
 - **[docs/api/README.md](docs/api/README.md)** - Complete API documentation (118 tested endpoints)
@@ -414,8 +416,8 @@ python tools/auto_sync_watcher.py
 4. **Run Tests**: `python tests/test_endpoints.py`
 
 ### **🚀 For Deployment**
-1. **Read Guide**: [RENDER_DEPLOYMENT_GUIDE.md](RENDER_DEPLOYMENT_GUIDE.md)
-2. **Check Status**: [DEPLOYMENT_STATUS.md](DEPLOYMENT_STATUS.md)
+1. **Read Guide**: [docs/deployment/DEPLOYMENT_GUIDE.md](docs/deployment/DEPLOYMENT_GUIDE.md)
+2. **Check Status**: [docs/deployment/DEPLOYMENT_STATUS.md](docs/deployment/DEPLOYMENT_STATUS.md)
 3. **Monitor Health**: Use provided health check endpoints
 
 ### **📚 For Integration**
@@ -453,8 +455,9 @@ python tools/auto_sync_watcher.py
 
 | Document | Purpose | Status |
 |----------|---------|--------|
-| **[🏗️ ARCHITECTURE.md](ARCHITECTURE.md)** | System architecture and design | ✅ Complete |
-| **[🚀 DEPLOYMENT_STATUS.md](DEPLOYMENT_STATUS.md)** | Live deployment status and monitoring | ✅ Live |
-| **[📋 PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** | Codebase organization and structure | ✅ Complete |
-| **[🔧 TECHNICAL_RESOLUTIONS.md](TECHNICAL_RESOLUTIONS.md)** | Technical issues and solutions | ✅ Complete |
-| **[🚀 DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** | Deployment instructions | ✅ Complete |
+| **[📊 docs/STATUS.md](docs/STATUS.md)** | Current system status and metrics | ✅ Live |
+| **[🏗️ docs/technical/architecture.md](docs/technical/architecture.md)** | System architecture and design | ✅ Complete |
+| **[🚀 docs/deployment/DEPLOYMENT_STATUS.md](docs/deployment/DEPLOYMENT_STATUS.md)** | Live deployment status and monitoring | ✅ Live |
+| **[📋 docs/technical/PROJECT_STRUCTURE.md](docs/technical/PROJECT_STRUCTURE.md)** | Codebase organization and structure | ✅ Complete |
+| **[🔧 docs/resolutions/TECHNICAL_RESOLUTIONS.md](docs/resolutions/TECHNICAL_RESOLUTIONS.md)** | Technical issues and solutions | ✅ Complete |
+| **[🚀 docs/deployment/DEPLOYMENT_GUIDE.md](docs/deployment/DEPLOYMENT_GUIDE.md)** | Deployment instructions | ✅ Complete |
