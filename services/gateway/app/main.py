@@ -185,6 +185,83 @@ error_tracker = ErrorTracker("gateway")
 # Database URL configuration - use real hostname instead of "db"
 database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb")
 
+# Create database tables on startup
+def create_database_tables():
+    """Create database tables if they don't exist"""
+    try:
+        engine = create_engine(database_url)
+        with engine.connect() as connection:
+            # Create candidates table
+            connection.execute(text("""
+                CREATE TABLE IF NOT EXISTS candidates (
+                    id SERIAL PRIMARY KEY,
+                    name VARCHAR(255),
+                    email VARCHAR(255) UNIQUE,
+                    phone VARCHAR(50),
+                    location VARCHAR(255),
+                    experience_years INTEGER DEFAULT 0,
+                    technical_skills TEXT,
+                    seniority_level VARCHAR(100),
+                    education_level VARCHAR(100),
+                    resume_path VARCHAR(500),
+                    status VARCHAR(50) DEFAULT 'active',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+            
+            # Create jobs table
+            connection.execute(text("""
+                CREATE TABLE IF NOT EXISTS jobs (
+                    id SERIAL PRIMARY KEY,
+                    title VARCHAR(255) NOT NULL,
+                    department VARCHAR(255),
+                    location VARCHAR(255),
+                    experience_level VARCHAR(100),
+                    requirements TEXT,
+                    description TEXT,
+                    status VARCHAR(50) DEFAULT 'active',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+            
+            # Create interviews table
+            connection.execute(text("""
+                CREATE TABLE IF NOT EXISTS interviews (
+                    id SERIAL PRIMARY KEY,
+                    candidate_id INTEGER REFERENCES candidates(id),
+                    job_id INTEGER REFERENCES jobs(id),
+                    interview_date TIMESTAMP,
+                    status VARCHAR(50) DEFAULT 'scheduled',
+                    notes TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+            
+            # Create feedback table
+            connection.execute(text("""
+                CREATE TABLE IF NOT EXISTS feedback (
+                    id SERIAL PRIMARY KEY,
+                    candidate_id INTEGER REFERENCES candidates(id),
+                    job_id INTEGER REFERENCES jobs(id),
+                    integrity INTEGER CHECK (integrity >= 1 AND integrity <= 5),
+                    honesty INTEGER CHECK (honesty >= 1 AND honesty <= 5),
+                    discipline INTEGER CHECK (discipline >= 1 AND discipline <= 5),
+                    hard_work INTEGER CHECK (hard_work >= 1 AND hard_work <= 5),
+                    gratitude INTEGER CHECK (gratitude >= 1 AND gratitude <= 5),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+            
+            connection.commit()
+            print("Database tables created successfully")
+            return True
+    except Exception as e:
+        print(f"Database table creation failed: {e}")
+        return False
+
+# Create tables on startup
+create_database_tables()
+
 # Health check configuration
 health_config = {
     'database_url': database_url,
@@ -1282,15 +1359,37 @@ simple_auth = SimpleAuthManager()
 
 # Authentication endpoints
 @app.post("/auth/login", tags=["Authentication"])
-async def login(login_data: LoginRequest):
-    """User Login - Basic Authentication"""
+@app.get("/auth/login", tags=["Authentication"])
+async def login(login_data: LoginRequest = None, username: str = None, password: str = None):
+    """User Login - Basic Authentication (supports both GET and POST)"""
     try:
+        # Handle GET request with query parameters
+        if not login_data and username and password:
+            login_data = LoginRequest(username=username, password=password)
+        
+        if not login_data:
+            return {
+                "message": "Login endpoint active",
+                "methods": ["GET", "POST"],
+                "parameters": {
+                    "POST": "JSON body with username and password",
+                    "GET": "Query parameters: ?username=X&password=Y"
+                },
+                "demo_credentials": {
+                    "username": "TECH001",
+                    "password": "demo123"
+                }
+            }
+        
         user = simple_auth.authenticate_user(login_data.username, login_data.password)
         
         if not user:
             raise HTTPException(status_code=401, detail="Invalid username or password")
         
-        access_token = simple_auth.generate_jwt_token(user["user_id"], user["role"])
+        if JWT_AVAILABLE:
+            access_token = simple_auth.generate_jwt_token(user["user_id"], user["role"])
+        else:
+            access_token = f"token_{user['user_id']}_{int(time.time())}"
         
         return {
             "access_token": access_token,
@@ -1309,9 +1408,10 @@ async def login(login_data: LoginRequest):
         raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")
 
 @app.post("/v1/auth/login", tags=["Authentication"])
-async def login_v1(login_data: LoginRequest):
-    """User Login - API v1"""
-    return await login(login_data)
+@app.get("/v1/auth/login", tags=["Authentication"])
+async def login_v1(login_data: LoginRequest = None, username: str = None, password: str = None):
+    """User Login - API v1 (supports both GET and POST)"""
+    return await login(login_data, username, password)
 
 @app.post("/v1/auth/logout", tags=["Authentication"])
 async def logout():
