@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional, List, Dict, Any
 import asyncio
 import base64
@@ -8,6 +8,7 @@ import secrets
 import sys
 import time
 import traceback
+import uuid
 
 from concurrent.futures import ThreadPoolExecutor
 from fastapi import FastAPI, HTTPException, Depends, Security, Response, Request
@@ -21,6 +22,11 @@ from sqlalchemy.pool import QueuePool
 import pyotp
 import qrcode
 import hashlib
+try:
+    import jwt
+    JWT_AVAILABLE = True
+except ImportError:
+    JWT_AVAILABLE = False
 
 # Import validation and database management
 try:
@@ -176,12 +182,12 @@ app = FastAPI(
 structured_logger = get_logger("gateway")
 error_tracker = ErrorTracker("gateway")
 
-# Health check configuration
-# Use the same database URL logic for health checks
-health_db_url = database_url
+# Database URL configuration - use real hostname instead of "db"
+database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb")
 
+# Health check configuration
 health_config = {
-    'database_url': health_db_url,
+    'database_url': database_url,
     'dependent_services': [
         {'url': 'https://bhiv-hr-agent.onrender.com/health', 'name': 'ai_agent'},
         {'url': 'https://bhiv-hr-portal.onrender.com/', 'name': 'hr_portal'},
@@ -245,13 +251,6 @@ async def http_method_handler(request: Request, call_next):
         )
     
     return await call_next(request)
-
-# Import JWT for authentication
-try:
-    import jwt
-    JWT_AVAILABLE = True
-except ImportError:
-    JWT_AVAILABLE = False
 
 # Import enhanced authentication system
 try:
@@ -1152,7 +1151,6 @@ async def rate_limit_middleware(request: Request, call_next):
     endpoint_path = request.url.path
     
     # Set correlation context
-    import uuid
     correlation_id = str(uuid.uuid4())
     CorrelationContext.set_correlation_id(correlation_id)
     CorrelationContext.set_request_id(f"{request.method}-{int(current_time)}")
@@ -1396,9 +1394,6 @@ class InputValidation(BaseModel):
 
 # Global connection pool for performance
 _executor = ThreadPoolExecutor(max_workers=20)
-
-# Database URL configuration - use real hostname instead of "db"
-database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb")
 
 def get_db_engine():
     """Get database engine with proper URL configuration"""
