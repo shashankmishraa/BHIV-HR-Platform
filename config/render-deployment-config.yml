@@ -1,0 +1,66 @@
+# BHIV HR Platform - Render Deployment Configuration
+# Updated with new production credentials and URLs
+
+services:
+  gateway:
+    name: bhiv-hr-gateway-901a
+    url: https://bhiv-hr-gateway-901a.onrender.com
+    trigger_key: V6wlJ-fv6EY
+    deploy_hook: https://api.render.com/deploy/srv-d3744qje5dus7390foq0?key=V6wlJ-fv6EY
+    environment_variables:
+      API_KEY_SECRET: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
+      DATABASE_URL: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a/bhiv_hr_nqzb
+      ENVIRONMENT: production
+      JWT_SECRET: prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA
+      PYTHON_VERSION: 3.11.11
+
+  agent:
+    name: bhiv-hr-agent-o6nx
+    url: https://bhiv-hr-agent-o6nx.onrender.com
+    trigger_key: cto8n-Ctivw
+    deploy_hook: https://api.render.com/deploy/srv-d3747q3uibrs738n539g?key=cto8n-Ctivw
+    environment_variables:
+      API_KEY_SECRET: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
+      DATABASE_URL: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a/bhiv_hr_nqzb
+      ENVIRONMENT: production
+      JWT_SECRET: prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA
+      PYTHON_VERSION: 3.11.11
+
+  portal:
+    name: bhiv-hr-portal-xk2k
+    url: https://bhiv-hr-portal-xk2k.onrender.com
+    trigger_key: dTyTmqjQwu4
+    deploy_hook: https://api.render.com/deploy/srv-d374emmmcj7s73fdbbb0?key=dTyTmqjQwu4
+    environment_variables:
+      AGENT_SERVICE_URL: https://bhiv-hr-agent-o6nx.onrender.com
+      API_KEY_SECRET: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
+      ENVIRONMENT: production
+      GATEWAY_URL: https://bhiv-hr-gateway-901a.onrender.com
+      JWT_SECRET: prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA
+      PYTHON_VERSION: 3.11.11
+
+  client_portal:
+    name: bhiv-hr-client-portal-zdbt
+    url: https://bhiv-hr-client-portal-zdbt.onrender.com
+    trigger_key: aV7OERRhxS4
+    deploy_hook: https://api.render.com/deploy/srv-d374kkre5dus7390tlgg?key=aV7OERRhxS4
+    environment_variables:
+      AGENT_SERVICE_URL: https://bhiv-hr-agent-o6nx.onrender.com
+      API_KEY_SECRET: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
+      ENVIRONMENT: production
+      GATEWAY_URL: https://bhiv-hr-gateway-901a.onrender.com
+      JWT_SECRET: prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA
+      PYTHON_VERSION: 3.11.11
+      DATABASE_URL: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a/bhiv_hr_nqzb
+
+database:
+  internal_url: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a/bhiv_hr_nqzb
+  external_url: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb
+  psql_command: render psql dpg-d373qrogjchc73bu9gug-a
+  
+deployment_commands:
+  trigger_all: |
+    curl -X POST https://api.render.com/deploy/srv-d3744qje5dus7390foq0?key=V6wlJ-fv6EY
+    curl -X POST https://api.render.com/deploy/srv-d3747q3uibrs738n539g?key=cto8n-Ctivw
+    curl -X POST https://api.render.com/deploy/srv-d374emmmcj7s73fdbbb0?key=dTyTmqjQwu4
+    curl -X POST https://api.render.com/deploy/srv-d374kkre5dus7390tlgg?key=aV7OERRhxS4
