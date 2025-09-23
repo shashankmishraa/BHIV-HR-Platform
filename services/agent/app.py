@@ -207,15 +207,15 @@ def get_db_connection():
     """
     conn = None
     try:
-        database_url = os.getenv("DATABASE_URL")
+        database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a/bhiv_hr_nqzb")
         if database_url:
             conn = psycopg2.connect(database_url)
         else:
             conn = psycopg2.connect(
                 host=os.getenv("DB_HOST", "db"),
-                database=os.getenv("DB_NAME", "bhiv_hr"),
+                database=os.getenv("DB_NAME", "bhiv_hr_nqzb"),
                 user=os.getenv("DB_USER", "bhiv_user"),
-                password=os.getenv("DB_PASSWORD", "bhiv_pass"),
+                password=os.getenv("DB_PASSWORD", "B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J"),
                 port=os.getenv("DB_PORT", "5432")
             )
         
