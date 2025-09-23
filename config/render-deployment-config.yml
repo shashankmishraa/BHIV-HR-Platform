@@ -9,7 +9,7 @@ services:
     deploy_hook: https://api.render.com/deploy/srv-d3744qje5dus7390foq0?key=V6wlJ-fv6EY
     environment_variables:
       API_KEY_SECRET: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
-      DATABASE_URL: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a/bhiv_hr_nqzb
+      DATABASE_URL: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb
       ENVIRONMENT: production
       JWT_SECRET: prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA
       PYTHON_VERSION: 3.11.11
@@ -21,7 +21,7 @@ services:
     deploy_hook: https://api.render.com/deploy/srv-d3747q3uibrs738n539g?key=cto8n-Ctivw
     environment_variables:
       API_KEY_SECRET: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
-      DATABASE_URL: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a/bhiv_hr_nqzb
+      DATABASE_URL: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb
       ENVIRONMENT: production
       JWT_SECRET: prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA
       PYTHON_VERSION: 3.11.11
@@ -51,10 +51,10 @@ services:
       GATEWAY_URL: https://bhiv-hr-gateway-901a.onrender.com
       JWT_SECRET: prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA
       PYTHON_VERSION: 3.11.11
-      DATABASE_URL: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a/bhiv_hr_nqzb
+      DATABASE_URL: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb
 
 database:
-  internal_url: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a/bhiv_hr_nqzb
+  internal_url: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb
   external_url: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb
   psql_command: render psql dpg-d373qrogjchc73bu9gug-a
   
