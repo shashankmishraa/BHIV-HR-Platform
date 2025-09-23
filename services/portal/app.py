@@ -59,8 +59,19 @@ except Exception as e:
     st.info("Please check your environment configuration and security setup.")
     st.stop()
 
-AGENT_URL = os.getenv("AGENT_SERVICE_URL", "https://bhiv-hr-agent-o6nx.onrender.com")
-API_BASE = os.getenv("GATEWAY_URL", "https://bhiv-hr-gateway-901a.onrender.com")
+# Environment-aware service URLs
+environment = os.getenv("ENVIRONMENT", "development").lower()
+if environment == "production":
+    # Production URLs on Render
+    default_agent_url = "https://bhiv-hr-agent-o6nx.onrender.com"
+    default_gateway_url = "https://bhiv-hr-gateway-901a.onrender.com"
+else:
+    # Local development URLs in Docker
+    default_agent_url = "http://agent:9000"
+    default_gateway_url = "http://gateway:8000"
+
+AGENT_URL = os.getenv("AGENT_SERVICE_URL", default_agent_url)
+API_BASE = os.getenv("GATEWAY_URL", default_gateway_url)
 
 # Use secure API key management (fixes CWE-798)
 if SECURITY_ENABLED:

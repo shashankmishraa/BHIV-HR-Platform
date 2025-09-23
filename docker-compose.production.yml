@@ -2,6 +2,10 @@
 # This file is for LOCAL DEVELOPMENT only
 # Production deployment is on Render: https://bhiv-hr-gateway-901a.onrender.com
 
+# Load local environment variables
+env_file:
+  - .env.local
+
 services:
   db:
     image: postgres:15-alpine
@@ -32,6 +36,7 @@ services:
       DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD:-B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J}@db:5432/bhiv_hr_nqzb
       API_KEY_SECRET: ${API_KEY_SECRET:-prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o}
       JWT_SECRET: ${JWT_SECRET:-prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA}
+      ENVIRONMENT: development
     volumes:
       - ./logs:/app/logs
     depends_on:
@@ -56,6 +61,7 @@ services:
       DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD:-B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J}@db:5432/bhiv_hr_nqzb
       API_KEY_SECRET: ${API_KEY_SECRET:-prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o}
       JWT_SECRET: ${JWT_SECRET:-prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA}
+      ENVIRONMENT: development
     depends_on:
       db:
         condition: service_healthy
@@ -79,6 +85,7 @@ services:
       AGENT_SERVICE_URL: http://agent:9000
       API_KEY_SECRET: ${API_KEY_SECRET:-prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o}
       JWT_SECRET: ${JWT_SECRET:-prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA}
+      ENVIRONMENT: development
     depends_on:
       gateway:
         condition: service_healthy
@@ -97,6 +104,7 @@ services:
       API_KEY_SECRET: ${API_KEY_SECRET:-prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o}
       JWT_SECRET: ${JWT_SECRET:-prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA}
       DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD:-B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J}@db:5432/bhiv_hr_nqzb
+      ENVIRONMENT: development
     depends_on:
       gateway:
         condition: service_healthy

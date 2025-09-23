@@ -19,7 +19,16 @@ class ClientAuthService:
     """Production-grade client authentication service"""
     
     def __init__(self):
-        self.database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb")
+        # Environment-aware database URL
+        environment = os.getenv("ENVIRONMENT", "development").lower()
+        if environment == "production":
+            # Production database on Render
+            default_db_url = "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb"
+        else:
+            # Local development database in Docker
+            default_db_url = "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@db:5432/bhiv_hr_nqzb"
+        
+        self.database_url = os.getenv("DATABASE_URL", default_db_url)
         self.jwt_secret = self._get_jwt_secret()
         self.jwt_algorithm = "HS256"
         self.token_expiry_hours = 24

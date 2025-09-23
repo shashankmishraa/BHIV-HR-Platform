@@ -24,8 +24,16 @@ class DatabaseManager:
     
     def _create_engine(self):
         """Create database engine with proper configuration"""
-        # Use real hostname instead of 'db' which only works in Docker Compose
-        database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb")
+        # Environment-aware database URL
+        environment = os.getenv("ENVIRONMENT", "development").lower()
+        if environment == "production":
+            # Production database on Render
+            default_db_url = "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb"
+        else:
+            # Local development database in Docker
+            default_db_url = "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@db:5432/bhiv_hr_nqzb"
+        
+        database_url = os.getenv("DATABASE_URL", default_db_url)
         
         return create_engine(
             database_url,

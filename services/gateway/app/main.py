@@ -182,8 +182,16 @@ app = FastAPI(
 structured_logger = get_logger("gateway")
 error_tracker = ErrorTracker("gateway")
 
-# Database URL configuration - use real hostname instead of "db"
-database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb")
+# Database URL configuration - environment-aware
+environment = os.getenv("ENVIRONMENT", "development").lower()
+if environment == "production":
+    # Production database on Render
+    default_db_url = "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb"
+else:
+    # Local development database in Docker
+    default_db_url = "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@db:5432/bhiv_hr_nqzb"
+
+database_url = os.getenv("DATABASE_URL", default_db_url)
 
 # Create database tables on startup
 def create_database_tables():

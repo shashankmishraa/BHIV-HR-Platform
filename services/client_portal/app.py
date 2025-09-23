@@ -3,7 +3,18 @@ import os
 
 import requests
 import streamlit as st
-API_BASE_URL = os.getenv("GATEWAY_URL", "https://bhiv-hr-gateway-901a.onrender.com")
+# Environment-aware service URLs
+environment = os.getenv("ENVIRONMENT", "development").lower()
+if environment == "production":
+    # Production URLs on Render
+    default_gateway_url = "https://bhiv-hr-gateway-901a.onrender.com"
+    default_agent_url = "https://bhiv-hr-agent-o6nx.onrender.com"
+else:
+    # Local development URLs in Docker
+    default_gateway_url = "http://gateway:8000"
+    default_agent_url = "http://agent:9000"
+
+API_BASE_URL = os.getenv("GATEWAY_URL", default_gateway_url)
 API_KEY = os.getenv("API_KEY_SECRET", "myverysecureapikey123")
 
 headers = {
@@ -283,8 +294,9 @@ def show_candidate_review():
                         st.info(f"Connecting to AI agent for job {job_id}...")
                         try:
                             # Call AI agent service directly
+                            agent_url = default_agent_url if 'default_agent_url' in locals() else "http://agent:9000"
                             agent_response = requests.post(
-                                "https://bhiv-hr-agent-o6nx.onrender.com/match", 
+                                f"{agent_url}/match", 
                                 json={"job_id": job_id}, 
                                 timeout=15
                             )
@@ -426,8 +438,9 @@ def show_match_results():
                         with st.spinner("🤖 AI is dynamically analyzing candidates..."):
                             try:
                                 # Call AI agent directly for dynamic matching
+                                agent_url = default_agent_url if 'default_agent_url' in locals() else "http://agent:9000"
                                 response = requests.post(
-                                    "https://bhiv-hr-agent-o6nx.onrender.com/match", 
+                                    f"{agent_url}/match", 
                                     json={"job_id": job_id}, 
                                     timeout=20
                                 )
