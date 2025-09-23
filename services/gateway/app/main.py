@@ -5516,3 +5516,7 @@ async def reset_password(email_data: EmailValidation, api_key: str = Depends(get
         "reset_link": f"https://bhiv-hr-platform.com/reset-password?token={reset_token}",
         "initiated_at": datetime.now(timezone.utc).isoformat()
     }
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
