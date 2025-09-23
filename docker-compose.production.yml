@@ -2,10 +2,6 @@
 # This file is for LOCAL DEVELOPMENT only
 # Production deployment is on Render: https://bhiv-hr-gateway-901a.onrender.com
 
-# Load local environment variables
-env_file:
-  - .env.local
-
 services:
   db:
     image: postgres:15-alpine
