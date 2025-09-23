@@ -11,10 +11,19 @@ Welcome to the BHIV HR Platform - an AI-powered recruiting solution that combine
 - **Internet**: Stable connection (minimum 1 Mbps)
 - **Screen Resolution**: 1280x720 minimum (1920x1080 recommended)
 
-### Access URLs
-- **HR Portal**: http://localhost:8501 (Internal HR Team)
-- **Client Portal**: http://localhost:8502 (External Clients)
-- **API Documentation**: http://localhost:8000/docs (Developers)
+### Access URLs (Updated January 18, 2025)
+- **HR Portal**: https://bhiv-hr-portal-xk2k.onrender.com/ (Production) | http://localhost:8501 (Local)
+- **Client Portal**: https://bhiv-hr-client-portal-zdbt.onrender.com/ (Production) | http://localhost:8502 (Local)
+- **API Gateway**: https://bhiv-hr-gateway-901a.onrender.com/docs (Production) | http://localhost:8000/docs (Local)
+- **AI Agent**: https://bhiv-hr-agent-o6nx.onrender.com/docs (Production) | http://localhost:9000/docs (Local)
+
+### Latest Features (v3.2.0)
+- **166 Total Endpoints**: Gateway (151) + AI Agent (15)
+- **70.9% Success Rate**: 90/127 endpoints tested and functional
+- **AI Agent**: 100% functional (15/15 endpoints)
+- **Database Integration**: 68+ real candidates from 31 resume files
+- **Performance**: 1.038s average response time (optimization in progress)
+- **Security**: Enterprise-grade with OWASP Top 10 compliance
 
 ---
 

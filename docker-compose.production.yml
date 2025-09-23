@@ -4,23 +4,31 @@
 
 services:
   db:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: postgres
+      POSTGRES_DB: bhiv_hr_nqzb
+      POSTGRES_USER: bhiv_user
       POSTGRES_PASSWORD: B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./services/db/init_db.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./services/db/init_db.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./services/db/init_complete.sql:/docker-entrypoint-initdb.d/02-complete.sql
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U bhiv_user -d bhiv_hr_nqzb"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
+    command: [
+      "postgres",
+      "-c", "max_connections=100",
+      "-c", "shared_buffers=256MB",
+      "-c", "work_mem=4MB"
+    ]
 
   gateway:
     build:

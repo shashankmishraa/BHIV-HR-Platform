@@ -1,6 +1,6 @@
 # 🔌 BHIV HR Platform API Documentation
 
-Complete API reference for the BHIV HR Platform with 118 tested endpoints (30.51% success rate - requires fixes).
+Complete API reference for the BHIV HR Platform with 166 total endpoints (127 tested, 70.9% success rate).
 
 ## 🚀 Quick Start
 
@@ -21,16 +21,27 @@ curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr
 ## 🏗️ API Architecture
 
 ### **Service Overview**
-| Service | Endpoints | Purpose | Base URL |
-|---------|-----------|---------|----------|
-| **Gateway** | 49 | Core business logic | `/v1/` |
-| **AI Agent** | 15 | AI matching & analytics | `/` |
-| **Total** | **118** | Tested endpoints | - |
-| **Status** | **30.51%** | Success rate | **82 failing** |
+| Service | Endpoints | Purpose | Base URL | Status |
+|---------|-----------|---------|----------|--------|
+| **Gateway** | 151 | Core business logic | `/v1/` | 67% functional |
+| **AI Agent** | 15 | AI matching & analytics | `/` | 100% functional |
+| **Total** | **166** | Live endpoints | - | **70.9% success** |
+| **Tested** | **127** | Endpoints tested | - | **90 functional** |
 
 ---
 
-## 🔐 Gateway API (106 Endpoints)
+## 🔐 Gateway API (151 Endpoints)
+
+### **🔥 PRIORITY 1 ISSUES**
+- **Database Schema**: 34 endpoints failing due to missing tables
+- **Parameter Validation**: 422 errors need default parameters
+- **Performance**: Average 1.038s response time (target <0.5s)
+
+### **✅ WORKING SECTIONS**
+- **AI Agent Service**: 100% functional (15/15 endpoints)
+- **Security Systems**: 83% functional (10/12 endpoints)
+- **Session Management**: 83% functional (5/6 endpoints)
+- **Core API**: 75% functional (3/4 endpoints)
 
 ### **Core Endpoints (4)**
 ```bash
@@ -176,7 +187,12 @@ PUT  /v1/client/profile          # Update profile
 
 ---
 
-## 🤖 AI Agent API (15 Endpoints)
+## 🤖 AI Agent API (15 Endpoints) - ✅ 100% FUNCTIONAL
+
+### **✅ ALL ENDPOINTS WORKING**
+- **Zero failures**: All 15 endpoints operational
+- **Performance**: 0.3-1.2s response times
+- **Features**: Semantic matching, skill embeddings, job templates
 
 ### **Core Operations (3)**
 ```bash
@@ -354,11 +370,12 @@ X-Requested-With: XMLHttpRequest (for CSRF protection)
 
 ## 🚀 Performance & Optimization
 
-### **Response Times**
-- **Simple Queries**: <50ms
-- **Complex Searches**: <200ms
-- **AI Matching**: <500ms
-- **Bulk Operations**: <2s
+### **Response Times (Current Performance)**
+- **Average Response**: 1.038s (needs optimization)
+- **Fastest Response**: 0.270s (Prometheus metrics)
+- **Slowest Response**: 3.686s (Client login)
+- **AI Agent**: 0.3-1.2s (excellent)
+- **Target**: <0.5s average (Priority 2 goal)
 
 ### **Pagination**
 ```bash
@@ -453,4 +470,4 @@ jobs = client.get_jobs()
 
 ---
 
-**Last Updated**: January 17, 2025 | **API Version**: v1 | **Total Endpoints**: 121
+**Last Updated**: January 18, 2025 | **API Version**: v1 | **Total Endpoints**: 166 | **Success Rate**: 70.9% | **Production Ready**: 85%

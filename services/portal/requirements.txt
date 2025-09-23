@@ -1,3 +1,32 @@
-streamlit==1.28.1
+# BHIV HR Platform HR Portal Dependencies
+# Updated for Streamlit dashboard with security features
+
+# Core Framework
+streamlit==1.29.0
+streamlit-authenticator==0.2.3
+
+# HTTP & API
+requests==2.31.0
 httpx==0.25.2
-pandas==2.1.1
+
+# Data Processing
+pandas==2.1.4
+numpy==1.25.2
+
+# File Processing
+PyPDF2==3.0.1
+python-docx==1.1.0
+openpyxl==3.1.2
+
+# Security
+cryptography==41.0.8
+bcrypt==4.1.2
+
+# UI Components
+plotly==5.17.0
+altair==5.2.0
+pillow==10.1.0
+
+# Utilities
+python-dotenv==1.0.0
+toml==0.10.2

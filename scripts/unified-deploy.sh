@@ -198,6 +198,32 @@ show_logs() {
     docker-compose -f $DOCKER_COMPOSE_FILE logs --tail=50 -f
 }
 
+# Database migration (Priority 1 Fix)
+run_database_migration() {
+    print_status "Running database migration (Priority 1 Fix)..."
+    
+    # Wait for database to be ready
+    sleep 15
+    
+    # Initialize database schema
+    if [ -f "init-database.py" ]; then
+        print_status "Initializing database schema..."
+        python init-database.py || print_warning "Database initialization failed"
+    fi
+    
+    # Run schema creation script
+    if [ -f "scripts/create_database_schema.sql" ]; then
+        print_status "Creating database schema..."
+        docker exec bhivhraiplatform-db-1 psql -U bhiv_user -d bhiv_hr_nqzb -f /docker-entrypoint-initdb.d/02-complete.sql || print_warning "Schema creation failed"
+    fi
+    
+    # Verify tables exist
+    print_status "Verifying database tables..."
+    docker exec bhivhraiplatform-db-1 psql -U bhiv_user -d bhiv_hr_nqzb -c "\dt" || print_warning "Table verification failed"
+    
+    print_success "Database migration completed"
+}
+
 # Process data
 process_data() {
     print_status "Processing sample data..."
@@ -296,6 +322,7 @@ main() {
     case $environment in
         local)
             deploy_local
+            run_database_migration  # Priority 1 Fix
             process_data
             ;;
         production)

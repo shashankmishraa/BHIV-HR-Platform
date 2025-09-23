@@ -25,13 +25,6 @@ try:
     from .ai_matching import router as ai_router
     from .security_config_clean import security_manager
     from .performance_optimizer_clean import performance_cache
-    from .job_management import router as job_router
-    from .interview_management import router as interview_router
-    from .security_testing import router as security_router
-    from .session_management import router as session_router
-    from .analytics_statistics import router as analytics_router
-    from .client_portal import router as client_router
-    from .two_factor_auth import router as twofa_router
     print("✅ Relative imports successful")
 except ImportError as e:
     print(f"⚠️ Relative imports failed: {e}")
@@ -44,13 +37,6 @@ except ImportError as e:
         from ai_matching import router as ai_router
         from security_config_clean import security_manager
         from performance_optimizer_clean import performance_cache
-        from job_management import router as job_router
-        from interview_management import router as interview_router
-        from security_testing import router as security_router
-        from session_management import router as session_router
-        from analytics_statistics import router as analytics_router
-        from client_portal import router as client_router
-        from two_factor_auth import router as twofa_router
         print("✅ Direct imports successful")
     except ImportError as e2:
         print(f"❌ All imports failed: {e2}")
@@ -248,62 +234,6 @@ if MODULES_AVAILABLE:
         print("✅ Monitoring router included")
     except Exception as e:
         print(f"❌ Monitoring router failed: {e}")
-    
-    try:
-        # Job Management endpoints (/v1/jobs/*)
-        app.include_router(job_router, prefix="/v1", tags=["Job Management"])
-        router_count += 1
-        print("✅ Job Management router included")
-    except Exception as e:
-        print(f"❌ Job Management router failed: {e}")
-    
-    try:
-        # Interview Management endpoints (/v1/interviews/*)
-        app.include_router(interview_router, prefix="/v1", tags=["Interview Management"])
-        router_count += 1
-        print("✅ Interview Management router included")
-    except Exception as e:
-        print(f"❌ Interview Management router failed: {e}")
-    
-    try:
-        # Security Testing endpoints (/v1/security/*)
-        app.include_router(security_router, prefix="/v1", tags=["Security Testing"])
-        router_count += 1
-        print("✅ Security Testing router included")
-    except Exception as e:
-        print(f"❌ Security Testing router failed: {e}")
-    
-    try:
-        # Session Management endpoints (/v1/sessions/*)
-        app.include_router(session_router, prefix="/v1", tags=["Session Management"])
-        router_count += 1
-        print("✅ Session Management router included")
-    except Exception as e:
-        print(f"❌ Session Management router failed: {e}")
-    
-    try:
-        # Analytics & Statistics endpoints (/v1/analytics/*, /v1/reports/*)
-        app.include_router(analytics_router, prefix="/v1", tags=["Analytics & Statistics"])
-        router_count += 1
-        print("✅ Analytics & Statistics router included")
-    except Exception as e:
-        print(f"❌ Analytics & Statistics router failed: {e}")
-    
-    try:
-        # Client Portal endpoints (/v1/client/*)
-        app.include_router(client_router, prefix="/v1", tags=["Client Portal"])
-        router_count += 1
-        print("✅ Client Portal router included")
-    except Exception as e:
-        print(f"❌ Client Portal router failed: {e}")
-    
-    try:
-        # Two-Factor Authentication endpoints (/v1/auth/*)
-        app.include_router(twofa_router, prefix="/v1", tags=["Two-Factor Authentication"])
-        router_count += 1
-        print("✅ Two-Factor Authentication router included")
-    except Exception as e:
-        print(f"❌ Two-Factor Authentication router failed: {e}")
 
 else:
     # Fallback endpoints when modules are not available
@@ -329,9 +259,7 @@ else:
     
     print("⚠️ Running in fallback mode with basic endpoints")
 
-print(f"🚀 Gateway initialized with {router_count} routers (Complete modular architecture)")
-print(f"📊 Total endpoints: ~151 (Original monolithic endpoints now modularized)")
-print(f"🏗️ Architecture: Fully modular with {router_count} focused modules")
+print(f"🚀 Gateway initialized with {router_count} routers")
 
 # Startup event
 @app.on_event("startup")

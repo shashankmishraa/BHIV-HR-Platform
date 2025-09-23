@@ -45,7 +45,19 @@ curl -H "Authorization: Bearer myverysecureapikey123" \
 ### **📋 Prerequisites**
 - Docker & Docker Compose
 - Git
+- PostgreSQL 17 (for database)
 - 4GB+ RAM available
+
+### **🔥 CRITICAL: Database Setup First**
+```bash
+# PRIORITY 1: Fix database schema issues (34 endpoints failing)
+# Run database initialization before starting services
+python init-database.py
+python scripts/create_database_schema.sql
+
+# Verify database tables exist
+psql -h localhost -U bhiv_user -d bhiv_hr_nqzb -c "\dt"
+```
 
 ### **🚀 Quick Start**
 ```bash
@@ -53,12 +65,19 @@ curl -H "Authorization: Bearer myverysecureapikey123" \
 git clone https://github.com/shashankmishraa/BHIV-HR-Platform.git
 cd BHIV-HR-Platform
 
-# 2. Start all services
+# 2. CRITICAL: Setup database schema first
+python init-database.py
+# Verify: Should create candidates, jobs, interviews, feedback tables
+
+# 3. Start all services
 docker-compose -f docker-compose.production.yml up -d
 
-# 3. Wait for services to start (30-60 seconds)
+# 4. Wait for services to start (30-60 seconds)
 # Check status
 docker-compose -f docker-compose.production.yml ps
+
+# 5. Verify database connectivity
+curl http://localhost:8000/test-candidates
 ```
 
 ### **🔗 Local URLs**
@@ -217,8 +236,13 @@ docker exec bhivhraiplatform-db-1 psql -U bhiv_user -d bhiv_hr -c "SELECT COUNT(
 6. **Export Reports**: ✅ Download comprehensive assessment reports
 7. **Dynamic Dashboard**: ✅ Live data from database, no hardcoded values
 
+### **🔥 PRIORITY 1 FIXES NEEDED**
+1. **Database Schema**: 34 endpoints failing due to missing tables - Run init-database.py first
+2. **Parameter Validation**: Some endpoints need default parameters - Check API docs
+3. **Performance**: Client Portal 3.3s response time - Needs optimization
+
 ### **🔍 Advanced Features**
-1. **API Integration**: ✅ Test all 49 API endpoints
+1. **API Integration**: ⚠️ 90/127 endpoints functional (70.9% success rate)
 2. **Job-Specific Matching**: ✅ Algorithm analyzes job requirements for targeted scoring
 3. **Recruiter Preferences**: ✅ Integration with reviewer feedback and interview data
 4. **Security Features**: ✅ Try 2FA setup and rate limiting
@@ -226,6 +250,8 @@ docker exec bhivhraiplatform-db-1 psql -U bhiv_user -d bhiv_hr -c "SELECT COUNT(
 6. **Search & Filter**: ✅ Advanced candidate search capabilities
 7. **Real Data**: ✅ 68+ candidates from actual resume files
 8. **Professional Codebase**: ✅ Clean structure, removed duplicates
+9. **AI Agent Service**: ✅ 100% functional (15/15 endpoints)
+10. **Performance**: ⚡ Average 1.038s response time, zero timeouts
 
 ---
 

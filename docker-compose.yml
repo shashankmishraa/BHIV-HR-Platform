@@ -1,0 +1,41 @@
+# BHIV HR Platform - Development Docker Compose
+# Simplified version for quick development setup
+
+version: '3.8'
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: bhiv_hr_nqzb
+      POSTGRES_USER: bhiv_user
+      POSTGRES_PASSWORD: B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  gateway:
+    build: ./services/gateway
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@db:5432/bhiv_hr_nqzb
+      ENVIRONMENT: development
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  portal:
+    build: ./services/portal
+    ports:
+      - "8501:8501"
+    environment:
+      GATEWAY_URL: http://gateway:8000
+    depends_on:
+      - gateway
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
