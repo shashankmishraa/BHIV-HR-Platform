@@ -347,7 +347,7 @@ async def startup_event():
     }
     
     if structured_logger:
-        structured_logger.info("🚀 BHIV HR Gateway starting up", **startup_info)
+        structured_logger.info(f"🚀 BHIV HR Gateway starting up: {startup_info}")
     else:
         print(f"🚀 BHIV HR Gateway starting up: {startup_info}")
 
