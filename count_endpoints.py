@@ -1,59 +1,82 @@
-#!/usr/bin/env python3
-"""
-Simple endpoint counter
-"""
-import re
+import json
+import requests
 
-def count_endpoints_in_file(filepath):
-    """Count endpoints in a Python file"""
+def count_endpoints_from_openapi(openapi_data):
+    """Count endpoints from OpenAPI specification"""
+    if isinstance(openapi_data, str):
+        openapi_data = json.loads(openapi_data)
+    
+    paths = openapi_data.get('paths', {})
+    endpoint_count = 0
+    
+    for path, methods in paths.items():
+        # Count each HTTP method as a separate endpoint
+        for method in methods.keys():
+            if method.lower() in ['get', 'post', 'put', 'delete', 'patch', 'head', 'options']:
+                endpoint_count += 1
+    
+    return endpoint_count, paths
+
+def main():
+    print("Counting Live Endpoints from Render Services\n")
+    
+    # Gateway Service
+    print("Gateway Service (https://bhiv-hr-gateway-901a.onrender.com)")
     try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            content = f.read()
-        
-        # Find all @app.method patterns
-        patterns = [
-            r'@app\.get\(',
-            r'@app\.post\(',
-            r'@app\.put\(',
-            r'@app\.delete\(',
-            r'@app\.patch\('
-        ]
-        
-        endpoints = []
-        for pattern in patterns:
-            matches = re.findall(pattern, content)
-            endpoints.extend(matches)
-        
-        # Find route paths
-        route_patterns = r'@app\.(get|post|put|delete|patch)\("([^"]+)"'
-        routes = re.findall(route_patterns, content)
-        
-        print(f"Found {len(routes)} endpoints in {filepath}:")
-        for method, path in routes:
-            print(f"  {method.upper()} {path}")
-        
-        return len(routes)
-        
+        gateway_response = requests.get("https://bhiv-hr-gateway-901a.onrender.com/openapi.json", timeout=10)
+        if gateway_response.status_code == 200:
+            gateway_count, gateway_paths = count_endpoints_from_openapi(gateway_response.text)
+            print(f"Gateway Endpoints: {gateway_count}")
+            
+            # Show breakdown by path
+            print("\nGateway Endpoint Breakdown:")
+            for path, methods in list(gateway_paths.items())[:10]:  # Show first 10
+                method_count = len([m for m in methods.keys() if m.lower() in ['get', 'post', 'put', 'delete', 'patch', 'head', 'options']])
+                print(f"   {path}: {method_count} methods")
+            if len(gateway_paths) > 10:
+                print(f"   ... and {len(gateway_paths) - 10} more paths")
+        else:
+            print(f"Failed to fetch Gateway OpenAPI: {gateway_response.status_code}")
+            gateway_count = 0
     except Exception as e:
-        print(f"Error reading {filepath}: {e}")
-        return 0
+        print(f"Error fetching Gateway endpoints: {e}")
+        gateway_count = 0
+    
+    print("\n" + "="*50)
+    
+    # AI Agent Service
+    print("AI Agent Service (https://bhiv-hr-agent-o6nx.onrender.com)")
+    try:
+        agent_response = requests.get("https://bhiv-hr-agent-o6nx.onrender.com/openapi.json", timeout=10)
+        if agent_response.status_code == 200:
+            agent_count, agent_paths = count_endpoints_from_openapi(agent_response.text)
+            print(f"AI Agent Endpoints: {agent_count}")
+            
+            # Show breakdown by path
+            print("\nAI Agent Endpoint Breakdown:")
+            for path, methods in agent_paths.items():
+                method_count = len([m for m in methods.keys() if m.lower() in ['get', 'post', 'put', 'delete', 'patch', 'head', 'options']])
+                print(f"   {path}: {method_count} methods")
+        else:
+            print(f"Failed to fetch AI Agent OpenAPI: {agent_response.status_code}")
+            agent_count = 0
+    except Exception as e:
+        print(f"Error fetching AI Agent endpoints: {e}")
+        agent_count = 0
+    
+    print("\n" + "="*50)
+    
+    # Total Summary
+    total_endpoints = gateway_count + agent_count
+    print(f"TOTAL LIVE ENDPOINTS: {total_endpoints}")
+    print(f"   - Gateway Service: {gateway_count} endpoints")
+    print(f"   - AI Agent Service: {agent_count} endpoints")
+    
+    print(f"\nLive Services Status:")
+    print(f"   - Gateway: https://bhiv-hr-gateway-901a.onrender.com/docs")
+    print(f"   - AI Agent: https://bhiv-hr-agent-o6nx.onrender.com/docs")
+    print(f"   - HR Portal: https://bhiv-hr-portal-xk2k.onrender.com/")
+    print(f"   - Client Portal: https://bhiv-hr-client-portal-zdbt.onrender.com/")
 
 if __name__ == "__main__":
-    # Count Gateway endpoints
-    gateway_file = "services/gateway/app/main.py"
-    gateway_count = count_endpoints_in_file(gateway_file)
-    
-    # Count AI Agent endpoints  
-    agent_file = "services/agent/app.py"
-    agent_count = count_endpoints_in_file(agent_file)
-    
-    total = gateway_count + agent_count
-    percentage = (total / 122) * 100
-    
-    print(f"\n=== ENDPOINT SUMMARY ===")
-    print(f"Gateway Service: {gateway_count} endpoints")
-    print(f"AI Agent Service: {agent_count} endpoints")
-    print(f"Total Implemented: {total} endpoints")
-    print(f"Target: 122 endpoints")
-    print(f"Completion: {percentage:.1f}%")
-    print(f"Remaining: {122 - total} endpoints")
+    main()
