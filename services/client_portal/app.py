@@ -3,7 +3,7 @@ import os
 
 import requests
 import streamlit as st
-API_BASE_URL = os.getenv("GATEWAY_URL", "http://gateway:8000")
+API_BASE_URL = os.getenv("GATEWAY_URL", "https://bhiv-hr-gateway-901a.onrender.com")
 API_KEY = os.getenv("API_KEY_SECRET", "myverysecureapikey123")
 
 headers = {
@@ -284,7 +284,7 @@ def show_candidate_review():
                         try:
                             # Call AI agent service directly
                             agent_response = requests.post(
-                                "http://localhost:9000/match", 
+                                "https://bhiv-hr-agent-o6nx.onrender.com/match", 
                                 json={"job_id": job_id}, 
                                 timeout=15
                             )
@@ -427,7 +427,7 @@ def show_match_results():
                             try:
                                 # Call AI agent directly for dynamic matching
                                 response = requests.post(
-                                    "http://localhost:9000/match", 
+                                    "https://bhiv-hr-agent-o6nx.onrender.com/match", 
                                     json={"job_id": job_id}, 
                                     timeout=20
                                 )

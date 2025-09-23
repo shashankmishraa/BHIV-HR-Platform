@@ -19,7 +19,7 @@ class ClientAuthService:
     """Production-grade client authentication service"""
     
     def __init__(self):
-        self.database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr")
+        self.database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb")
         self.jwt_secret = self._get_jwt_secret()
         self.jwt_algorithm = "HS256"
         self.token_expiry_hours = 24

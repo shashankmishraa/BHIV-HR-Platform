@@ -59,8 +59,8 @@ except Exception as e:
     st.info("Please check your environment configuration and security setup.")
     st.stop()
 
-AGENT_URL = os.getenv("AGENT_SERVICE_URL", "http://agent:9000")
-API_BASE = os.getenv("GATEWAY_URL", "http://gateway:8000")
+AGENT_URL = os.getenv("AGENT_SERVICE_URL", "https://bhiv-hr-agent-o6nx.onrender.com")
+API_BASE = os.getenv("GATEWAY_URL", "https://bhiv-hr-gateway-901a.onrender.com")
 
 # Use secure API key management (fixes CWE-798)
 if SECURITY_ENABLED:
@@ -686,7 +686,7 @@ elif menu == "📈 Dashboard Overview":
         if st.button("📥 Export Job-Specific Report", use_container_width=True):
             try:
                 # Get AI match data and assessments for specific job
-                ai_response = httpx.post(f"http://agent:9000/match", json={"job_id": job_id_export}, timeout=15.0)
+                ai_response = httpx.post(f"{AGENT_URL}/match", json={"job_id": job_id_export}, timeout=15.0)
                 interviews_response = httpx.get(f"{API_BASE}/v1/interviews", headers=headers, timeout=10.0)
                 
                 candidates = []
@@ -822,7 +822,7 @@ elif menu == "🎯 Step 4: AI Shortlist & Matching":
         with st.spinner("🔄 Advanced AI is analyzing candidates using semantic matching..."):
             try:
                 # Call AI Agent directly for enhanced matching
-                response = httpx.post(f"http://agent:9000/match", 
+                response = httpx.post(f"{AGENT_URL}/match", 
                                     json={"job_id": job_id}, 
                                     timeout=15.0)
                 if response.status_code == 200:
@@ -1295,7 +1295,7 @@ elif menu == "🏆 Step 7: Export Assessment Reports":
         if st.button("📥 Export Shortlist with Assessments", use_container_width=True):
             try:
                 # Get AI shortlist data
-                ai_response = httpx.post(f"http://agent:9000/match", json={"job_id": job_id_shortlist}, timeout=15.0)
+                ai_response = httpx.post(f"{AGENT_URL}/match", json={"job_id": job_id_shortlist}, timeout=15.0)
                 interviews_response = httpx.get(f"{API_BASE}/v1/interviews", headers=headers, timeout=10.0)
                 
                 candidates = []
