@@ -178,7 +178,7 @@ error_tracker = ErrorTracker("gateway")
 
 # Health check configuration
 # Use the same database URL logic for health checks
-health_db_url = database_url if 'database_url' in locals() else os.getenv("DATABASE_URL", "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr")
+health_db_url = database_url
 
 health_config = {
     'database_url': health_db_url,
@@ -1397,9 +1397,23 @@ class InputValidation(BaseModel):
 # Global connection pool for performance
 _executor = ThreadPoolExecutor(max_workers=20)
 
+# Database URL configuration - use real hostname instead of "db"
+database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb")
+
 def get_db_engine():
-    """Get database engine from database manager"""
-    return database_manager.engine
+    """Get database engine with proper URL configuration"""
+    try:
+        from sqlalchemy import create_engine
+        return create_engine(
+            database_url,
+            pool_size=10,
+            max_overflow=20,
+            pool_pre_ping=True,
+            pool_recycle=3600
+        )
+    except Exception:
+        # Fallback to database manager if available
+        return database_manager.engine if hasattr(database_manager, 'engine') else None
 
 # Real-time cache for AI matching results
 _matching_cache = {}
