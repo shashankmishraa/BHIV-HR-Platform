@@ -1,0 +1,111 @@
+# BHIV HR Platform Gateway - Deployment Configuration
+# Version: 3.2.0 - Production Ready
+
+name: bhiv-hr-gateway
+version: 3.2.0
+architecture: modular
+
+# Service Configuration
+service:
+  name: BHIV HR Platform Gateway
+  type: web
+  framework: FastAPI
+  python_version: "3.11"
+  
+# Build Configuration
+build:
+  dockerfile: Dockerfile
+  context: .
+  args:
+    - PYTHON_VERSION=3.11
+    - APP_VERSION=3.2.0
+    
+# Runtime Configuration
+runtime:
+  port: 8000
+  host: "0.0.0.0"
+  workers: 1
+  timeout: 30
+  
+# Environment Variables (Production)
+environment:
+  ENVIRONMENT: production
+  PYTHON_VERSION: "3.11.11"
+  LOG_LEVEL: INFO
+  SECURITY_ENABLED: "true"
+  METRICS_ENABLED: "true"
+  
+# Health Check Configuration
+health_check:
+  path: /health
+  interval: 30
+  timeout: 10
+  retries: 3
+  
+# Resource Limits
+resources:
+  memory: 512MB
+  cpu: 0.5
+  
+# Scaling Configuration
+scaling:
+  min_instances: 1
+  max_instances: 3
+  target_cpu: 70
+  
+# Dependencies
+dependencies:
+  - postgresql
+  - redis
+  
+# Modules
+modules:
+  - name: core
+    endpoints: 4
+    status: active
+  - name: candidates
+    endpoints: 12
+    status: active
+  - name: jobs
+    endpoints: 10
+    status: active
+  - name: auth
+    endpoints: 17
+    status: active
+  - name: workflows
+    endpoints: 15
+    status: active
+  - name: monitoring
+    endpoints: 25
+    status: active
+    
+# Features
+features:
+  - modular_architecture
+  - workflow_orchestration
+  - pipeline_automation
+  - real_time_monitoring
+  - enterprise_security
+  - background_processing
+  
+# Monitoring
+monitoring:
+  metrics: prometheus
+  logging: structured
+  tracing: enabled
+  alerts: configured
+  
+# Security
+security:
+  authentication: jwt_and_api_key
+  authorization: role_based
+  encryption: tls_1_3
+  rate_limiting: enabled
+  input_validation: comprehensive
+  
+# Performance
+performance:
+  response_time: "<100ms"
+  throughput: "1000+ req/min"
+  uptime: "99.9%"
+  concurrent_users: "50+"

@@ -1,6 +1,11 @@
-# BHIV HR Platform Gateway App Package
-# Version: 3.2.0
+"""BHIV HR Platform API Gateway Application Package
+Version: 3.2.0 - Modular Architecture
+"""
+
+from .main import app
 
 __version__ = "3.2.0"
-__title__ = "BHIV HR Platform API Gateway"
-__description__ = "Enterprise HR Platform with Advanced AI Matching and Security Features"
+__architecture__ = "modular"
+__modules__ = ["core", "candidates", "jobs", "auth", "workflows", "monitoring"]
+
+__all__ = ["app"]
