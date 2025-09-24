@@ -17,47 +17,30 @@ security_manager = None
 performance_cache = None
 
 try:
-    # Try relative imports first (package mode)
-    from .core_endpoints import router as core_router
-    from .auth_clean import router as auth_router
-    from .database_clean import router as database_router
-    from .monitoring_clean import router as monitoring_router, structured_logger, setup_service_logging
-    from .ai_matching import router as ai_router
-    from .security_config_clean import security_manager
-    from .performance_optimizer_clean import performance_cache
-    from .job_management import router as job_router
-    from .interview_management import router as interview_router
-    from .security_testing import router as security_router
-    from .session_management import router as session_router
-    from .analytics_statistics import router as analytics_router
-    from .client_portal import router as client_router
-    from .two_factor_auth import router as twofa_router
-    print("✅ Relative imports successful")
+    # Direct imports (standalone mode)
+    from core_endpoints import router as core_router
+    from auth_clean import router as auth_router
+    from database_clean import router as database_router
+    from monitoring_clean import router as monitoring_router, structured_logger, setup_service_logging
+    from security_config_clean import security_manager
+    from performance_optimizer_clean import performance_cache
+    from job_management import router as job_router
+    from interview_management import router as interview_router
+    from security_testing import router as security_router
+    from session_management import router as session_router
+    from analytics_statistics import router as analytics_router
+    from client_portal import router as client_router
+    from two_factor_auth import router as twofa_router
+    # Create AI router placeholder
+    from fastapi import APIRouter
+    ai_router = APIRouter()
+    print("Direct imports successful")
 except ImportError as e:
-    print(f"⚠️ Relative imports failed: {e}")
-    # Fallback to direct imports (standalone mode)
-    try:
-        from core_endpoints import router as core_router
-        from auth_clean import router as auth_router
-        from database_clean import router as database_router
-        from monitoring_clean import router as monitoring_router, structured_logger, setup_service_logging
-        from ai_matching import router as ai_router
-        from security_config_clean import security_manager
-        from performance_optimizer_clean import performance_cache
-        from job_management import router as job_router
-        from interview_management import router as interview_router
-        from security_testing import router as security_router
-        from session_management import router as session_router
-        from analytics_statistics import router as analytics_router
-        from client_portal import router as client_router
-        from two_factor_auth import router as twofa_router
-        print("✅ Direct imports successful")
-    except ImportError as e2:
-        print(f"❌ All imports failed: {e2}")
-        MODULES_AVAILABLE = False
-        # Setup basic logging as fallback
-        logging.basicConfig(level=logging.INFO)
-        structured_logger = logging.getLogger("gateway")
+    print(f"All imports failed: {str(e)}")
+    MODULES_AVAILABLE = False
+    # Setup basic logging as fallback
+    logging.basicConfig(level=logging.INFO)
+    structured_logger = logging.getLogger("gateway")
 
 # Initialize FastAPI application
 app = FastAPI(
@@ -70,9 +53,9 @@ app = FastAPI(
 if MODULES_AVAILABLE and structured_logger:
     try:
         setup_service_logging('gateway')
-        structured_logger.info("✅ Structured logging initialized")
+        structured_logger.info("Structured logging initialized")
     except Exception as e:
-        print(f"⚠️ Logging setup failed: {e}")
+        print(f"Logging setup failed: {e}")
 
 # Environment configuration
 environment = os.getenv("ENVIRONMENT", "development").lower()
@@ -82,8 +65,8 @@ database_url = os.getenv("DATABASE_URL",
     else "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@db:5432/bhiv_hr_nqzb"
 )
 
-print(f"🌍 Environment: {environment}")
-print(f"🗄️ Database: {'Production' if 'render.com' in database_url else 'Development'}")
+print(f"Environment: {environment}")
+print(f"Database: {'Production' if 'render.com' in database_url else 'Development'}")
 
 # HTTP Method Handler Middleware (MUST be first)
 @app.middleware("http")
@@ -181,9 +164,9 @@ if MODULES_AVAILABLE and security_manager:
             allow_headers=cors_config.allowed_headers,
             max_age=cors_config.max_age
         )
-        print("✅ CORS configured with security manager")
+        print("CORS configured with security manager")
     except Exception as e:
-        print(f"⚠️ CORS security config failed: {e}")
+        print(f"CORS security config failed: {e}")
         # Fallback CORS
         app.add_middleware(
             CORSMiddleware,
@@ -203,7 +186,7 @@ else:
         allow_headers=["*"],
         max_age=86400
     )
-    print("⚠️ Using fallback CORS configuration")
+    print("Using fallback CORS configuration")
 
 # Include routers with proper error handling
 router_count = 0
@@ -213,97 +196,97 @@ if MODULES_AVAILABLE:
         # Core endpoints (/, /health, etc.)
         app.include_router(core_router, prefix="", tags=["Core"])
         router_count += 1
-        print("✅ Core router included")
+        print("Core router included")
     except Exception as e:
-        print(f"❌ Core router failed: {e}")
+        print(f"Core router failed: {e}")
     
     try:
         # Authentication endpoints (/v1/auth/*)
         app.include_router(auth_router, prefix="/v1/auth", tags=["Authentication"])
         router_count += 1
-        print("✅ Auth router included")
+        print("Auth router included")
     except Exception as e:
-        print(f"❌ Auth router failed: {e}")
+        print(f"Auth router failed: {e}")
     
     try:
         # Database endpoints (/v1/*)
         app.include_router(database_router, prefix="/v1", tags=["Database"])
         router_count += 1
-        print("✅ Database router included")
+        print("Database router included")
     except Exception as e:
-        print(f"❌ Database router failed: {e}")
+        print(f"Database router failed: {e}")
     
     try:
         # AI Matching endpoints (/v1/match/*)
         app.include_router(ai_router, prefix="/v1", tags=["AI Matching"])
         router_count += 1
-        print("✅ AI Matching router included")
+        print("AI Matching router included")
     except Exception as e:
-        print(f"❌ AI Matching router failed: {e}")
+        print(f"AI Matching router failed: {e}")
     
     try:
         # Monitoring endpoints (/metrics, /health/*, /monitoring/*)
         app.include_router(monitoring_router, prefix="", tags=["Monitoring"])
         router_count += 1
-        print("✅ Monitoring router included")
+        print("Monitoring router included")
     except Exception as e:
-        print(f"❌ Monitoring router failed: {e}")
+        print(f"Monitoring router failed: {e}")
     
     try:
         # Job Management endpoints (/v1/jobs/*)
         app.include_router(job_router, prefix="/v1", tags=["Job Management"])
         router_count += 1
-        print("✅ Job Management router included")
+        print("Job Management router included")
     except Exception as e:
-        print(f"❌ Job Management router failed: {e}")
+        print(f"Job Management router failed: {e}")
     
     try:
         # Interview Management endpoints (/v1/interviews/*)
         app.include_router(interview_router, prefix="/v1", tags=["Interview Management"])
         router_count += 1
-        print("✅ Interview Management router included")
+        print("Interview Management router included")
     except Exception as e:
-        print(f"❌ Interview Management router failed: {e}")
+        print(f"Interview Management router failed: {e}")
     
     try:
         # Security Testing endpoints (/v1/security/*)
         app.include_router(security_router, prefix="/v1", tags=["Security Testing"])
         router_count += 1
-        print("✅ Security Testing router included")
+        print("Security Testing router included")
     except Exception as e:
-        print(f"❌ Security Testing router failed: {e}")
+        print(f"Security Testing router failed: {e}")
     
     try:
         # Session Management endpoints (/v1/sessions/*)
         app.include_router(session_router, prefix="/v1", tags=["Session Management"])
         router_count += 1
-        print("✅ Session Management router included")
+        print("Session Management router included")
     except Exception as e:
-        print(f"❌ Session Management router failed: {e}")
+        print(f"Session Management router failed: {e}")
     
     try:
         # Analytics & Statistics endpoints (/v1/analytics/*, /v1/reports/*)
         app.include_router(analytics_router, prefix="/v1", tags=["Analytics & Statistics"])
         router_count += 1
-        print("✅ Analytics & Statistics router included")
+        print("Analytics & Statistics router included")
     except Exception as e:
-        print(f"❌ Analytics & Statistics router failed: {e}")
+        print(f"Analytics & Statistics router failed: {e}")
     
     try:
         # Client Portal endpoints (/v1/client/*)
         app.include_router(client_router, prefix="/v1", tags=["Client Portal"])
         router_count += 1
-        print("✅ Client Portal router included")
+        print("Client Portal router included")
     except Exception as e:
-        print(f"❌ Client Portal router failed: {e}")
+        print(f"Client Portal router failed: {e}")
     
     try:
         # Two-Factor Authentication endpoints (/v1/auth/*)
         app.include_router(twofa_router, prefix="/v1", tags=["Two-Factor Authentication"])
         router_count += 1
-        print("✅ Two-Factor Authentication router included")
+        print("Two-Factor Authentication router included")
     except Exception as e:
-        print(f"❌ Two-Factor Authentication router failed: {e}")
+        print(f"Two-Factor Authentication router failed: {e}")
 
 else:
     # Fallback endpoints when modules are not available
@@ -327,11 +310,11 @@ else:
             "mode": "fallback"
         }
     
-    print("⚠️ Running in fallback mode with basic endpoints")
+    print("Running in fallback mode with basic endpoints")
 
-print(f"🚀 Gateway initialized with {router_count} routers (Complete modular architecture)")
-print(f"📊 Total endpoints: ~151 (Original monolithic endpoints now modularized)")
-print(f"🏗️ Architecture: Fully modular with {router_count} focused modules")
+print(f"Gateway initialized with {router_count} routers (Complete modular architecture)")
+print(f"Total endpoints: ~151 (Original monolithic endpoints now modularized)")
+print(f"Architecture: Fully modular with {router_count} focused modules")
 
 # Startup event
 @app.on_event("startup")
@@ -347,18 +330,18 @@ async def startup_event():
     }
     
     if structured_logger:
-        structured_logger.info(f"🚀 BHIV HR Gateway starting up: {startup_info}")
+        structured_logger.info(f"BHIV HR Gateway starting up: {startup_info}")
     else:
-        print(f"🚀 BHIV HR Gateway starting up: {startup_info}")
+        print(f"BHIV HR Gateway starting up: {startup_info}")
 
 # Shutdown event
 @app.on_event("shutdown")
 async def shutdown_event():
     """Cleanup on shutdown"""
     if structured_logger:
-        structured_logger.info("🛑 BHIV HR Gateway shutting down")
+        structured_logger.info("BHIV HR Gateway shutting down")
     else:
-        print("🛑 BHIV HR Gateway shutting down")
+        print("BHIV HR Gateway shutting down")
 
 # Health check for module status
 @app.get("/module-status", include_in_schema=False)
@@ -379,5 +362,5 @@ async def module_status():
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
-    print(f"🌐 Starting server on port {port}")
+    print(f"Starting server on port {port}")
     uvicorn.run(app, host="0.0.0.0", port=port)
