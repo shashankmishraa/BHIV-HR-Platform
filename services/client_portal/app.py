@@ -199,9 +199,16 @@ def show_job_posting():
             location = st.text_input("Location")
             
         with col2:
-            experience_level = st.selectbox("Experience Level", ["Entry", "Mid", "Senior", "Lead"])
+            experience_level = st.selectbox("Experience Level", ["Entry-level", "Mid-level", "Senior-level", "Lead-level", "Executive-level"])
             employment_type = st.selectbox("Type", ["Full-time", "Part-time", "Contract", "Intern"])
-            salary_range = st.text_input("Salary Range (Optional)")
+            
+        # Salary fields (required)
+        st.subheader("💰 Salary Information (Required)")
+        sal_col1, sal_col2 = st.columns(2)
+        with sal_col1:
+            salary_min = st.number_input("Minimum Salary ($)", min_value=0, max_value=10000000, value=60000, step=5000)
+        with sal_col2:
+            salary_max = st.number_input("Maximum Salary ($)", min_value=0, max_value=10000000, value=100000, step=5000)
         
         job_description = st.text_area("Job Description", height=150)
         required_skills = st.text_area(
@@ -228,15 +235,22 @@ def show_job_posting():
             client_id_str = st.session_state.get('client_id', 'TECH001')
             client_id_num = hash(client_id_str) % 1000  # Convert to number
             
+            # Validate salary range
+            if salary_max < salary_min:
+                st.error("❌ Maximum salary must be greater than or equal to minimum salary")
+                return
+            
             job_data = {
                 "title": job_title.strip(),
                 "description": job_description.strip(),
-                "client_id": client_id_num,
-                "requirements": required_skills.strip(),
+                "requirements": required_skills.strip(),  # Will be converted to list by validation
                 "location": location.strip(),
                 "department": department,
                 "experience_level": experience_level,
-                "employment_type": employment_type,
+                "salary_min": int(salary_min),
+                "salary_max": int(salary_max),
+                "job_type": employment_type,
+                "company_id": str(client_id_num),
                 "status": "active"
             }
             

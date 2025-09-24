@@ -1,11 +1,13 @@
 """Jobs workflow router"""
 
-from fastapi import APIRouter, Query, BackgroundTasks
+from fastapi import APIRouter, Query, BackgroundTasks, HTTPException
 from typing import Optional
 from datetime import datetime
 import hashlib
+from pydantic import ValidationError
 
 from ...shared.models import JobCreate
+from ....shared.validation import ValidationUtils, StandardJobCreate
 
 router = APIRouter(prefix="/v1/jobs", tags=["Jobs"])
 
@@ -33,21 +35,56 @@ async def list_jobs(
 
 @router.post("")
 async def create_job(job: JobCreate, background_tasks: BackgroundTasks):
-    """Create new job posting and trigger job workflow"""
-    job_data = job.dict()
-    job_id = f"job_{hash(job.title + job.department) % 100000}"
-    
-    # Trigger job posting workflow
-    background_tasks.add_task(trigger_job_workflow, job_id, job_data)
-    
-    return {
-        "id": job_id,
-        "message": "Job created successfully",
-        "status": "active",
-        "workflow_triggered": True,
-        "created_at": datetime.now().isoformat(),
-        **job_data
-    }
+    """Create new job posting with enhanced validation and trigger job workflow"""
+    try:
+        # Validate and normalize job data
+        job_data = job.model_dump()
+        validated_data = ValidationUtils.validate_job_data(job_data)
+        
+        # Generate job ID
+        job_id = f"job_{hash(job.title + job.department) % 100000}"
+        
+        # Trigger job posting workflow
+        background_tasks.add_task(trigger_job_workflow, job_id, validated_data)
+        
+        return {
+            "job_id": job_id,
+            "id": job_id,  # For backward compatibility
+            "message": "Job created successfully with enhanced validation",
+            "status": "active",
+            "workflow_triggered": True,
+            "created_at": datetime.now().isoformat(),
+            "validation_applied": True,
+            **validated_data
+        }
+    except ValidationError as e:
+        # Return detailed validation errors
+        error_details = []
+        for error in e.errors():
+            field = '.'.join(str(loc) for loc in error['loc'])
+            error_details.append({
+                "field": field,
+                "message": error['msg'],
+                "invalid_value": error.get('input')
+            })
+        
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "message": "Job validation failed",
+                "errors": error_details,
+                "help": {
+                    "requirements": "Provide as list ['Python', 'FastAPI'] or string 'Python, FastAPI'",
+                    "experience_level": "Use: Entry, Mid, Senior, Lead, or Executive",
+                    "salary_fields": "Both salary_min and salary_max are required (integers)"
+                }
+            }
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={"message": "Internal server error during job creation", "error": str(e)}
+        )
 
 @router.get("/{job_id}")
 async def get_job(job_id: str):
@@ -64,13 +101,48 @@ async def get_job(job_id: str):
 
 @router.put("/{job_id}")
 async def update_job(job_id: str, job: JobCreate):
-    """Update job posting"""
-    return {
-        "id": job_id,
-        "message": "Job updated successfully",
-        "updated_at": datetime.now().isoformat(),
-        **job.dict()
-    }
+    """Update job posting with enhanced validation"""
+    try:
+        # Validate and normalize job data
+        job_data = job.model_dump()
+        validated_data = ValidationUtils.validate_job_data(job_data)
+        
+        return {
+            "job_id": job_id,
+            "id": job_id,  # For backward compatibility
+            "message": "Job updated successfully with enhanced validation",
+            "updated_at": datetime.now().isoformat(),
+            "validation_applied": True,
+            **validated_data
+        }
+    except ValidationError as e:
+        # Return detailed validation errors
+        error_details = []
+        for error in e.errors():
+            field = '.'.join(str(loc) for loc in error['loc'])
+            error_details.append({
+                "field": field,
+                "message": error['msg'],
+                "invalid_value": error.get('input')
+            })
+        
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "message": "Job validation failed",
+                "errors": error_details,
+                "help": {
+                    "requirements": "Provide as list ['Python', 'FastAPI'] or string 'Python, FastAPI'",
+                    "experience_level": "Use: Entry, Mid, Senior, Lead, or Executive",
+                    "salary_fields": "Both salary_min and salary_max are required (integers)"
+                }
+            }
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={"message": "Internal server error during job update", "error": str(e)}
+        )
 
 @router.delete("/{job_id}")
 async def delete_job(job_id: str):

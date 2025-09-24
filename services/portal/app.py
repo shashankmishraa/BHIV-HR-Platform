@@ -157,9 +157,17 @@ if menu == "🏢 Step 1: Create Job Positions":
             location = st.text_input("Location", placeholder="e.g., Remote, New York, London")
         
         with col2:
-            experience_level = st.selectbox("Experience Level", ["Entry", "Mid", "Senior", "Lead"])
+            experience_level = st.selectbox("Experience Level", ["Entry-level", "Mid-level", "Senior-level", "Lead-level", "Executive-level"])
             employment_type = st.selectbox("Employment Type", ["Full-time", "Part-time", "Contract", "Intern"])
             client_id = st.number_input("Client ID", min_value=1, step=1, value=1)
+        
+        # Salary fields (required)
+        st.subheader("💰 Salary Information (Required)")
+        sal_col1, sal_col2 = st.columns(2)
+        with sal_col1:
+            salary_min = st.number_input("Minimum Salary ($)", min_value=0, max_value=10000000, value=50000, step=5000)
+        with sal_col2:
+            salary_max = st.number_input("Maximum Salary ($)", min_value=0, max_value=10000000, value=80000, step=5000)
         
         description = st.text_area("Job Description", placeholder="Describe the role, responsibilities, and requirements...")
         requirements = st.text_area("Key Requirements", placeholder="List the essential skills, experience, and qualifications...")
@@ -172,15 +180,23 @@ if menu == "🏢 Step 1: Create Job Positions":
             if SECURITY_ENABLED and not form_limiter.is_allowed(session_id):
                 st.error("⚠️ Too many requests. Please wait before submitting again.")
             else:
-                # Sanitize inputs to prevent XSS
+                # Validate salary range
+                if salary_max < salary_min:
+                    st.error("❌ Maximum salary must be greater than or equal to minimum salary")
+                    return
+                
+                # Prepare job data with proper validation
                 job_data = {
-                    "title": title,
+                    "title": title.strip(),
                     "department": department,
-                    "location": location,
+                    "location": location.strip(),
                     "experience_level": experience_level,
-                    "requirements": requirements,
-                    "description": description,
-                    "client_id": client_id
+                    "requirements": requirements.strip(),  # Will be converted to list by validation
+                    "description": description.strip(),
+                    "salary_min": int(salary_min),
+                    "salary_max": int(salary_max),
+                    "job_type": employment_type,
+                    "company_id": str(client_id)
                 }
                 
                 if SECURITY_ENABLED:
