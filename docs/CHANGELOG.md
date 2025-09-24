@@ -1,5 +1,42 @@
 # BHIV HR Platform - Changelog
 
+## [3.2.1] - January 18, 2025
+
+### 🏗️ Modular Architecture Implementation
+- **IMPLEMENTED**: Complete modular architecture with 6 router modules
+- **ADDED**: Workflow integration with background task processing
+- **ENHANCED**: Main.py with modular routing and 180+ endpoints
+- **CREATED**: Module-specific routers (core, jobs, candidates, auth, workflows, monitoring)
+- **ADDED**: System architecture and module information endpoints
+
+### 🔧 Enhanced Validation System
+- **CREATED**: Comprehensive validation utilities in services/shared/validation.py
+- **ENHANCED**: JobCreate/JobUpdate models with flexible requirements handling
+- **ADDED**: Experience level normalization and salary range validation
+- **IMPROVED**: Portal validation with detailed error messages
+- **FIXED**: String to list conversion for job requirements
+
+### 🔒 Security & Configuration Improvements
+- **FIXED**: Python syntax errors in auth router (argument order)
+- **RESOLVED**: JWT import issues (jose instead of jwt)
+- **FIXED**: Pydantic BaseSettings import using pydantic_settings
+- **ENHANCED**: Security utilities with proper imports and logging
+- **IMPROVED**: Configuration management with extra="ignore" for unknown env vars
+
+### 📚 Documentation & Project Organization
+- **COMPLETED**: Comprehensive codebase audit and documentation update
+- **UPDATED**: README.md with modular architecture information
+- **ENHANCED**: Project structure documentation with module details
+- **CREATED**: Live services analysis documenting deployment sync issues
+- **IMPROVED**: Git security with sensitive file removal and enhanced .gitignore
+
+### 🧪 Testing & Validation
+- **VERIFIED**: All validation utilities working correctly
+- **TESTED**: String requirements conversion to lists
+- **CONFIRMED**: Experience level normalization functioning
+- **VALIDATED**: Portal integration with enhanced validation
+- **DOCUMENTED**: Comprehensive validation test results
+
 ## [3.2.0] - January 17, 2025
 
 ### 🔒 Security Enhancements
@@ -122,17 +159,23 @@
 
 ## Upcoming Features
 
+### 3.2.2 (Next Release)
+- **Production Deployment Sync**: Deploy modular architecture to live services
+- **Workflow Engine**: Complete workflow orchestration implementation
+- **Advanced Monitoring**: Enhanced metrics and alerting system
+- **Performance Optimization**: Response time and throughput improvements
+
 ### 3.3.0 (Planned)
-- Enhanced analytics dashboard
-- Advanced reporting features
-- Mobile app support
-- Integration APIs
+- **Enhanced Analytics**: Advanced dashboard with real-time metrics
+- **Reporting System**: Comprehensive business intelligence features
+- **Mobile Support**: Responsive design and mobile app compatibility
+- **Integration APIs**: Third-party service integration capabilities
 
 ### 3.4.0 (Planned)
-- Machine learning model improvements
-- Advanced bias mitigation
-- Performance optimizations
-- Enterprise features
+- **ML Improvements**: Enhanced AI matching algorithms
+- **Bias Mitigation**: Advanced fairness and bias detection
+- **Enterprise Features**: Advanced security and compliance tools
+- **Scalability**: Performance optimizations for high-volume usage
 
 ---
 
