@@ -45,10 +45,16 @@ logs/
 *.db
 *.sqlite3
 
-# Environment variables
-.env
+# Environment variables and secrets
+*.env
+.env*
+config/*.env
+secrets/
 .env.local
 .env.production
+.env.development
+.env.test
+.env.staging
 
 # Docker
 .dockerignore
