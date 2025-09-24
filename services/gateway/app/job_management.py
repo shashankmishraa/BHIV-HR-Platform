@@ -1,19 +1,19 @@
 # Job Management Router
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 
 router = APIRouter()
 
 class JobUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    requirements: Optional[List[str]] = None
-    location: Optional[str] = None
-    department: Optional[str] = None
-    experience_level: Optional[str] = None
-    salary_min: Optional[int] = None
-    salary_max: Optional[int] = None
+    title: Optional[str] = Field(None, min_length=5, max_length=200)
+    description: Optional[str] = Field(None, min_length=20, max_length=5000)
+    requirements: Optional[List[str]] = Field(None, min_items=1)
+    location: Optional[str] = Field(None, min_length=2, max_length=100)
+    department: Optional[str] = Field(None, min_length=2, max_length=100)
+    experience_level: Optional[str] = Field(None, pattern=r'^(Entry-level|Mid-level|Senior|Lead|Executive)$')
+    salary_min: Optional[int] = Field(None, ge=0, le=10000000)
+    salary_max: Optional[int] = Field(None, ge=0, le=10000000)
 
 @router.get("/jobs")
 async def list_jobs():

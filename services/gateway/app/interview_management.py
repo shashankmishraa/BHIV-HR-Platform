@@ -1,18 +1,18 @@
 # Interview Management Router
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
 
 router = APIRouter()
 
 class InterviewCreate(BaseModel):
-    candidate_id: str
-    job_id: str
-    interviewer: str
+    candidate_id: str = Field(..., min_length=1)
+    job_id: str = Field(..., min_length=1)
+    interviewer: str = Field(..., min_length=2, max_length=100)
     scheduled_time: datetime
-    interview_type: str = "technical"
-    notes: Optional[str] = None
+    interview_type: str = Field(default="technical", max_length=50)
+    notes: Optional[str] = Field(None, max_length=2000)
 
 @router.get("/interviews")
 async def list_interviews():
