@@ -3,11 +3,12 @@
 import os
 import hashlib
 import secrets
-import jwt
+import logging
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 from passlib.context import CryptContext
 from fastapi import HTTPException, status
+from jose import JWTError, jwt
 from .config import get_settings
 
 settings = get_settings()
@@ -56,7 +57,7 @@ class SecurityManager:
         try:
             payload = jwt.decode(token, self.jwt_secret, algorithms=["HS256"])
             return payload
-        except jwt.PyJWTError:
+        except JWTError:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Could not validate credentials"
@@ -109,7 +110,6 @@ class SecurityManager:
     
     def log_security_event(self, event_type: str, details: Dict[str, Any]):
         """Log security events"""
-        import logging
         logger = logging.getLogger("security")
         logger.warning(f"Security Event: {event_type} - {details}")
 
