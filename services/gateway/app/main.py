@@ -5,6 +5,8 @@ from datetime import datetime, timezone
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
+from fastapi.exceptions import RequestValidationError
+from pydantic import ValidationError
 import os
 import uuid
 import time
@@ -48,6 +50,15 @@ app = FastAPI(
     version="3.2.0",
     description="Enterprise HR Platform with Advanced AI Matching and Security Features - Modular Architecture"
 )
+
+# Add validation exception handler
+try:
+    from validation_middleware import validation_exception_handler
+    app.add_exception_handler(ValidationError, validation_exception_handler)
+    app.add_exception_handler(RequestValidationError, validation_exception_handler)
+    print("Validation middleware loaded")
+except ImportError:
+    print("Validation middleware not available")
 
 # Setup logging
 if MODULES_AVAILABLE and structured_logger:
