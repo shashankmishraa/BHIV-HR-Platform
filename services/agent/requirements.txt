@@ -38,3 +38,8 @@ structlog==23.2.0
 # Utilities
 python-dotenv==1.0.0
 click==8.1.7
+psutil==5.9.6
+
+# Additional dependencies for agent
+aiofiles==23.2.1
+fastapi-cors==0.0.6

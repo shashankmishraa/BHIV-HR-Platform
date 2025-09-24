@@ -15,7 +15,10 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./services/db/init_db.sql:/docker-entrypoint-initdb.d/01-init.sql
-      - ./services/db/init_complete.sql:/docker-entrypoint-initdb.d/02-complete.sql
+      - ./services/db/01_create_tables.sql:/docker-entrypoint-initdb.d/02-create-tables.sql
+      - ./services/db/02_create_indexes.sql:/docker-entrypoint-initdb.d/03-create-indexes.sql
+      - ./services/db/03_create_triggers.sql:/docker-entrypoint-initdb.d/04-create-triggers.sql
+      - ./services/db/04_insert_sample_data.sql:/docker-entrypoint-initdb.d/05-insert-data.sql
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U bhiv_user -d bhiv_hr_nqzb"]
