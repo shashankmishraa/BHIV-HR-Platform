@@ -1,10 +1,15 @@
 {
     "include": [
-        "services/gateway/app"
+        "services/gateway/app",
+        "services/portal",
+        "services/client_portal"
     ],
     "extraPaths": [
         "services/gateway",
         "services/gateway/app",
+        "services/portal",
+        "services/portal/components",
+        "services/client_portal",
         "services/shared"
     ],
     "pythonVersion": "3.11",
