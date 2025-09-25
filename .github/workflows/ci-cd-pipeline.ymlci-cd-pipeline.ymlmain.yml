@@ -42,7 +42,7 @@ jobs:
           find . -name "*.py" -path "*/services/*" | head -20 | xargs mypy --ignore-missing-imports || true
       - run: bandit -r . -f json -o bandit-report.json || true
       - run: safety check --json --output safety-report.json || true
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: security-reports
@@ -124,7 +124,7 @@ jobs:
           docker-compose -f docker-compose.production.yml logs agent > agent.log
           docker-compose -f docker-compose.production.yml logs portal > portal.log
           docker-compose -f docker-compose.production.yml logs client_portal > client_portal.log
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: integration-test-logs
