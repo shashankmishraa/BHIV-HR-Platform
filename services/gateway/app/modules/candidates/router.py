@@ -6,7 +6,7 @@ from datetime import datetime
 import hashlib
 import secrets
 
-from ...shared.models import CandidateCreate
+from services.gateway.app.shared.models import CandidateCreate
 
 router = APIRouter(prefix="/v1/candidates", tags=["Candidates"])
 

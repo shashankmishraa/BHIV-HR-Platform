@@ -216,7 +216,7 @@ async def get_pipeline_analytics():
 @router.get("/v1/database/health")
 async def database_health():
     """Database health and statistics"""
-    from ...shared.database import get_db_health
+    from services.gateway.app.shared.database import get_db_health
     health_data = await get_db_health()
     return {
         **health_data,
@@ -227,7 +227,7 @@ async def database_health():
 @router.get("/v1/database/statistics")
 async def get_database_statistics():
     """Database usage statistics"""
-    from ...shared.database import get_db_stats
+    from services.gateway.app.shared.database import get_db_stats
     stats_data = await get_db_stats()
     return {
         **stats_data,
