@@ -1,0 +1,13 @@
+{
+    "include": [
+        "services/gateway/app"
+    ],
+    "extraPaths": [
+        "services/gateway",
+        "services/gateway/app",
+        "services/shared"
+    ],
+    "pythonVersion": "3.11",
+    "typeCheckingMode": "basic",
+    "reportMissingImports": "warning"
+}

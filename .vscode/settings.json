@@ -1,10 +1,10 @@
 {
-    "git.enabled": false,
-    "git.autoRepositoryDetection": false,
-    "scm.defaultViewMode": "tree",
-    "python.testing.pytestArgs": [
-        "resume"
+    "python.analysis.extraPaths": [
+        "./services/gateway",
+        "./services/gateway/app",
+        "./services/shared"
     ],
-    "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.defaultInterpreterPath": "python",
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.typeCheckingMode": "basic"
 }
