@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class ModelManager:
     """Manages AI model artifacts and embeddings for semantic matching"""
     
-    def __init__(self, model_dir: str = None):
+    def __init__(self, model_dir: Optional[str] = None):
         self.version = "2.1.0"
         # Use centralized models directory with security validation
         if model_dir is None:
