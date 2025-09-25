@@ -22,6 +22,8 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@db:5432/bhiv_hr_nqzb
+      API_KEY_SECRET: myverysecureapikey123
+      JWT_SECRET: dev_jwt_secret_key_12345
       ENVIRONMENT: development
     depends_on:
       - db
@@ -33,6 +35,8 @@ services:
       - "8501:8501"
     environment:
       GATEWAY_URL: http://gateway:8000
+      API_KEY_SECRET: myverysecureapikey123
+      ENVIRONMENT: development
     depends_on:
       - gateway
     restart: unless-stopped
