@@ -32,7 +32,11 @@ class ProductionSecurityManager:
         if not api_key:
             raise ValueError("API_KEY_SECRET environment variable is required")
         
-        # Reject demo keys
+        # Allow demo keys in development environment
+        if environment == "development":
+            return api_key
+        
+        # Reject demo keys in production
         if api_key in ["myverysecureapikey123", "demo", "test"]:
             raise ValueError("Demo API key not allowed. Use production key.")
         
