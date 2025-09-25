@@ -3,7 +3,7 @@
 
 # Core Framework
 streamlit==1.30.0
-streamlit-authenticator==0.2.4
+streamlit-authenticator==0.2.3
 
 # HTTP & API
 requests==2.32.3
