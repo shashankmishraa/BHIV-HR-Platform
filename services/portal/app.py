@@ -9,6 +9,14 @@ import streamlit as st
 # Import components
 from components.job_creation import show_job_creation
 from components.dashboard import show_dashboard
+from components.candidate_search import show_candidate_search
+from components.candidate_upload import show_candidate_upload
+from components.ai_matching import show_ai_matching
+from components.interview_management import show_interview_management
+from components.values_assessment import show_values_assessment
+from components.export_reports import show_export_reports
+from components.job_monitor import show_job_monitor
+from components.batch_operations import show_batch_operations
 
 # Page config
 favicon_path = os.path.join(os.path.dirname(__file__), "static", "favicon.ico")
@@ -56,7 +64,13 @@ menu = st.sidebar.selectbox("Select HR Task", [
     "📈 Dashboard Overview",
     "🏢 Step 1: Create Job Positions",
     "📤 Step 2: Upload Candidates",
-    "🔍 Step 3: Search & Filter Candidates"
+    "🔍 Step 3: Search & Filter Candidates",
+    "🎯 Step 4: AI Shortlist & Matching",
+    "📅 Step 5: Schedule Interviews",
+    "📊 Step 6: Submit Values Assessment",
+    "🏆 Step 7: Export Assessment Reports",
+    "🔄 Live Client Jobs Monitor",
+    "📁 Batch Operations"
 ])
 
 # Main content routing
@@ -69,66 +83,32 @@ elif menu == "📈 Dashboard Overview":
     show_dashboard(API_BASE, headers)
 
 elif menu == "📤 Step 2: Upload Candidates":
-    st.header("Bulk Candidate Upload")
-    st.write("Upload multiple candidates for a job position using CSV format")
-    
-    job_id = st.number_input("Job ID", min_value=1, step=1, value=1)
-    uploaded_file = st.file_uploader("Choose CSV file", type="csv")
-    
-    if uploaded_file is not None:
-        try:
-            df = pd.read_csv(uploaded_file)
-            st.dataframe(df, use_container_width=True)
-            
-            if st.button("📤 Upload Candidates", use_container_width=True):
-                candidates = []
-                for _, row in df.iterrows():
-                    candidate = {
-                        "name": str(row.get("name", "")).strip(),
-                        "email": str(row.get("email", "")).strip(),
-                        "job_id": job_id
-                    }
-                    candidates.append(candidate)
-                
-                try:
-                    response = httpx.post(f"{API_BASE}/v1/candidates/bulk", 
-                                        json={"candidates": candidates}, 
-                                        headers=headers, timeout=10.0)
-                    if response.status_code == 200:
-                        st.success(f"✅ Successfully uploaded {len(df)} candidates")
-                        st.balloons()
-                    else:
-                        st.error(f"❌ Upload failed: {response.text}")
-                except Exception as e:
-                    st.error(f"❌ Upload error: {str(e)}")
-        except Exception as e:
-            st.error(f"❌ Error reading CSV file: {str(e)}")
+    show_candidate_upload(API_BASE, headers, SECURITY_ENABLED, 
+                         sanitizer if SECURITY_ENABLED else None)
 
 elif menu == "🔍 Step 3: Search & Filter Candidates":
-    st.header("Advanced Candidate Search & Filtering")
-    
-    search_query = st.text_input("🔍 Search Candidates", placeholder="Search by name, skills...")
-    search_clicked = st.button("🔍 Search Candidates", use_container_width=True)
-    
-    if search_clicked and search_query:
-        try:
-            params = {"q": search_query.strip()}
-            response = httpx.get(f"{API_BASE}/v1/candidates/search", 
-                               params=params, headers=headers, timeout=10.0)
-            
-            if response.status_code == 200:
-                data = response.json()
-                candidates = data.get("candidates", [])
-                st.success(f"✅ Found {len(candidates)} candidates")
-                
-                for candidate in candidates:
-                    with st.expander(f"👥 {candidate['name']}"):
-                        st.write(f"**Email:** {candidate['email']}")
-                        st.write(f"**Experience:** {candidate.get('experience_years', 0)} years")
-            else:
-                st.error(f"❌ Search failed: {response.text}")
-        except Exception as e:
-            st.error(f"❌ Search error: {str(e)}")
+    show_candidate_search(API_BASE, headers, SECURITY_ENABLED, 
+                         sql_guard if SECURITY_ENABLED else None)
+
+elif menu == "🎯 Step 4: AI Shortlist & Matching":
+    show_ai_matching(API_BASE, AGENT_URL, headers)
+
+elif menu == "📅 Step 5: Schedule Interviews":
+    show_interview_management(API_BASE, headers, SECURITY_ENABLED, 
+                             sanitizer if SECURITY_ENABLED else None)
+
+elif menu == "📊 Step 6: Submit Values Assessment":
+    show_values_assessment()
+
+elif menu == "🏆 Step 7: Export Assessment Reports":
+    show_export_reports(API_BASE, headers)
+
+elif menu == "🔄 Live Client Jobs Monitor":
+    show_job_monitor(API_BASE, headers)
+
+elif menu == "📁 Batch Operations":
+    show_batch_operations(API_BASE, headers, SECURITY_ENABLED, 
+                         sanitizer if SECURITY_ENABLED else None)
 
 # Footer
 st.markdown("---")
