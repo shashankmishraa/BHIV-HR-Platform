@@ -183,7 +183,7 @@ if menu == "🏢 Step 1: Create Job Positions":
                 # Validate salary range
                 if salary_max < salary_min:
                     st.error("❌ Maximum salary must be greater than or equal to minimum salary")
-                    return
+                    st.stop()
                 
                 # Prepare job data with proper validation
                 job_data = {
