@@ -13,9 +13,15 @@ class ModelManager:
     
     def __init__(self, model_dir: str = None):
         self.version = "2.1.0"
-        # Use centralized models directory
+        # Use centralized models directory with security validation
         if model_dir is None:
             model_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'models')
+        
+        # Validate and sanitize model directory path
+        model_dir = os.path.abspath(model_dir)
+        if '..' in model_dir:
+            raise ValueError("Invalid model directory path")
+            
         self.model_dir = Path(model_dir)
         self.model_dir.mkdir(exist_ok=True)
         
@@ -34,7 +40,8 @@ class ModelManager:
             logger.info("Model artifacts loaded successfully")
         except Exception as e:
             logger.warning(f"Failed to load models, creating new ones: {e}")
-            self._create_default_models()
+            self._create_skill_embeddings()
+            self._create_job_templates()
     
     def _load_skill_embeddings(self):
         """Load skill embeddings from file"""
@@ -168,8 +175,8 @@ class ModelManager:
         
         return None
     
-    def update_model_artifacts(self, new_skills: List[str] = None, 
-                             new_templates: Dict = None):
+    def update_model_artifacts(self, new_skills: Optional[List[str]] = None, 
+                             new_templates: Optional[Dict] = None):
         """Update model artifacts with new data"""
         if new_skills:
             for skill in new_skills:

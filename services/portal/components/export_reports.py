@@ -101,7 +101,7 @@ def show_export_reports(API_BASE, headers):
                             interview_date = 'Not Scheduled'
                             feedback_submitted = 'No'
                         
-                        # Sample values assessment
+                        # Values assessment from candidate data
                         values_integrity = candidate.get('values_integrity', 'Not Assessed')
                         values_honesty = candidate.get('values_honesty', 'Not Assessed')
                         values_discipline = candidate.get('values_discipline', 'Not Assessed')

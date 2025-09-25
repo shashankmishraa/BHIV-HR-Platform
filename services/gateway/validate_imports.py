@@ -4,10 +4,10 @@
 import sys
 import os
 
-# Set test environment variables
-os.environ['DATABASE_URL'] = 'postgresql://test:test@localhost:5432/test'
-os.environ['API_KEY_SECRET'] = 'test_api_key_secret'
-os.environ['JWT_SECRET'] = 'test_jwt_secret'
+# Set test environment variables with placeholder values
+os.environ['DATABASE_URL'] = 'postgresql://<user>:<password>@localhost:5432/<database>'
+os.environ['API_KEY_SECRET'] = '<api_key_secret>'
+os.environ['JWT_SECRET'] = '<jwt_secret>'
 os.environ['ENVIRONMENT'] = 'test'
 
 # Add the app directory to Python path

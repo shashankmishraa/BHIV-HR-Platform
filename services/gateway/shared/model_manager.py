@@ -24,5 +24,15 @@ class ModelManager:
         return self._skill_embeddings
     
     def get_model_path(self, model_name: str) -> str:
-        """Get path to model file"""
-        return os.path.join(self.models_path, model_name)
+        """Get path to model file with security validation"""
+        # Sanitize model name to prevent path traversal
+        if not model_name or '..' in model_name or '/' in model_name or '\\' in model_name:
+            raise ValueError("Invalid model name")
+        
+        model_path = os.path.join(self.models_path, model_name)
+        
+        # Ensure the resolved path is within models directory
+        if not model_path.startswith(os.path.abspath(self.models_path)):
+            raise ValueError("Path traversal attempt detected")
+            
+        return model_path
