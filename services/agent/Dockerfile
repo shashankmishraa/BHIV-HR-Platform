@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.12.7-slim
 
 # Install system dependencies for ML libraries and cryptography
 RUN apt-get update && apt-get install -y \
