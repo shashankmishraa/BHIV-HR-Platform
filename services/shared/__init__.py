@@ -6,7 +6,7 @@ from .models import (
     InterviewModel,
     FeedbackModel,
     APIResponse,
-    ErrorResponse
+    ErrorResponse,
 )
 from .database import DatabaseManager, get_db_connection
 from .security import SecurityManager, hash_password, verify_password
@@ -14,7 +14,7 @@ from .config import get_service_config
 
 __all__ = [
     "CandidateModel",
-    "JobModel", 
+    "JobModel",
     "InterviewModel",
     "FeedbackModel",
     "APIResponse",
@@ -24,5 +24,5 @@ __all__ = [
     "SecurityManager",
     "hash_password",
     "verify_password",
-    "get_service_config"
+    "get_service_config",
 ]

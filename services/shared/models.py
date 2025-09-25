@@ -5,10 +5,11 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 from enum import Enum
 
+
 class CandidateModel(BaseModel):
     id: Optional[int] = None
     name: str = Field(..., min_length=2, max_length=255)
-    email: str = Field(..., pattern=r'^[^@]+@[^@]+\.[^@]+$')
+    email: str = Field(..., pattern=r"^[^@]+@[^@]+\.[^@]+$")
     phone: Optional[str] = Field(None, max_length=50)
     location: Optional[str] = Field(None, max_length=255)
     experience_years: int = Field(0, ge=0)
@@ -16,6 +17,7 @@ class CandidateModel(BaseModel):
     seniority_level: Optional[str] = Field(None, max_length=100)
     education_level: Optional[str] = Field(None, max_length=255)
     status: str = Field(default="active", max_length=50)
+
 
 class JobModel(BaseModel):
     id: Optional[int] = None
@@ -28,6 +30,7 @@ class JobModel(BaseModel):
     status: str = Field(default="active", max_length=50)
     client_id: Optional[str] = Field(None, max_length=100)
 
+
 class InterviewModel(BaseModel):
     id: Optional[int] = None
     candidate_id: int = Field(..., gt=0)
@@ -36,6 +39,7 @@ class InterviewModel(BaseModel):
     status: str = Field(default="scheduled", max_length=50)
     notes: Optional[str] = None
     interviewer: Optional[str] = Field(None, max_length=255)
+
 
 class FeedbackModel(BaseModel):
     id: Optional[int] = None
@@ -47,11 +51,13 @@ class FeedbackModel(BaseModel):
     hard_work: int = Field(..., ge=1, le=5)
     gratitude: int = Field(..., ge=1, le=5)
 
+
 class APIResponse(BaseModel):
     success: bool = True
     message: str
     data: Optional[Dict[str, Any]] = None
     timestamp: datetime = Field(default_factory=datetime.now)
+
 
 class ErrorResponse(BaseModel):
     success: bool = False

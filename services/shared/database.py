@@ -8,29 +8,30 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class DatabaseManager:
     """Shared database manager for all services"""
-    
+
     def __init__(self):
         self.database_url = self._get_database_url()
-    
+
     def _get_database_url(self) -> str:
         """Get database URL based on environment"""
         environment = os.getenv("ENVIRONMENT", "development").lower()
-        
+
         if environment == "production":
             # Production database on Render
             return os.getenv(
                 "DATABASE_URL",
-                "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb"
+                "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb",
             )
         else:
             # Local development database
             return os.getenv(
                 "DATABASE_URL",
-                "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@db:5432/bhiv_hr_nqzb"
+                "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@db:5432/bhiv_hr_nqzb",
             )
-    
+
     @contextmanager
     def get_connection(self):
         """Get database connection with proper resource management"""
@@ -46,7 +47,7 @@ class DatabaseManager:
         finally:
             if conn:
                 conn.close()
-    
+
     def test_connection(self) -> Dict[str, Any]:
         """Test database connectivity"""
         try:
@@ -57,7 +58,7 @@ class DatabaseManager:
             return {"status": "connected", "database": "postgresql"}
         except Exception as e:
             return {"status": "error", "error": str(e)}
-    
+
     def get_candidates_count(self) -> int:
         """Get total candidates count"""
         try:
@@ -67,7 +68,7 @@ class DatabaseManager:
                     return cursor.fetchone()[0]
         except Exception:
             return 0
-    
+
     def get_jobs_count(self) -> int:
         """Get total jobs count"""
         try:
@@ -78,8 +79,10 @@ class DatabaseManager:
         except Exception:
             return 0
 
+
 # Global database manager instance
 db_manager = DatabaseManager()
+
 
 def get_db_connection():
     """Get database connection context manager"""

@@ -10,6 +10,7 @@ from app.shared.models import CandidateCreate
 
 router = APIRouter(prefix="/v1/candidates", tags=["Candidates"])
 
+
 @router.get("")
 async def list_candidates(
     page: int = Query(1, ge=1),
@@ -17,7 +18,7 @@ async def list_candidates(
     search: Optional[str] = Query(None),
     skills: Optional[str] = Query(None),
     experience_min: Optional[int] = Query(None, ge=0),
-    location: Optional[str] = Query(None)
+    location: Optional[str] = Query(None),
 ):
     """List candidates with filtering and pagination"""
     return {
@@ -30,26 +31,30 @@ async def list_candidates(
             "search": search,
             "skills": skills,
             "experience_min": experience_min,
-            "location": location
-        }
+            "location": location,
+        },
     }
 
+
 @router.post("")
-async def create_candidate(candidate: CandidateCreate, background_tasks: BackgroundTasks):
+async def create_candidate(
+    candidate: CandidateCreate, background_tasks: BackgroundTasks
+):
     """Create new candidate and trigger onboarding workflow"""
     candidate_data = candidate.dict()
     candidate_id = f"cand_{hash(candidate.email) % 100000}"
-    
+
     # Trigger candidate onboarding workflow
     background_tasks.add_task(trigger_candidate_workflow, candidate_id, candidate_data)
-    
+
     return {
         "id": candidate_id,
         "message": "Candidate created successfully",
         "workflow_triggered": True,
         "created_at": datetime.now().isoformat(),
-        **candidate_data
+        **candidate_data,
     }
+
 
 @router.get("/{candidate_id}")
 async def get_candidate(candidate_id: str):
@@ -60,8 +65,9 @@ async def get_candidate(candidate_id: str):
         "email": "john@example.com",
         "skills": ["Python", "FastAPI"],
         "experience_years": 5,
-        "location": "Mumbai"
+        "location": "Mumbai",
     }
+
 
 @router.put("/{candidate_id}")
 async def update_candidate(candidate_id: str, candidate: CandidateCreate):
@@ -70,48 +76,43 @@ async def update_candidate(candidate_id: str, candidate: CandidateCreate):
         "id": candidate_id,
         "message": "Candidate updated successfully",
         "updated_at": datetime.now().isoformat(),
-        **candidate.dict()
+        **candidate.dict(),
     }
+
 
 @router.delete("/{candidate_id}")
 async def delete_candidate(candidate_id: str):
     """Delete candidate profile"""
     return {"message": f"Candidate {candidate_id} deleted successfully"}
 
+
 @router.post("/bulk")
-async def bulk_create_candidates(candidates: List[CandidateCreate], background_tasks: BackgroundTasks):
+async def bulk_create_candidates(
+    candidates: List[CandidateCreate], background_tasks: BackgroundTasks
+):
     """Create multiple candidates and trigger bulk workflow"""
     results = []
     for candidate in candidates:
         candidate_id = f"cand_{hash(candidate.email) % 100000}"
         results.append({"id": candidate_id, "email": candidate.email})
-    
+
     # Trigger bulk processing workflow
     background_tasks.add_task(trigger_bulk_workflow, results)
-    
-    return {
-        "created": len(results),
-        "candidates": results,
-        "workflow_triggered": True
-    }
+
+    return {"created": len(results), "candidates": results, "workflow_triggered": True}
+
 
 @router.get("/{candidate_id}/applications")
 async def get_candidate_applications(candidate_id: str):
     """Get candidate's job applications"""
-    return {
-        "candidate_id": candidate_id,
-        "applications": [],
-        "total": 0
-    }
+    return {"candidate_id": candidate_id, "applications": [], "total": 0}
+
 
 @router.get("/{candidate_id}/interviews")
 async def get_candidate_interviews(candidate_id: str):
     """Get candidate's interview history"""
-    return {
-        "candidate_id": candidate_id,
-        "interviews": [],
-        "total": 0
-    }
+    return {"candidate_id": candidate_id, "interviews": [], "total": 0}
+
 
 @router.post("/{candidate_id}/resume")
 async def upload_candidate_resume(candidate_id: str, file: UploadFile = File(...)):
@@ -119,22 +120,24 @@ async def upload_candidate_resume(candidate_id: str, file: UploadFile = File(...
     return {
         "candidate_id": candidate_id,
         "filename": file.filename,
-        "message": "Resume uploaded successfully"
+        "message": "Resume uploaded successfully",
     }
+
 
 @router.get("/search")
 async def search_candidates(
     q: str = Query(..., min_length=2),
     skills: Optional[List[str]] = Query(None),
-    location: Optional[str] = Query(None)
+    location: Optional[str] = Query(None),
 ):
     """Advanced candidate search"""
     return {
         "query": q,
         "results": [],
         "total": 0,
-        "filters": {"skills": skills, "location": location}
+        "filters": {"skills": skills, "location": location},
     }
+
 
 @router.get("/stats")
 async def get_candidate_stats():
@@ -143,8 +146,9 @@ async def get_candidate_stats():
         "total_candidates": 30,
         "active_candidates": 25,
         "by_experience": {"junior": 10, "mid": 15, "senior": 5},
-        "by_location": {"remote": 20, "onsite": 10}
+        "by_location": {"remote": 20, "onsite": 10},
     }
+
 
 @router.post("/{candidate_id}/notes")
 async def add_candidate_note(candidate_id: str, note: str = Form(...)):
@@ -152,8 +156,9 @@ async def add_candidate_note(candidate_id: str, note: str = Form(...)):
     return {
         "candidate_id": candidate_id,
         "note_id": f"note_{secrets.token_hex(4)}",
-        "message": "Note added successfully"
+        "message": "Note added successfully",
     }
+
 
 # Workflow trigger functions
 async def trigger_candidate_workflow(candidate_id: str, candidate_data: dict):
@@ -161,10 +166,12 @@ async def trigger_candidate_workflow(candidate_id: str, candidate_data: dict):
     # Workflow implementation would go here
     pass
 
+
 async def trigger_bulk_workflow(candidates: list):
     """Trigger bulk processing workflow"""
     # Bulk workflow implementation would go here
     pass
+
 
 @router.post("/{candidate_id}/match")
 async def match_candidate_jobs(candidate_id: str):
@@ -174,28 +181,21 @@ async def match_candidate_jobs(candidate_id: str):
         "matched_jobs": [],
         "total_matches": 0,
         "algorithm": "semantic_v3.2",
-        "status": "success"
+        "status": "success",
     }
+
 
 @router.get("/{candidate_id}/jobs")
 async def get_candidate_jobs(candidate_id: str):
     """Get jobs for specific candidate"""
-    return {
-        "candidate_id": candidate_id,
-        "jobs": [],
-        "total": 0,
-        "status": "success"
-    }
+    return {"candidate_id": candidate_id, "jobs": [], "total": 0, "status": "success"}
+
 
 @router.post("/upload")
 async def upload_candidates():
     """Upload candidates in bulk"""
-    return {
-        "uploaded": 0,
-        "processed": 0,
-        "errors": [],
-        "status": "success"
-    }
+    return {"uploaded": 0, "processed": 0, "errors": [], "status": "success"}
+
 
 @router.get("/export")
 async def export_candidates():
@@ -204,8 +204,9 @@ async def export_candidates():
         "export_id": f"exp_{secrets.token_hex(8)}",
         "format": "csv",
         "total_records": 30,
-        "status": "ready"
+        "status": "ready",
     }
+
 
 @router.get("/analytics")
 async def get_candidate_analytics():
@@ -215,5 +216,5 @@ async def get_candidate_analytics():
         "by_experience": {"junior": 10, "mid": 15, "senior": 5},
         "by_skills": {"python": 20, "javascript": 15, "java": 10},
         "by_location": {"remote": 20, "onsite": 10},
-        "workflow_completion_rate": "92%"
+        "workflow_completion_rate": "92%",
     }

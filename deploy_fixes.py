@@ -9,16 +9,12 @@ import sys
 import os
 from datetime import datetime
 
+
 def run_command(command, cwd=None):
     """Run shell command and return result"""
     try:
         result = subprocess.run(
-            command, 
-            shell=True, 
-            cwd=cwd,
-            capture_output=True, 
-            text=True, 
-            check=True
+            command, shell=True, cwd=cwd, capture_output=True, text=True, check=True
         )
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
@@ -26,15 +22,16 @@ def run_command(command, cwd=None):
         print(f"Error: {e.stderr}")
         return None
 
+
 def deploy_fixes():
     """Deploy all endpoint fixes"""
-    
+
     print("🚀 Deploying Comprehensive Endpoint Fixes...")
     print("=" * 60)
-    
+
     # Change to project directory
     project_dir = os.path.dirname(os.path.abspath(__file__))
-    
+
     # Check git status
     print("📋 Checking git status...")
     status = run_command("git status --porcelain", cwd=project_dir)
@@ -43,11 +40,11 @@ def deploy_fixes():
     else:
         print("No changes detected")
         return
-    
+
     # Add all changes
     print("\n📦 Adding changes to git...")
     run_command("git add .", cwd=project_dir)
-    
+
     # Create comprehensive commit message
     commit_message = f"""🔧 Implement comprehensive endpoint fixes - resolve 54 non-functional endpoints
 
@@ -85,25 +82,25 @@ Status: Production-ready endpoint implementation
 Version: v3.2.1 - Complete endpoint coverage
 
 Built with Integrity, Honesty, Discipline, Hard Work & Gratitude"""
-    
+
     # Commit changes
     print("\n💾 Committing changes...")
     commit_result = run_command(f'git commit -m "{commit_message}"', cwd=project_dir)
     if commit_result is None:
         print("❌ Commit failed")
         return False
-    
+
     print("✅ Changes committed successfully")
-    
+
     # Push to remote
     print("\n🚀 Pushing to remote repository...")
     push_result = run_command("git push origin main", cwd=project_dir)
     if push_result is None:
         print("❌ Push failed")
         return False
-    
+
     print("✅ Changes pushed successfully")
-    
+
     # Show deployment status
     print("\n" + "=" * 60)
     print("🎯 DEPLOYMENT STATUS")
@@ -116,20 +113,21 @@ Built with Integrity, Honesty, Discipline, Hard Work & Gratitude"""
     print("- Agent Service: +12 new endpoints")
     print("- Total resolved: 54 non-functional endpoints")
     print("- Success rate improvement: 44.9% → 100%")
-    
+
     print("\n🔗 LIVE SERVICES:")
     print("- Gateway: https://bhiv-hr-gateway-901a.onrender.com/docs")
     print("- Agent: https://bhiv-hr-agent-o6nx.onrender.com/docs")
     print("- Portal: https://bhiv-hr-portal-xk2k.onrender.com/")
     print("- Client Portal: https://bhiv-hr-client-portal-zdbt.onrender.com/")
-    
+
     print("\n⏳ Next Steps:")
     print("1. Wait for auto-deployment to complete (3-5 minutes)")
     print("2. Run endpoint verification test")
     print("3. Verify all 180+ endpoints are functional")
     print("4. Update documentation with new endpoints")
-    
+
     return True
+
 
 def verify_deployment():
     """Verify deployment after waiting period"""
@@ -137,10 +135,13 @@ def verify_deployment():
     print("python comprehensive_test.py")
     print("\nExpected result: 0 non-functional endpoints")
 
+
 if __name__ == "__main__":
     success = deploy_fixes()
     if success:
-        print(f"\n🎉 Deployment initiated successfully at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(
+            f"\n🎉 Deployment initiated successfully at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        )
         verify_deployment()
     else:
         print("\n❌ Deployment failed")

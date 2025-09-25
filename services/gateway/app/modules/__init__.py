@@ -10,9 +10,9 @@ from .monitoring import router as monitoring_router
 
 __all__ = [
     "core_router",
-    "candidates_router", 
+    "candidates_router",
     "jobs_router",
     "auth_router",
     "workflows_router",
-    "monitoring_router"
+    "monitoring_router",
 ]

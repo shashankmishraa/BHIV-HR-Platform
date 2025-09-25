@@ -6,6 +6,7 @@ import os
 
 router = APIRouter(tags=["Core"])
 
+
 @router.get("/")
 async def root():
     """API Gateway root endpoint"""
@@ -16,8 +17,9 @@ async def root():
         "environment": os.getenv("ENVIRONMENT", "production"),
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "total_endpoints": "180+",
-        "modules": ["core", "candidates", "jobs", "auth", "workflows", "monitoring"]
+        "modules": ["core", "candidates", "jobs", "auth", "workflows", "monitoring"],
     }
+
 
 @router.get("/health")
 async def health_check():
@@ -30,26 +32,25 @@ async def health_check():
         "components": {
             "core": "healthy",
             "database": "healthy",
-            "workflows": "healthy"
-        }
+            "workflows": "healthy",
+        },
     }
+
 
 @router.get("/test-candidates")
 async def test_candidates():
     """Test endpoint for candidate data"""
-    return {
-        "message": "Test candidates endpoint",
-        "count": 30,
-        "status": "available"
-    }
+    return {"message": "Test candidates endpoint", "count": 30, "status": "available"}
+
 
 @router.get("/http-methods-test")
 async def http_methods_test():
     """HTTP methods test endpoint"""
     return {
         "supported_methods": ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
-        "status": "operational"
+        "status": "operational",
     }
+
 
 @router.get("/architecture")
 async def get_architecture():
@@ -61,14 +62,14 @@ async def get_architecture():
             "modules": 6,
             "total_endpoints": "180+",
             "workflow_integration": True,
-            "pipeline_orchestration": True
+            "pipeline_orchestration": True,
         },
         "technology_stack": {
             "framework": "FastAPI 0.104+",
             "python": "3.11+",
             "database": "PostgreSQL",
             "deployment": "Render Cloud",
-            "monitoring": "Prometheus Compatible"
+            "monitoring": "Prometheus Compatible",
         },
         "capabilities": {
             "rest_api": True,
@@ -77,6 +78,6 @@ async def get_architecture():
             "real_time_monitoring": True,
             "modular_architecture": True,
             "background_processing": True,
-            "error_recovery": True
-        }
+            "error_recovery": True,
+        },
     }

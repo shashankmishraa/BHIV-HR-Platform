@@ -5,11 +5,12 @@ from .advanced_matcher import AdvancedSemanticMatcher, BatchMatcher
 from .job_matcher import SemanticJobMatcher
 from .model_manager import ModelManager
 from .semantic_processor import SemanticProcessor
+
 __version__ = "2.1.0"
 __all__ = [
     "SemanticJobMatcher",
-    "AdvancedSemanticMatcher", 
+    "AdvancedSemanticMatcher",
     "BatchMatcher",
     "ModelManager",
-    "SemanticProcessor"
+    "SemanticProcessor",
 ]

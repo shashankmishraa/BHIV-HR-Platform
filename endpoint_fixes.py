@@ -8,11 +8,12 @@ import os
 import sys
 
 # Add the services directory to Python path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'services'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "services"))
+
 
 def implement_gateway_fixes():
     """Implement missing Gateway endpoints"""
-    
+
     # 1. Add missing architecture endpoint to core module
     core_router_additions = '''
 @router.get("/architecture")
@@ -45,7 +46,7 @@ async def get_architecture():
         }
     }
 '''
-    
+
     # 2. Add missing job endpoints
     jobs_router_additions = '''
 @router.post("/v1/jobs/{job_id}/match")
@@ -68,7 +69,7 @@ async def get_job_candidates(job_id: int):
         "status": "success"
     }
 '''
-    
+
     # 3. Add missing candidate endpoints
     candidates_router_additions = '''
 @router.post("/v1/candidates/{candidate_id}/match")
@@ -100,7 +101,7 @@ async def upload_candidates():
         "status": "success"
     }
 '''
-    
+
     # 4. Add missing auth endpoints
     auth_router_additions = '''
 @router.get("/v1/auth/me")
@@ -147,7 +148,7 @@ async def get_user_roles():
         "total": 4
     }
 '''
-    
+
     # 5. Add missing workflow endpoints
     workflows_router_additions = '''
 @router.get("/v1/workflows/{workflow_id}")
@@ -277,7 +278,7 @@ async def get_workflow_queue():
         "paused": 0
     }
 '''
-    
+
     # 6. Add missing monitoring endpoints
     monitoring_router_additions = '''
 @router.get("/health/database")
@@ -436,19 +437,20 @@ async def get_uptime():
         "availability": "99.95%"
     }
 '''
-    
+
     return {
         "core_additions": core_router_additions,
         "jobs_additions": jobs_router_additions,
         "candidates_additions": candidates_router_additions,
         "auth_additions": auth_router_additions,
         "workflows_additions": workflows_router_additions,
-        "monitoring_additions": monitoring_router_additions
+        "monitoring_additions": monitoring_router_additions,
     }
+
 
 def implement_agent_fixes():
     """Implement missing Agent endpoints"""
-    
+
     agent_additions = '''
 # Add missing AI matching endpoints
 @app.post("/v1/match/candidates", tags=["AI Matching Engine"])
@@ -570,34 +572,36 @@ async def update_agent_config():
         "status": "success"
     }
 '''
-    
+
     return agent_additions
+
 
 def main():
     """Main function to implement all fixes"""
     print("Implementing comprehensive endpoint fixes...")
-    
+
     gateway_fixes = implement_gateway_fixes()
     agent_fixes = implement_agent_fixes()
-    
+
     print("Gateway fixes prepared:")
     for module, additions in gateway_fixes.items():
         print(f"  - {module}: {len(additions.split('@router')) - 1} endpoints")
-    
+
     print("Agent fixes prepared:")
     print(f"  - Agent additions: {len(agent_fixes.split('@app')) - 1} endpoints")
-    
+
     print("\nNext steps:")
     print("1. Apply fixes to respective router files")
     print("2. Test all endpoints")
     print("3. Verify integration with live services")
     print("4. Update documentation")
-    
+
     return {
         "gateway_fixes": gateway_fixes,
         "agent_fixes": agent_fixes,
-        "status": "prepared"
+        "status": "prepared",
     }
+
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,5 @@
 """BHIV HR Portal - Modular Architecture v3.2.0"""
+
 # pyright: reportMissingImports=false
 
 from datetime import datetime
@@ -26,17 +27,15 @@ favicon_path = os.path.join(os.path.dirname(__file__), "static", "favicon.ico")
 page_icon = favicon_path if os.path.exists(favicon_path) else "🎯"
 
 st.set_page_config(
-    page_title="BHIV HR Platform v3.2.0", 
-    page_icon=page_icon, 
-    layout="wide"
+    page_title="BHIV HR Platform v3.2.0", page_icon=page_icon, layout="wide"
 )
 
 # Initialize unique session values
-if 'session_id' not in st.session_state:
+if "session_id" not in st.session_state:
     st.session_state.session_id = f"portal_{uuid.uuid4().hex[:8]}"
-if 'user_token' not in st.session_state:
+if "user_token" not in st.session_state:
     st.session_state.user_token = secrets.token_urlsafe(16)
-if 'request_count' not in st.session_state:
+if "request_count" not in st.session_state:
     st.session_state.request_count = 0
 
 # Enhanced security setup with graceful fallback
@@ -45,6 +44,7 @@ try:
     from input_sanitizer import sanitizer
     from sql_protection import sql_guard
     from rate_limiter import form_limiter
+
     SECURITY_ENABLED = True
     headers = secure_api.get_headers()
 except ImportError:
@@ -59,11 +59,11 @@ except ImportError:
         else:
             API_KEY = f"dev_{secrets.token_urlsafe(24)}"
             st.warning("🔧 Using development API key")
-    
+
     headers = {
         "Authorization": f"Bearer {API_KEY}",
         "X-Session-ID": st.session_state.session_id,
-        "X-User-Token": st.session_state.user_token
+        "X-User-Token": st.session_state.user_token,
     }
 
 # Environment setup
@@ -91,7 +91,7 @@ with st.sidebar:
     st.markdown("**🔍 Session Status**")
     st.caption(f"Session: {st.session_state.session_id}")
     st.caption(f"Requests: {st.session_state.request_count}")
-    
+
     # API Connection Status
     try:
         st.session_state.request_count += 1
@@ -103,42 +103,52 @@ with st.sidebar:
     except:
         st.warning("⚠️ API Not Ready")
 
-menu = st.sidebar.selectbox("Select HR Task", [
-    "📈 Dashboard Overview",
-    "🏢 Step 1: Create Job Positions",
-    "📤 Step 2: Upload Candidates",
-    "🔍 Step 3: Search & Filter Candidates",
-    "🎯 Step 4: AI Shortlist & Matching",
-    "📅 Step 5: Schedule Interviews",
-    "📊 Step 6: Submit Values Assessment",
-    "🏆 Step 7: Export Assessment Reports",
-    "🔄 Live Client Jobs Monitor",
-    "📁 Batch Operations"
-])
+menu = st.sidebar.selectbox(
+    "Select HR Task",
+    [
+        "📈 Dashboard Overview",
+        "🏢 Step 1: Create Job Positions",
+        "📤 Step 2: Upload Candidates",
+        "🔍 Step 3: Search & Filter Candidates",
+        "🎯 Step 4: AI Shortlist & Matching",
+        "📅 Step 5: Schedule Interviews",
+        "📊 Step 6: Submit Values Assessment",
+        "🏆 Step 7: Export Assessment Reports",
+        "🔄 Live Client Jobs Monitor",
+        "📁 Batch Operations",
+    ],
+)
 
 # Main content routing
 if menu == "🏢 Step 1: Create Job Positions":
-    show_job_creation(API_BASE, headers, SECURITY_ENABLED, 
-                     sanitizer if SECURITY_ENABLED else None, 
-                     form_limiter if SECURITY_ENABLED else None)
+    show_job_creation(
+        API_BASE,
+        headers,
+        SECURITY_ENABLED,
+        sanitizer if SECURITY_ENABLED else None,
+        form_limiter if SECURITY_ENABLED else None,
+    )
 
 elif menu == "📈 Dashboard Overview":
     show_dashboard(API_BASE, headers)
 
 elif menu == "📤 Step 2: Upload Candidates":
-    show_candidate_upload(API_BASE, headers, SECURITY_ENABLED, 
-                         sanitizer if SECURITY_ENABLED else None)
+    show_candidate_upload(
+        API_BASE, headers, SECURITY_ENABLED, sanitizer if SECURITY_ENABLED else None
+    )
 
 elif menu == "🔍 Step 3: Search & Filter Candidates":
-    show_candidate_search(API_BASE, headers, SECURITY_ENABLED, 
-                         sql_guard if SECURITY_ENABLED else None)
+    show_candidate_search(
+        API_BASE, headers, SECURITY_ENABLED, sql_guard if SECURITY_ENABLED else None
+    )
 
 elif menu == "🎯 Step 4: AI Shortlist & Matching":
     show_ai_matching(API_BASE, AGENT_URL, headers)
 
 elif menu == "📅 Step 5: Schedule Interviews":
-    show_interview_management(API_BASE, headers, SECURITY_ENABLED, 
-                             sanitizer if SECURITY_ENABLED else None)
+    show_interview_management(
+        API_BASE, headers, SECURITY_ENABLED, sanitizer if SECURITY_ENABLED else None
+    )
 
 elif menu == "📊 Step 6: Submit Values Assessment":
     show_values_assessment()
@@ -150,8 +160,9 @@ elif menu == "🔄 Live Client Jobs Monitor":
     show_job_monitor(API_BASE, headers)
 
 elif menu == "📁 Batch Operations":
-    show_batch_operations(API_BASE, headers, SECURITY_ENABLED, 
-                         sanitizer if SECURITY_ENABLED else None)
+    show_batch_operations(
+        API_BASE, headers, SECURITY_ENABLED, sanitizer if SECURITY_ENABLED else None
+    )
 
 # Enhanced Footer with System Status
 st.markdown("---")
@@ -183,5 +194,9 @@ with footer_col4:
     security_status = "Enhanced" if SECURITY_ENABLED else "Basic"
     st.caption(f"🔒 {security_status} Mode")
 
-st.markdown("*Powered by Advanced Semantic AI + MDVP Compliance | Built with Integrity, Honesty, Discipline, Hard Work & Gratitude | © 2025*")
-st.caption(f"📊 Session ID: {st.session_state.session_id} | Requests: {st.session_state.request_count} | Token: {st.session_state.user_token[:8]}...")
+st.markdown(
+    "*Powered by Advanced Semantic AI + MDVP Compliance | Built with Integrity, Honesty, Discipline, Hard Work & Gratitude | © 2025*"
+)
+st.caption(
+    f"📊 Session ID: {st.session_state.session_id} | Requests: {st.session_state.request_count} | Token: {st.session_state.user_token[:8]}..."
+)

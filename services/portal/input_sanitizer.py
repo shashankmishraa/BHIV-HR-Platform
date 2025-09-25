@@ -1,33 +1,38 @@
 """
 Input sanitization module to prevent XSS vulnerabilities
 """
+
 from typing import Any, Dict, List, Union
 import re
 
 import html
+
+
 class InputSanitizer:
     """Sanitizes user input to prevent XSS attacks"""
-    
+
     @staticmethod
     def sanitize_string(value: str) -> str:
         """Sanitize string input to prevent XSS"""
         if not isinstance(value, str):
             return str(value)
-        
+
         # HTML escape
         sanitized = html.escape(value)
-        
+
         # Remove script tags
-        sanitized = re.sub(r'<script[^>]*>.*?</script>', '', sanitized, flags=re.IGNORECASE | re.DOTALL)
-        
+        sanitized = re.sub(
+            r"<script[^>]*>.*?</script>", "", sanitized, flags=re.IGNORECASE | re.DOTALL
+        )
+
         # Remove javascript: URLs
-        sanitized = re.sub(r'javascript:', '', sanitized, flags=re.IGNORECASE)
-        
+        sanitized = re.sub(r"javascript:", "", sanitized, flags=re.IGNORECASE)
+
         # Remove on* event handlers
-        sanitized = re.sub(r'on\w+\s*=', '', sanitized, flags=re.IGNORECASE)
-        
+        sanitized = re.sub(r"on\w+\s*=", "", sanitized, flags=re.IGNORECASE)
+
         return sanitized.strip()
-    
+
     @staticmethod
     def sanitize_dict(data: Dict[str, Any]) -> Dict[str, Any]:
         """Sanitize dictionary values"""
@@ -42,7 +47,7 @@ class InputSanitizer:
             else:
                 sanitized[key] = value
         return sanitized
-    
+
     @staticmethod
     def sanitize_list(data: List[Any]) -> List[Any]:
         """Sanitize list values"""
@@ -57,6 +62,7 @@ class InputSanitizer:
             else:
                 sanitized.append(item)
         return sanitized
+
 
 # Global sanitizer instance
 sanitizer = InputSanitizer()

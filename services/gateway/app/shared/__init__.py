@@ -13,14 +13,9 @@ from .models import (
     WorkflowCreate,
     APIResponse,
     ErrorResponse,
-    HealthCheck
+    HealthCheck,
 )
-from .database import (
-    DatabaseManager,
-    db_manager,
-    get_db_health,
-    get_db_stats
-)
+from .database import DatabaseManager, db_manager, get_db_health, get_db_stats
 
 __all__ = [
     "WorkflowStatus",
@@ -39,5 +34,5 @@ __all__ = [
     "DatabaseManager",
     "db_manager",
     "get_db_health",
-    "get_db_stats"
+    "get_db_stats",
 ]
