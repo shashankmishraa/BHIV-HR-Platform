@@ -20,7 +20,7 @@ transformers==4.39.3
 torch==2.2.2
 
 # NLP & Text Processing
-nltk==3.8.2
+nltk==3.9.1
 spacy==3.7.4
 textblob==0.18.0
 
