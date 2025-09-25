@@ -6,9 +6,9 @@ from datetime import datetime
 import hashlib
 from pydantic import ValidationError
 
-from services.gateway.app.shared.models import JobCreate
-from services.shared.validation import ValidationUtils, StandardJobCreate
-from services.gateway.app.workflow_engine import workflow_engine, create_job_posting_workflow
+from app.shared.models import JobCreate
+from app.shared.validation import ValidationUtils, StandardJobCreate
+from app.workflow_engine import workflow_engine, create_job_posting_workflow
 
 router = APIRouter(prefix="/v1/jobs", tags=["Jobs"])
 

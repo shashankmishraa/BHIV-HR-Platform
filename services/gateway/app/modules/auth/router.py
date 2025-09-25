@@ -4,8 +4,8 @@ from fastapi import APIRouter, Form, HTTPException, BackgroundTasks
 from datetime import datetime, timedelta
 import secrets
 
-from services.gateway.app.shared.models import UserCreate
-from services.gateway.app.shared.security import security_manager, create_access_token
+from app.shared.models import UserCreate
+from app.shared.security import security_manager, create_access_token
 
 router = APIRouter(prefix="/v1/auth", tags=["Authentication"])
 
