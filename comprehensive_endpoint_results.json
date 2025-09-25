@@ -1,0 +1,566 @@
+{
+  "functional": [
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/health",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/docs",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/jobs",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/jobs",
+      "status": 422,
+      "note": "Validation error (expected for test data)"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/jobs/1",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/jobs/1",
+      "status": 422,
+      "note": "Validation error (expected for test data)"
+    },
+    {
+      "method": "DELETE",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/jobs/1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/jobs/search",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/jobs/analytics",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/candidates",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/candidates",
+      "status": 422,
+      "note": "Validation error (expected for test data)"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/candidates/1",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/candidates/1",
+      "status": 422,
+      "note": "Validation error (expected for test data)"
+    },
+    {
+      "method": "DELETE",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/candidates/1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/candidates/search",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/candidates/bulk",
+      "status": 422,
+      "note": "Validation error (expected for test data)"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/candidates/analytics",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/candidates/export",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/auth/login",
+      "status": 422,
+      "note": "Validation error (expected for test data)"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/auth/logout",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/auth/register",
+      "status": 422,
+      "note": "Validation error (expected for test data)"
+    },
+    {
+      "method": "PUT",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/auth/profile",
+      "status": 422,
+      "note": "Validation error (expected for test data)"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/auth/change-password",
+      "status": 422,
+      "note": "Validation error (expected for test data)"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/auth/forgot-password",
+      "status": 422,
+      "note": "Validation error (expected for test data)"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/auth/reset-password",
+      "status": 422,
+      "note": "Validation error (expected for test data)"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/auth/verify-email",
+      "status": 422,
+      "note": "Validation error (expected for test data)"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/auth/resend-verification",
+      "status": 422,
+      "note": "Validation error (expected for test data)"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/auth/sessions",
+      "status": 200
+    },
+    {
+      "method": "DELETE",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/auth/sessions/1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/auth/permissions",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/workflows",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/workflows",
+      "status": 422,
+      "note": "Validation error (expected for test data)"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/health/detailed",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/health/simple",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/monitoring/errors",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/monitoring/logs/search",
+      "status": 422,
+      "note": "Validation error (expected for test data)"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/monitoring/dependencies",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/monitoring/performance",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/monitoring/alerts",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/metrics",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-agent-o6nx.onrender.com/health",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-agent-o6nx.onrender.com/",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-agent-o6nx.onrender.com/docs",
+      "status": 200
+    }
+  ],
+  "non_functional": [
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/architecture",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/jobs/1/match",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/jobs/1/candidates",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/jobs/bulk",
+      "status": 405,
+      "issue": "Method not allowed"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/candidates/1/match",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/candidates/1/jobs",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/candidates/upload",
+      "status": 405,
+      "issue": "Method not allowed"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/auth/me",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/auth/2fa/setup",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/auth/2fa/verify",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "DELETE",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/auth/2fa/disable",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/auth/roles",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/workflows/1",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "PUT",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/workflows/1",
+      "status": 405,
+      "issue": "Method not allowed"
+    },
+    {
+      "method": "DELETE",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/workflows/1",
+      "status": 405,
+      "issue": "Method not allowed"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/workflows/1/trigger",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/workflows/1/status",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/workflows/1/pause",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/workflows/1/resume",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/workflows/templates",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/workflows/templates",
+      "status": 405,
+      "issue": "Method not allowed"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/workflows/history",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/workflows/analytics",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/workflows/bulk-trigger",
+      "status": 405,
+      "issue": "Method not allowed"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/workflows/queue",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/health/database",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/health/services",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/health/resources",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/monitoring/errors/search",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/monitoring/errors/stats",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/monitoring/logs",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/monitoring/alerts",
+      "status": 405,
+      "issue": "Method not allowed"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/monitoring/metrics",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/metrics/dashboard",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/metrics/prometheus",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/monitoring/backup/status",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/monitoring/backup/validate",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/monitoring/security/events",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/monitoring/security/threats",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/monitoring/audit/logs",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/monitoring/system/status",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/monitoring/uptime",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-agent-o6nx.onrender.com/v1/match/candidates",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-agent-o6nx.onrender.com/v1/match/jobs",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-agent-o6nx.onrender.com/v1/match/score",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-agent-o6nx.onrender.com/v1/match/bulk",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-agent-o6nx.onrender.com/v1/match/semantic",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-agent-o6nx.onrender.com/v1/match/advanced",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-agent-o6nx.onrender.com/v1/analytics/performance",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-agent-o6nx.onrender.com/v1/analytics/metrics",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-agent-o6nx.onrender.com/v1/models/status",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-agent-o6nx.onrender.com/v1/models/reload",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-agent-o6nx.onrender.com/v1/config",
+      "status": 404,
+      "issue": "Endpoint not found"
+    },
+    {
+      "method": "POST",
+      "url": "https://bhiv-hr-agent-o6nx.onrender.com/v1/config/update",
+      "status": 404,
+      "issue": "Endpoint not found"
+    }
+  ],
+  "errors": []
+}

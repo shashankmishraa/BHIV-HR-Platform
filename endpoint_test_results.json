@@ -1,0 +1,76 @@
+{
+  "functional": [
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/health",
+      "status_code": 200,
+      "response_time": 1.0379536151885986,
+      "success": true
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/docs",
+      "status_code": 200,
+      "response_time": 1.0357859134674072,
+      "success": true
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/jobs",
+      "status_code": 200,
+      "response_time": 0.5083165168762207,
+      "success": true
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/v1/candidates",
+      "status_code": 200,
+      "response_time": 0.5538134574890137,
+      "success": true
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/health/detailed",
+      "status_code": 200,
+      "response_time": 0.5353436470031738,
+      "success": true
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/monitoring/errors",
+      "status_code": 200,
+      "response_time": 0.56280517578125,
+      "success": true
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com/metrics",
+      "status_code": 200,
+      "response_time": 1.0059704780578613,
+      "success": true
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-agent-o6nx.onrender.com/health",
+      "status_code": 200,
+      "response_time": 0.5620369911193848,
+      "success": true
+    },
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-agent-o6nx.onrender.com/docs",
+      "status_code": 200,
+      "response_time": 1.0678932666778564,
+      "success": true
+    }
+  ],
+  "non_functional": [
+    {
+      "method": "GET",
+      "url": "https://bhiv-hr-agent-o6nx.onrender.com/v1/analytics/performance",
+      "status_code": 404,
+      "response_time": 0.5430729389190674,
+      "success": false
+    }
+  ]
+}

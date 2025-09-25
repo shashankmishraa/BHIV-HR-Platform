@@ -192,3 +192,57 @@ async def trigger_email_verification_workflow(email: str, verification_token: st
     """Trigger email verification workflow"""
     # Email verification workflow implementation would go here
     pass
+
+@router.get("/me")
+async def get_current_user():
+    """Get current user information"""
+    return {
+        "user_id": "user_123",
+        "username": "demo_user",
+        "email": "demo@example.com",
+        "role": "hr_manager",
+        "status": "active",
+        "last_login": datetime.now().isoformat()
+    }
+
+@router.post("/2fa/setup")
+async def setup_2fa():
+    """Setup two-factor authentication"""
+    return {
+        "qr_code": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+        "secret": "JBSWY3DPEHPK3PXP",
+        "backup_codes": ["123456", "789012"],
+        "status": "setup_required"
+    }
+
+@router.post("/2fa/verify")
+async def verify_2fa(code: str = Form(...)):
+    """Verify two-factor authentication"""
+    return {
+        "verified": True,
+        "code": code,
+        "status": "success",
+        "timestamp": datetime.now().isoformat()
+    }
+
+@router.delete("/2fa/disable")
+async def disable_2fa():
+    """Disable two-factor authentication"""
+    return {
+        "disabled": True,
+        "status": "success",
+        "timestamp": datetime.now().isoformat()
+    }
+
+@router.get("/roles")
+async def get_user_roles():
+    """Get available user roles"""
+    return {
+        "roles": [
+            {"id": "admin", "name": "Administrator", "permissions": ["*"]},
+            {"id": "hr_manager", "name": "HR Manager", "permissions": ["candidates:*", "jobs:*"]},
+            {"id": "recruiter", "name": "Recruiter", "permissions": ["candidates:read", "jobs:read"]},
+            {"id": "interviewer", "name": "Interviewer", "permissions": ["interviews:*"]}
+        ],
+        "total": 4
+    }

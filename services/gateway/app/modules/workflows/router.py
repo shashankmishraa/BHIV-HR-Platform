@@ -282,3 +282,181 @@ async def execute_pipeline(execution_id: str, template_id: str, parameters: dict
     """Execute pipeline template"""
     # Pipeline execution implementation would go here
     await asyncio.sleep(2)  # Simulate pipeline execution
+
+@router.put("/{workflow_id}")
+async def update_workflow(workflow_id: str, metadata: Optional[Dict[str, Any]] = None):
+    """Update specific workflow"""
+    if workflow_id not in workflows_store:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    
+    workflow = workflows_store[workflow_id]
+    if metadata:
+        workflow["metadata"].update(metadata)
+    workflow["updated_at"] = datetime.now(timezone.utc)
+    
+    return {
+        "workflow_id": workflow_id,
+        "updated": True,
+        "status": "success",
+        "updated_at": workflow["updated_at"].isoformat()
+    }
+
+@router.delete("/{workflow_id}")
+async def delete_workflow(workflow_id: str):
+    """Delete specific workflow"""
+    if workflow_id not in workflows_store:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    
+    del workflows_store[workflow_id]
+    
+    return {
+        "workflow_id": workflow_id,
+        "deleted": True,
+        "status": "success"
+    }
+
+@router.post("/{workflow_id}/trigger")
+async def trigger_workflow(workflow_id: str, background_tasks: BackgroundTasks):
+    """Trigger specific workflow"""
+    if workflow_id not in workflows_store:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    
+    execution_id = f"exec_{workflow_id}_{uuid.uuid4().hex[:4]}"
+    background_tasks.add_task(execute_workflow, workflow_id)
+    
+    return {
+        "workflow_id": workflow_id,
+        "execution_id": execution_id,
+        "status": "triggered",
+        "triggered_at": datetime.now(timezone.utc).isoformat()
+    }
+
+@router.get("/{workflow_id}/status")
+async def get_workflow_status(workflow_id: str):
+    """Get workflow execution status"""
+    if workflow_id not in workflows_store:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    
+    workflow = workflows_store[workflow_id]
+    completed_steps = len([s for s in workflow["steps"] if s["status"] == WorkflowStatus.COMPLETED])
+    total_steps = len(workflow["steps"])
+    progress = (completed_steps / total_steps * 100) if total_steps > 0 else 0
+    
+    return {
+        "workflow_id": workflow_id,
+        "status": workflow["status"],
+        "progress": f"{progress:.1f}%",
+        "steps_completed": completed_steps,
+        "total_steps": total_steps,
+        "current_step": workflow["steps"][completed_steps]["name"] if completed_steps < total_steps else "Completed"
+    }
+
+@router.post("/{workflow_id}/pause")
+async def pause_workflow(workflow_id: str):
+    """Pause workflow execution"""
+    if workflow_id not in workflows_store:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    
+    workflow = workflows_store[workflow_id]
+    if workflow["status"] == WorkflowStatus.IN_PROGRESS:
+        workflow["status"] = WorkflowStatus.PAUSED
+        workflow["paused_at"] = datetime.now(timezone.utc)
+    
+    return {
+        "workflow_id": workflow_id,
+        "paused": True,
+        "status": "paused"
+    }
+
+@router.post("/{workflow_id}/resume")
+async def resume_workflow(workflow_id: str, background_tasks: BackgroundTasks):
+    """Resume workflow execution"""
+    if workflow_id not in workflows_store:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    
+    workflow = workflows_store[workflow_id]
+    if workflow["status"] == WorkflowStatus.PAUSED:
+        workflow["status"] = WorkflowStatus.IN_PROGRESS
+        workflow["resumed_at"] = datetime.now(timezone.utc)
+        background_tasks.add_task(execute_workflow, workflow_id)
+    
+    return {
+        "workflow_id": workflow_id,
+        "resumed": True,
+        "status": "running"
+    }
+
+@router.get("/templates")
+async def get_workflow_templates():
+    """Get available workflow templates"""
+    templates = [
+        {"id": 1, "name": "Candidate Onboarding", "description": "Standard candidate onboarding flow", "type": "candidate_onboarding"},
+        {"id": 2, "name": "Job Posting", "description": "Job posting and approval workflow", "type": "job_posting"},
+        {"id": 3, "name": "Interview Process", "description": "Complete interview management workflow", "type": "interview_process"}
+    ]
+    return {
+        "templates": templates,
+        "total": len(templates)
+    }
+
+@router.post("/templates")
+async def create_workflow_template(name: str, description: str, workflow_type: WorkflowType):
+    """Create new workflow template"""
+    template_id = len(WORKFLOW_DEFINITIONS) + 1
+    return {
+        "template_id": template_id,
+        "name": name,
+        "description": description,
+        "workflow_type": workflow_type,
+        "created": True,
+        "status": "success"
+    }
+
+@router.get("/history")
+async def get_workflow_history(limit: int = 50):
+    """Get workflow execution history"""
+    workflows = list(workflows_store.values())
+    workflows.sort(key=lambda w: w["created_at"], reverse=True)
+    
+    return {
+        "executions": workflows[:limit],
+        "total": len(workflows),
+        "page": 1,
+        "per_page": limit
+    }
+
+@router.post("/bulk-trigger")
+async def bulk_trigger_workflows(workflow_ids: List[str], background_tasks: BackgroundTasks):
+    """Trigger multiple workflows"""
+    triggered = []
+    failed = []
+    execution_ids = []
+    
+    for workflow_id in workflow_ids:
+        if workflow_id in workflows_store:
+            execution_id = f"exec_{workflow_id}_{uuid.uuid4().hex[:4]}"
+            background_tasks.add_task(execute_workflow, workflow_id)
+            triggered.append(workflow_id)
+            execution_ids.append(execution_id)
+        else:
+            failed.append(workflow_id)
+    
+    return {
+        "triggered": len(triggered),
+        "failed": len(failed),
+        "execution_ids": execution_ids,
+        "status": "success"
+    }
+
+@router.get("/queue")
+async def get_workflow_queue():
+    """Get workflow execution queue"""
+    workflows = list(workflows_store.values())
+    
+    return {
+        "queue_size": len([w for w in workflows if w["status"] == WorkflowStatus.PENDING]),
+        "running": len([w for w in workflows if w["status"] == WorkflowStatus.IN_PROGRESS]),
+        "pending": len([w for w in workflows if w["status"] == WorkflowStatus.PENDING]),
+        "paused": len([w for w in workflows if w["status"] == WorkflowStatus.PAUSED]),
+        "completed": len([w for w in workflows if w["status"] == WorkflowStatus.COMPLETED])
+    }

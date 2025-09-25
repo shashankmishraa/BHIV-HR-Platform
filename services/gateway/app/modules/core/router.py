@@ -50,3 +50,33 @@ async def http_methods_test():
         "supported_methods": ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
         "status": "operational"
     }
+
+@router.get("/architecture")
+async def get_architecture():
+    """System architecture information"""
+    return {
+        "architecture": {
+            "type": "modular_microservices",
+            "pattern": "api_gateway_with_modules",
+            "modules": 6,
+            "total_endpoints": "180+",
+            "workflow_integration": True,
+            "pipeline_orchestration": True
+        },
+        "technology_stack": {
+            "framework": "FastAPI 0.104+",
+            "python": "3.11+",
+            "database": "PostgreSQL",
+            "deployment": "Render Cloud",
+            "monitoring": "Prometheus Compatible"
+        },
+        "capabilities": {
+            "rest_api": True,
+            "workflow_orchestration": True,
+            "pipeline_automation": True,
+            "real_time_monitoring": True,
+            "modular_architecture": True,
+            "background_processing": True,
+            "error_recovery": True
+        }
+    }

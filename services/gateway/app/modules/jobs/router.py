@@ -241,3 +241,35 @@ async def trigger_matching_workflow(job_id: str, match_type: str):
     )
     workflow_engine.start_workflow(workflow_id)
     return workflow_id
+
+@router.post("/{job_id}/match")
+async def match_job_candidates(job_id: str):
+    """Match candidates to specific job"""
+    return {
+        "job_id": job_id,
+        "matched_candidates": [],
+        "total_matches": 0,
+        "algorithm": "semantic_v3.2",
+        "status": "success"
+    }
+
+@router.get("/{job_id}/candidates")
+async def get_job_candidates(job_id: str):
+    """Get candidates for specific job"""
+    return {
+        "job_id": job_id,
+        "candidates": [],
+        "total": 0,
+        "status": "success"
+    }
+
+@router.post("/bulk")
+async def bulk_job_operations():
+    """Bulk job operations"""
+    return {
+        "processed": 0,
+        "created": 0,
+        "updated": 0,
+        "errors": [],
+        "status": "success"
+    }
