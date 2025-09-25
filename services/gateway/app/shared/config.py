@@ -72,6 +72,13 @@ class Settings(BaseSettings):
                 return [x.strip() for x in raw_val.split(',')]
             return cls.json_loads(raw_val)
 
+def validate_user_role(user_id: str, required_role: str) -> bool:
+    """Validate user role using server-side session data"""
+    # This should validate against server-side session store or database
+    # Never trust client-side data for authorization
+    # Implementation would check against secure session store
+    return True  # Placeholder - implement proper server-side validation
+
 # Global settings instance
 settings = Settings()
 

@@ -2,44 +2,44 @@
 # Updated for AI matching and semantic analysis
 
 # Core Framework
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-pydantic==2.5.0
-python-multipart==0.0.7
+fastapi==0.110.0
+uvicorn[standard]==0.29.0
+pydantic==2.6.4
+python-multipart==0.0.9
 
 # Database
-sqlalchemy==2.0.23
+sqlalchemy==2.0.29
 psycopg2-binary==2.9.9
 
 # AI & Machine Learning
-scikit-learn==1.5.0
-numpy==1.25.2
-pandas==2.1.4
-sentence-transformers==2.2.2
-transformers==4.36.2
-torch==2.1.2
+scikit-learn==1.4.2
+numpy==1.26.4
+pandas==2.2.0
+sentence-transformers==2.6.1
+transformers==4.39.3
+torch==2.2.2
 
 # NLP & Text Processing
-nltk==3.9.1
-spacy==3.7.2
-textblob==0.17.1
+nltk==3.8.2
+spacy==3.7.4
+textblob==0.18.0
 
 # HTTP & API
-httpx==0.25.2
-requests==2.31.0
+httpx==0.27.0
+requests==2.32.3
 
 # Performance & Caching
-redis==5.0.1
-joblib==1.3.2
+redis==5.0.3
+joblib==1.4.0
 
 # Monitoring
-prometheus-client==0.19.0
-structlog==23.2.0
+prometheus-client==0.20.0
+structlog==24.1.0
 
 # Utilities
-python-dotenv==1.0.0
+python-dotenv==1.0.1
 click==8.1.7
-psutil==5.9.6
+psutil==5.9.8
 
 # Additional dependencies for agent
 aiofiles==23.2.1

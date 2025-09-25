@@ -57,15 +57,19 @@ class SecurityManager:
         return f"ak_{secrets.token_hex(20)}"
     
     def sanitize_input(self, input_str: str) -> str:
-        """Sanitize user input"""
+        """Sanitize user input to prevent XSS"""
         if not input_str:
             return ""
         
-        # Remove potentially dangerous characters
-        dangerous_chars = ['<', '>', '"', "'", '&', ';', '(', ')', '|', '`']
-        sanitized = input_str
-        for char in dangerous_chars:
-            sanitized = sanitized.replace(char, '')
+        import html
+        # HTML escape to prevent XSS
+        sanitized = html.escape(str(input_str))
+        
+        # Additional sanitization for dangerous patterns
+        dangerous_patterns = ['javascript:', 'data:', 'vbscript:', 'onload=', 'onerror=']
+        for pattern in dangerous_patterns:
+            sanitized = sanitized.replace(pattern.lower(), '')
+            sanitized = sanitized.replace(pattern.upper(), '')
         
         return sanitized.strip()
     

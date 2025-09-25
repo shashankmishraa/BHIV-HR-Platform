@@ -7,19 +7,26 @@ import os
 def setup_service_logging(service_name: str, log_level: str = "INFO"):
     """Setup centralized logging for a service"""
     
-    # Determine log directory based on environment
+    # Determine log directory based on environment with security validation
     if os.path.exists('/app'):
         # Container environment
         log_dir = '/app/logs'
     else:
-        # Local development
-        log_dir = os.path.join(Path(__file__).parent.parent.parent, 'logs')
+        # Local development - use secure path resolution
+        base_path = Path(__file__).parent.parent.parent.resolve()
+        log_dir = base_path / 'logs'
+        log_dir = str(log_dir)
     
-    # Create log directory
-    os.makedirs(log_dir, exist_ok=True)
+    # Create log directory securely
+    try:
+        os.makedirs(log_dir, exist_ok=True)
+    except (OSError, PermissionError) as e:
+        # Fallback to current directory if log directory creation fails
+        log_dir = os.getcwd()
     
-    # Configure logging
-    log_file = os.path.join(log_dir, f'{service_name}.log')
+    # Configure logging with sanitized service name
+    safe_service_name = ''.join(c for c in service_name if c.isalnum() or c in '-_')
+    log_file = os.path.join(log_dir, f'{safe_service_name}.log')
     
     logging.basicConfig(
         level=getattr(logging, log_level.upper()),
