@@ -7,7 +7,7 @@ from enum import Enum
 import uuid
 import asyncio
 
-from ..shared.models import WorkflowStatus, WorkflowStep
+from app.shared.models import WorkflowStatus, WorkflowStep
 
 router = APIRouter(prefix="/v1/workflows", tags=["Workflows"])
 

@@ -22,8 +22,12 @@ COPY app/ ./app/
 # Copy shared modules
 COPY shared/ ./shared/
 
+# Set PYTHONPATH to recognize app as root package
+ENV PYTHONPATH=/app
+
 # Expose port (Render will use PORT env variable)
 EXPOSE 8000
 
 # Important: Use PORT environment variable for Render
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Run with proper module context
+CMD ["sh", "-c", "cd /app && python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
