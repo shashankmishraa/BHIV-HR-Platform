@@ -13,8 +13,8 @@ from pydantic import ValidationError
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'services', 'gateway', 'app'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'services'))
 
-from shared.models import JobCreate, JobUpdate
-from shared.validation import ValidationUtils, StandardJobCreate
+from services.shared.models import JobCreate, JobUpdate
+from services.shared.validation import ValidationUtils, StandardJobCreate
 
 class TestJobValidation:
     """Test job creation and update validation"""

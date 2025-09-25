@@ -1,5 +1,5 @@
 """Monitoring module for system health and performance tracking"""
 
-from .router import router
+from app.modules.monitoring.router import router
 
 __all__ = ["router"]

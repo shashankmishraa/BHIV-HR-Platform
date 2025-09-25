@@ -132,6 +132,185 @@ class HTTPMethodTester:
     
     def test_concurrent_requests(self) -> Dict[str, str]:
         """Test concurrent HTTP method requests"""
-        print(\"\\nTesting Concurrent Requests...\")
+        print("\nTesting Concurrent Requests...")
         
-        def make_request(method_url_tuple):\n            method, url = method_url_tuple\n            try:\n                if method == \"GET\":\n                    response = requests.get(url, timeout=5)\n                elif method == \"HEAD\":\n                    response = requests.head(url, timeout=5)\n                elif method == \"OPTIONS\":\n                    response = requests.options(url, timeout=5)\n                \n                return f\"{method}_{response.status_code}\"\n            except Exception as e:\n                return f\"{method}_ERROR\"\n        \n        # Test concurrent requests\n        test_requests = [\n            (\"GET\", f\"{API_BASE}/health\"),\n            (\"HEAD\", f\"{API_BASE}/health\"),\n            (\"OPTIONS\", f\"{API_BASE}/\"),\n            (\"GET\", f\"{AI_BASE}/health\"),\n            (\"HEAD\", f\"{AI_BASE}/health\"),\n            (\"OPTIONS\", f\"{AI_BASE}/\")\n        ] * 5  # 30 total requests\n        \n        results = {}\n        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:\n            future_to_request = {executor.submit(make_request, req): req for req in test_requests}\n            \n            for future in concurrent.futures.as_completed(future_to_request):\n                request = future_to_request[future]\n                try:\n                    result = future.result()\n                    method, url = request\n                    key = f\"{method}_{url.split('/')[-1] or 'root'}\"\n                    if key not in results:\n                        results[key] = []\n                    results[key].append(result)\n                except Exception as e:\n                    print(f\"    Concurrent request failed: {e}\")\n        \n        # Summarize concurrent results\n        summary = {}\n        for key, result_list in results.items():\n            success_count = sum(1 for r in result_list if \"200\" in r)\n            total_count = len(result_list)\n            summary[key] = f\"{success_count}/{total_count}_SUCCESS\"\n        \n        return summary\n    \n    def test_response_consistency(self) -> Dict[str, str]:\n        \"\"\"Test GET vs HEAD response consistency\"\"\"\n        print(\"\\nTesting Response Consistency...\")\n        \n        test_urls = [\n            (\"API Gateway Health\", f\"{API_BASE}/health\"),\n            (\"AI Agent Health\", f\"{AI_BASE}/health\"),\n            (\"API Gateway Root\", f\"{API_BASE}/\"),\n            (\"AI Agent Root\", f\"{AI_BASE}/\")\n        ]\n        \n        results = {}\n        for name, url in test_urls:\n            try:\n                # GET request\n                get_response = requests.get(url, timeout=5)\n                \n                # HEAD request\n                head_response = requests.head(url, timeout=5)\n                \n                # Compare responses\n                status_match = get_response.status_code == head_response.status_code\n                content_type_match = (get_response.headers.get('content-type', '') == \n                                    head_response.headers.get('content-type', ''))\n                head_no_body = len(head_response.content) == 0\n                \n                if status_match and content_type_match and head_no_body:\n                    results[name] = \"CONSISTENT\"\n                else:\n                    issues = []\n                    if not status_match:\n                        issues.append(f\"STATUS_MISMATCH_{get_response.status_code}_{head_response.status_code}\")\n                    if not content_type_match:\n                        issues.append(\"CONTENT_TYPE_MISMATCH\")\n                    if not head_no_body:\n                        issues.append(f\"HEAD_HAS_BODY_{len(head_response.content)}\")\n                    results[name] = \"_\".join(issues)\n                    \n            except Exception as e:\n                results[name] = f\"ERROR_{str(e)[:30]}\"\n        \n        return results\n    \n    def run_all_tests(self) -> Dict[str, any]:\n        \"\"\"Run all HTTP method tests\"\"\"\n        print(\"BHIV HR Platform - HTTP Method Integration Testing\")\n        print(\"=\" * 70)\n        print(f\"Started: {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}\")\n        print()\n        \n        all_results = {}\n        all_results[\"Core Endpoints\"] = self.test_core_endpoints()\n        all_results[\"API Endpoints\"] = self.test_api_endpoints()\n        all_results[\"Security Endpoints\"] = self.test_security_endpoints()\n        all_results[\"Concurrent Requests\"] = self.test_concurrent_requests()\n        all_results[\"Response Consistency\"] = self.test_response_consistency()\n        \n        return all_results\n    \n    def generate_report(self, results: Dict[str, any]) -> None:\n        \"\"\"Generate comprehensive test report\"\"\"\n        print(\"\\n\" + \"=\" * 70)\n        print(\"HTTP METHOD INTEGRATION TEST REPORT\")\n        print(\"=\" * 70)\n        \n        total_tests = 0\n        passed_tests = 0\n        \n        for category, category_results in results.items():\n            print(f\"\\n{category}:\")\n            print(\"-\" * 40)\n            \n            if category in [\"Concurrent Requests\", \"Response Consistency\"]:\n                # Simple key-value results\n                for test_name, result in category_results.items():\n                    status = \"PASSED\" if any(success in result for success in [\n                        \"SUCCESS\", \"CONSISTENT\", \"CORRECTLY_REJECTED\"\n                    ]) else \"FAILED\"\n                    \n                    print(f\"  {test_name:<30}: {status} ({result})\")\n                    total_tests += 1\n                    if status == \"PASSED\":\n                        passed_tests += 1\n            else:\n                # Nested endpoint results\n                for endpoint_name, method_results in category_results.items():\n                    print(f\"  {endpoint_name}:\")\n                    \n                    for method, result in method_results.items():\n                        status = \"PASSED\" if any(success in result for success in [\n                            \"SUCCESS\", \"CORRECTLY_REJECTED\"\n                        ]) else \"FAILED\"\n                        \n                        print(f\"    {method:<8}: {status} ({result})\")\n                        total_tests += 1\n                        if status == \"PASSED\":\n                            passed_tests += 1\n        \n        # Summary statistics\n        print(f\"\\n\" + \"=\" * 70)\n        print(\"SUMMARY STATISTICS\")\n        print(\"=\" * 70)\n        print(f\"Total Tests: {total_tests}\")\n        print(f\"Passed: {passed_tests}\")\n        print(f\"Failed: {total_tests - passed_tests}\")\n        print(f\"Success Rate: {(passed_tests/total_tests)*100:.1f}%\")\n        \n        # Performance metrics\n        end_time = datetime.now()\n        duration = (end_time - self.start_time).total_seconds()\n        print(f\"\\nTest Duration: {duration:.2f} seconds\")\n        print(f\"Tests per Second: {total_tests/duration:.1f}\")\n        \n        # Final status\n        if passed_tests == total_tests:\n            print(\"\\n🎉 SUCCESS: All HTTP method tests passed!\")\n        elif passed_tests / total_tests >= 0.9:\n            print(\"\\n⚠️  WARNING: Most tests passed, minor issues detected\")\n        else:\n            print(\"\\n❌ FAILURE: Significant HTTP method handling issues detected\")\n        \n        print(f\"\\nCompleted: {end_time.strftime('%Y-%m-%d %H:%M:%S')}\")\n\ndef main():\n    \"\"\"Main test execution\"\"\"\n    tester = HTTPMethodTester()\n    results = tester.run_all_tests()\n    tester.generate_report(results)\n\nif __name__ == \"__main__\":\n    main()
+        def make_request(method_url_tuple):
+            method, url = method_url_tuple
+            try:
+                if method == "GET":
+                    response = requests.get(url, timeout=5)
+                elif method == "HEAD":
+                    response = requests.head(url, timeout=5)
+                elif method == "OPTIONS":
+                    response = requests.options(url, timeout=5)
+                
+                return f"{method}_{response.status_code}"
+            except Exception as e:
+                return f"{method}_ERROR"
+        
+        # Test concurrent requests
+        test_requests = [
+            ("GET", f"{API_BASE}/health"),
+            ("HEAD", f"{API_BASE}/health"),
+            ("OPTIONS", f"{API_BASE}/"),
+            ("GET", f"{AI_BASE}/health"),
+            ("HEAD", f"{AI_BASE}/health"),
+            ("OPTIONS", f"{AI_BASE}/")
+        ] * 5  # 30 total requests
+        
+        results = {}
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            future_to_request = {executor.submit(make_request, req): req for req in test_requests}
+            
+            for future in concurrent.futures.as_completed(future_to_request):
+                request = future_to_request[future]
+                try:
+                    result = future.result()
+                    method, url = request
+                    key = f"{method}_{url.split('/')[-1] or 'root'}"
+                    if key not in results:
+                        results[key] = []
+                    results[key].append(result)
+                except Exception as e:
+                    print(f"    Concurrent request failed: {e}")
+        
+        # Summarize concurrent results
+        summary = {}
+        for key, result_list in results.items():
+            success_count = sum(1 for r in result_list if "200" in r)
+            total_count = len(result_list)
+            summary[key] = f"{success_count}/{total_count}_SUCCESS"
+        
+        return summary
+    
+    def test_response_consistency(self) -> Dict[str, str]:
+        """Test GET vs HEAD response consistency"""
+        print("\nTesting Response Consistency...")
+        
+        test_urls = [
+            ("API Gateway Health", f"{API_BASE}/health"),
+            ("AI Agent Health", f"{AI_BASE}/health"),
+            ("API Gateway Root", f"{API_BASE}/"),
+            ("AI Agent Root", f"{AI_BASE}/")
+        ]
+        
+        results = {}
+        for name, url in test_urls:
+            try:
+                # GET request
+                get_response = requests.get(url, timeout=5)
+                
+                # HEAD request
+                head_response = requests.head(url, timeout=5)
+                
+                # Compare responses
+                status_match = get_response.status_code == head_response.status_code
+                content_type_match = (get_response.headers.get('content-type', '') == 
+                                    head_response.headers.get('content-type', ''))
+                head_no_body = len(head_response.content) == 0
+                
+                if status_match and content_type_match and head_no_body:
+                    results[name] = "CONSISTENT"
+                else:
+                    issues = []
+                    if not status_match:
+                        issues.append(f"STATUS_MISMATCH_{get_response.status_code}_{head_response.status_code}")
+                    if not content_type_match:
+                        issues.append("CONTENT_TYPE_MISMATCH")
+                    if not head_no_body:
+                        issues.append(f"HEAD_HAS_BODY_{len(head_response.content)}")
+                    results[name] = "_".join(issues)
+                    
+            except Exception as e:
+                results[name] = f"ERROR_{str(e)[:30]}"
+        
+        return results
+    
+    def run_all_tests(self) -> Dict[str, any]:
+        """Run all HTTP method tests"""
+        print("BHIV HR Platform - HTTP Method Integration Testing")
+        print("=" * 70)
+        print(f"Started: {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+        print()
+        
+        all_results = {}
+        all_results["Core Endpoints"] = self.test_core_endpoints()
+        all_results["API Endpoints"] = self.test_api_endpoints()
+        all_results["Security Endpoints"] = self.test_security_endpoints()
+        all_results["Concurrent Requests"] = self.test_concurrent_requests()
+        all_results["Response Consistency"] = self.test_response_consistency()
+        
+        return all_results
+    
+    def generate_report(self, results: Dict[str, any]) -> None:
+        """Generate comprehensive test report"""
+        print("\n" + "=" * 70)
+        print("HTTP METHOD INTEGRATION TEST REPORT")
+        print("=" * 70)
+        
+        total_tests = 0
+        passed_tests = 0
+        
+        for category, category_results in results.items():
+            print(f"\n{category}:")
+            print("-" * 40)
+            
+            if category in ["Concurrent Requests", "Response Consistency"]:
+                # Simple key-value results
+                for test_name, result in category_results.items():
+                    status = "PASSED" if any(success in result for success in [
+                        "SUCCESS", "CONSISTENT", "CORRECTLY_REJECTED"
+                    ]) else "FAILED"
+                    
+                    print(f"  {test_name:<30}: {status} ({result})")
+                    total_tests += 1
+                    if status == "PASSED":
+                        passed_tests += 1
+            else:
+                # Nested endpoint results
+                for endpoint_name, method_results in category_results.items():
+                    print(f"  {endpoint_name}:")
+                    
+                    for method, result in method_results.items():
+                        status = "PASSED" if any(success in result for success in [
+                            "SUCCESS", "CORRECTLY_REJECTED"
+                        ]) else "FAILED"
+                        
+                        print(f"    {method:<8}: {status} ({result})")
+                        total_tests += 1
+                        if status == "PASSED":
+                            passed_tests += 1
+        
+        # Summary statistics
+        print(f"\n" + "=" * 70)
+        print("SUMMARY STATISTICS")
+        print("=" * 70)
+        print(f"Total Tests: {total_tests}")
+        print(f"Passed: {passed_tests}")
+        print(f"Failed: {total_tests - passed_tests}")
+        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+        
+        # Performance metrics
+        end_time = datetime.now()
+        duration = (end_time - self.start_time).total_seconds()
+        print(f"\nTest Duration: {duration:.2f} seconds")
+        print(f"Tests per Second: {total_tests/duration:.1f}")
+        
+        # Final status
+        if passed_tests == total_tests:
+            print("\nSUCCESS: All HTTP method tests passed!")
+        elif passed_tests / total_tests >= 0.9:
+            print("\nWARNING: Most tests passed, minor issues detected")
+        else:
+            print("\nFAILURE: Significant HTTP method handling issues detected")
+        
+        print(f"\nCompleted: {end_time.strftime('%Y-%m-%d %H:%M:%S')}")
+
+def main():
+    """Main test execution"""
+    tester = HTTPMethodTester()
+    results = tester.run_all_tests()
+    tester.generate_report(results)
+
+if __name__ == "__main__":
+    main()

@@ -1,5 +1,5 @@
 """Candidates module for candidate management workflows"""
 
-from .router import router
+from app.modules.candidates.router import router
 
 __all__ = ["router"]
