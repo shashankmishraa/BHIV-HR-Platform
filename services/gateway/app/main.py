@@ -12,6 +12,9 @@ import uuid
 import logging
 import os
 
+# Import metrics
+from .metrics import metrics_middleware, get_metrics_response, metrics_collector
+
 # Import module routers
 from .modules.core import router as core_router
 from .modules.candidates import router as candidates_router
@@ -69,10 +72,10 @@ app.add_middleware(
     max_age=86400
 )
 
-# Enhanced Middleware
+# Enhanced Middleware with Metrics
 @app.middleware("http")
 async def process_middleware(request: Request, call_next):
-    """Enhanced request processing middleware"""
+    """Enhanced request processing middleware with metrics collection"""
     start_time = time.time()
     request_id = f"req_{uuid.uuid4().hex[:8]}"
     
@@ -80,14 +83,15 @@ async def process_middleware(request: Request, call_next):
     request.state.request_id = request_id
     request.state.start_time = start_time
     
-    response = await call_next(request)
+    # Process request with metrics collection
+    response = await metrics_middleware(request, call_next)
     
     # Calculate processing time
     process_time = time.time() - start_time
     
     # Add response headers
     response.headers["X-Process-Time"] = str(round(process_time, 4))
-    response.headers["X-Gateway-Version"] = "3.2.0-modular"
+    response.headers["X-Gateway-Version"] = "3.2.1-modular"
     response.headers["X-Request-ID"] = request_id
     response.headers["X-Environment"] = environment
     response.headers["X-Total-Modules"] = "6"
@@ -189,6 +193,11 @@ async def get_system_architecture():
             "concurrent_users": "50+"
         }
     }
+
+@app.get("/metrics")
+async def get_prometheus_metrics():
+    """Get Prometheus-compatible metrics"""
+    return get_metrics_response()
 
 # Error Handlers
 @app.exception_handler(RequestValidationError)

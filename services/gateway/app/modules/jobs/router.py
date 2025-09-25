@@ -8,6 +8,7 @@ from pydantic import ValidationError
 
 from ...shared.models import JobCreate
 from ....shared.validation import ValidationUtils, StandardJobCreate
+from ..workflow_engine import workflow_engine, create_job_posting_workflow
 
 router = APIRouter(prefix="/v1/jobs", tags=["Jobs"])
 
@@ -44,8 +45,10 @@ async def create_job(job: JobCreate, background_tasks: BackgroundTasks):
         # Generate job ID
         job_id = f"job_{hash(job.title + job.department) % 100000}"
         
-        # Trigger job posting workflow
-        background_tasks.add_task(trigger_job_workflow, job_id, validated_data)
+        # Create and trigger job posting workflow
+        workflow_id = create_job_posting_workflow({**validated_data, "job_id": job_id})
+        workflow_engine.start_workflow(workflow_id)
+        background_tasks.add_task(monitor_workflow_completion, workflow_id)
         
         return {
             "job_id": job_id,
@@ -53,6 +56,7 @@ async def create_job(job: JobCreate, background_tasks: BackgroundTasks):
             "message": "Job created successfully with enhanced validation",
             "status": "active",
             "workflow_triggered": True,
+            "workflow_id": workflow_id,
             "created_at": datetime.now().isoformat(),
             "validation_applied": True,
             **validated_data
@@ -206,13 +210,34 @@ async def get_job_candidate_match_score(job_id: str, candidate_id: str):
         "factors": {"skills": 90, "experience": 80, "location": 85}
     }
 
-# Workflow trigger functions
-async def trigger_job_workflow(job_id: str, job_data: dict):
-    """Trigger job posting workflow"""
-    # Job workflow implementation would go here
-    pass
+# Workflow integration functions
+async def monitor_workflow_completion(workflow_id: str):
+    """Monitor workflow completion and handle results"""
+    import asyncio
+    
+    # Wait for workflow completion
+    max_wait = 300  # 5 minutes timeout
+    wait_time = 0
+    
+    while wait_time < max_wait:
+        workflow = workflow_engine.get_workflow(workflow_id)
+        if workflow and workflow.status.value in ["completed", "failed", "cancelled"]:
+            # Handle workflow completion
+            if workflow.status.value == "completed":
+                print(f"Job workflow {workflow_id} completed successfully")
+            else:
+                print(f"Job workflow {workflow_id} failed with status: {workflow.status.value}")
+            break
+        
+        await asyncio.sleep(5)
+        wait_time += 5
 
 async def trigger_matching_workflow(job_id: str, match_type: str):
     """Trigger AI matching workflow"""
-    # Matching workflow implementation would go here
-    pass
+    # Create matching workflow
+    workflow_id = workflow_engine.create_workflow(
+        "ai_matching", 
+        {"job_id": job_id, "match_type": match_type}
+    )
+    workflow_engine.start_workflow(workflow_id)
+    return workflow_id
