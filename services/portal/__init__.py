@@ -1,1 +1,1 @@
-"""Package initialization file."""
+# BHIV HR Portal Package
