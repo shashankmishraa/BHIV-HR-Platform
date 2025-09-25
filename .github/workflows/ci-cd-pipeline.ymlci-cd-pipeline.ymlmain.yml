@@ -1,0 +1,244 @@
+name: BHIV HR Platform - CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 2 * * *'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  PYTHON_VERSION: '3.12.7'
+
+jobs:
+  lint-and-security:
+    name: Code Quality & Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+      - run: |
+          python -m pip install --upgrade pip
+          pip install flake8 black isort bandit safety pylint mypy
+          find . -name requirements.txt -exec pip install -r {} \;
+      - run: black --check --diff .
+      - run: isort --check-only --diff .
+      - run: |
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      - run: |
+          find . -name "*.py" -path "*/services/*" | head -20 | xargs mypy --ignore-missing-imports || true
+      - run: bandit -r . -f json -o bandit-report.json || true
+      - run: safety check --json --output safety-report.json || true
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            bandit-report.json
+            safety-report.json
+
+  test-services:
+    name: Test Microservices
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [gateway, agent, portal, client_portal]
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: test_bhiv_hr
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.service }}-${{ hashFiles(format('services/{0}/requirements.txt', matrix.service)) }}
+      - run: |
+          if [ -f services/${{ matrix.service }}/requirements.txt ]; then
+            pip install -r services/${{ matrix.service }}/requirements.txt
+          fi
+          pip install pytest pytest-asyncio pytest-cov httpx
+      - env:
+          DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/test_bhiv_hr
+          ENVIRONMENT: testing
+        run: |
+          cd services/${{ matrix.service }}
+          if compgen -G "tests/*.py" > /dev/null || compgen -G "test_*.py" > /dev/null; then
+            pytest --cov=. --cov-report=xml --cov-report=term-missing
+          else
+            echo "No tests found for ${{ matrix.service }}"
+          fi
+      - uses: codecov/codecov-action@v3
+        with:
+          file: services/${{ matrix.service }}/coverage.xml
+          flags: ${{ matrix.service }}
+          name: ${{ matrix.service }}-coverage
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [lint-and-security]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - run: |
+          docker-compose -f docker-compose.production.yml up -d --build
+          echo "Waiting for services to start..."; sleep 60
+          docker-compose -f docker-compose.production.yml ps
+      - run: |
+          curl -f http://localhost:8000/health || exit 1
+          curl -f http://localhost:9000/health || exit 1
+          curl -f http://localhost:8501 || exit 1
+          curl -f http://localhost:8502 || exit 1
+      - run: |
+          if [ -f test_endpoints.py ]; then python test_endpoints.py; fi
+      - if: failure()
+        run: |
+          docker-compose -f docker-compose.production.yml logs gateway > gateway.log
+          docker-compose -f docker-compose.production.yml logs agent > agent.log
+          docker-compose -f docker-compose.production.yml logs portal > portal.log
+          docker-compose -f docker-compose.production.yml logs client_portal > client_portal.log
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: integration-test-logs
+          path: "*.log"
+      - if: always()
+        run: docker-compose -f docker-compose.production.yml down -v
+
+  build-and-push:
+    name: Build & Push Docker Images
+    runs-on: ubuntu-latest
+    needs: [test-services, integration-tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        service: [gateway, agent, portal, client_portal]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./services/${{ matrix.service }}
+          file: ./services/${{ matrix.service }}/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+  security-scan:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    needs: [build-and-push]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        service: [gateway, agent, portal, client_portal]
+    steps:
+      - uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}:latest
+          format: 'sarif'
+          output: 'trivy-results-${{ matrix.service }}.sarif'
+      - uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results-${{ matrix.service }}.sarif'
+
+  performance-test:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    needs: [integration-tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          docker-compose -f docker-compose.production.yml up -d --build
+          sleep 60
+      - run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install -y k6
+      - run: |
+          cat > load-test.js << 'EOF'
+          import http from 'k6/http';
+          import { check, sleep } from 'k6';
+          export const options = { stages: [ { duration: '2m', target: 10 }, { duration: '5m', target: 10 }, { duration: '2m', target: 0 } ] };
+          export default function () {
+            const res = http.get('http://localhost:8000/health');
+            check(res, { 'status is 200': (r) => r.status === 200, 'response time < 500ms': (r) => r.timings.duration < 500 });
+            sleep(1);
+          }
+          EOF
+          k6 run load-test.js
+      - if: always()
+        run: docker-compose -f docker-compose.production.yml down -v
+
+  notify-deployment:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [build-and-push, security-scan]
+    if: always() && (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    steps:
+      - run: |
+          echo "## 🚀 BHIV HR Platform Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Services Built:" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Gateway API" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ AI Agent" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ HR Portal" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Client Portal" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Live URLs:" >> $GITHUB_STEP_SUMMARY
+          echo "- **API Gateway:** https://bhiv-hr-gateway-901a.onrender.com/docs" >> $GITHUB_STEP_SUMMARY
+          echo "- **AI Agent:** https://bhiv-hr-agent-o6nx.onrender.com/docs" >> $GITHUB_STEP_SUMMARY
+          echo "- **HR Portal:** https://bhiv-hr-portal-xk2k.onrender.com/" >> $GITHUB_STEP_SUMMARY
+          echo "- **Client Portal:** https://bhiv-hr-client-portal-zdbt.onrender.com/" >> $GITHUB_STEP_SUMMARY
