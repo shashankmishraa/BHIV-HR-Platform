@@ -13,15 +13,15 @@ import logging
 import os
 
 # Import metrics
-from app.metrics import metrics_middleware, get_metrics_response, metrics_collector
+from .metrics import metrics_middleware, get_metrics_response, metrics_collector
 
 # Import module routers
-from app.modules.core import router as core_router
-from app.modules.candidates import router as candidates_router
-from app.modules.jobs import router as jobs_router
-from app.modules.auth import router as auth_router
-from app.modules.workflows import router as workflows_router
-from app.modules.monitoring import router as monitoring_router
+from .modules.core import router as core_router
+from .modules.candidates import router as candidates_router
+from .modules.jobs import router as jobs_router
+from .modules.auth import router as auth_router
+from .modules.workflows import router as workflows_router
+from .modules.monitoring import router as monitoring_router
 
 # Initialize FastAPI application
 app = FastAPI(
@@ -53,7 +53,7 @@ app = FastAPI(
 )
 
 # Import configuration
-from app.shared.config import get_settings, is_production
+from .shared.config import get_settings, is_production
 
 # Configure logging
 settings = get_settings()

@@ -1,5 +1,5 @@
 """Jobs module for job management workflows"""
 
-from app.modules.jobs.router import router
+from .router import router
 
 __all__ = ["router"]

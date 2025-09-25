@@ -1,6 +1,6 @@
 """Shared utilities and models for BHIV HR Platform Gateway"""
 
-from app.shared.models import (
+from .models import (
     WorkflowStatus,
     WorkflowType,
     CandidateCreate,
@@ -15,7 +15,7 @@ from app.shared.models import (
     ErrorResponse,
     HealthCheck
 )
-from app.shared.database import (
+from .database import (
     DatabaseManager,
     db_manager,
     get_db_health,

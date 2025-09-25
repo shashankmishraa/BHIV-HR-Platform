@@ -9,7 +9,7 @@ from typing import Optional, Dict, Any
 from passlib.context import CryptContext
 from fastapi import HTTPException, status
 from jose import JWTError, jwt
-from app.shared.config import get_settings
+from .config import get_settings
 
 settings = get_settings()
 

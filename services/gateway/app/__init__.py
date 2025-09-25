@@ -2,7 +2,7 @@
 Version: 3.2.0 - Modular Architecture
 """
 
-from app.main import app
+from .main import app
 
 __version__ = "3.2.0"
 __architecture__ = "modular"

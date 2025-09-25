@@ -1,5 +1,5 @@
 """Core module for basic API endpoints"""
 
-from app.modules.core.router import router
+from .router import router
 
 __all__ = ["router"]

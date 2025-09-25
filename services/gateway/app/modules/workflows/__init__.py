@@ -1,5 +1,5 @@
 """Workflows module for workflow orchestration and management"""
 
-from app.modules.workflows.router import router
+from .router import router
 
 __all__ = ["router"]
