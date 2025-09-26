@@ -9,21 +9,61 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-import aiohttp
-import psutil
-import psycopg2
+try:
+    import aiohttp
+except ImportError:
+    aiohttp = None
+
+try:
+    import psutil
+except ImportError:
+    psutil = None
+
+try:
+    import psycopg2
+    import psycopg2.pool as pool
+except ImportError:
+    psycopg2 = None
+    pool = None
+
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
-from psycopg2 import pool
 from pydantic import BaseModel
 
-# Import production fixes
-from fixes import (
-    DatabaseManager, HTTPSessionManager, TaskQueue, CircuitBreaker,
-    safe_json_parse, setup_production_logging
-)
+# Import production fixes with absolute path
+try:
+    import sys
+    import os
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    from fixes import (
+        DatabaseManager, HTTPSessionManager, TaskQueue, CircuitBreaker,
+        safe_json_parse, setup_production_logging
+    )
+except ImportError as e:
+    logging.error(f"Failed to import fixes module: {e}")
+    # Create fallback classes
+    class DatabaseManager:
+        def __init__(self): self.pool = None
+        def init_pool(self, url): pass
+        def get_connection(self): return contextmanager(lambda: iter([None]))()
+    
+    class HTTPSessionManager:
+        def __init__(self): pass
+        async def close(self): pass
+    
+    class TaskQueue:
+        def __init__(self, max_size=50): pass
+        async def start_workers(self, num_workers=2): pass
+        async def stop(self): pass
+    
+    class CircuitBreaker:
+        def __init__(self, failure_threshold=3, timeout=30): pass
+        async def call(self, func, *args, **kwargs): return func(*args, **kwargs)
+    
+    def safe_json_parse(data): return {}
+    def setup_production_logging(): pass
 
 # Import observability framework
 sys.path.append('../shared')
