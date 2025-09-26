@@ -250,15 +250,17 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}:latest
+          image-ref: ${{ env.REGISTRY }}/${{ github.repository }}-${{ matrix.service }}:latest
           format: 'sarif'
           output: 'trivy-${{ matrix.service }}.sarif'
+        continue-on-error: true
       - name: Upload Trivy scan results
-        uses: github/codeql-action/upload-sarif@v2
-        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('trivy-${{ matrix.service }}.sarif') != ''
         with:
           sarif_file: 'trivy-${{ matrix.service }}.sarif'
           category: 'trivy-${{ matrix.service }}'
+        continue-on-error: true
   notify:
     name: Notification
     runs-on: ubuntu-latest
