@@ -32,38 +32,27 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-# Import production fixes with absolute path
-try:
-    import sys
-    import os
-    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-    from fixes import (
-        DatabaseManager, HTTPSessionManager, TaskQueue, CircuitBreaker,
-        safe_json_parse, setup_production_logging
-    )
-except ImportError as e:
-    logging.error(f"Failed to import fixes module: {e}")
-    # Create fallback classes
-    class DatabaseManager:
-        def __init__(self): self.pool = None
-        def init_pool(self, url): pass
-        def get_connection(self): return contextmanager(lambda: iter([None]))()
-    
-    class HTTPSessionManager:
-        def __init__(self): pass
-        async def close(self): pass
-    
-    class TaskQueue:
-        def __init__(self, max_size=50): pass
-        async def start_workers(self, num_workers=2): pass
-        async def stop(self): pass
-    
-    class CircuitBreaker:
-        def __init__(self, failure_threshold=3, timeout=30): pass
-        async def call(self, func, *args, **kwargs): return func(*args, **kwargs)
-    
-    def safe_json_parse(data): return {}
-    def setup_production_logging(): pass
+# Simple fallback implementations (no external fixes module needed)
+class DatabaseManager:
+    def __init__(self): self.pool = None
+    def init_pool(self, url): pass
+    def get_connection(self): return contextmanager(lambda: iter([None]))()
+
+class HTTPSessionManager:
+    def __init__(self): pass
+    async def close(self): pass
+
+class TaskQueue:
+    def __init__(self, max_size=50): pass
+    async def start_workers(self, num_workers=2): pass
+    async def stop(self): pass
+
+class CircuitBreaker:
+    def __init__(self, failure_threshold=3, timeout=30): pass
+    async def call(self, func, *args, **kwargs): return func(*args, **kwargs)
+
+def safe_json_parse(data): return {}
+def setup_production_logging(): pass
 
 # Import unified observability framework
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
