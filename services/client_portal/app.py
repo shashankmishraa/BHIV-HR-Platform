@@ -302,7 +302,8 @@ def show_job_posting():
             st.subheader("📋 Job Preview")
             st.write(f"**{job_title}** - {department} | {location} | {employment_type}")
             st.write(f"**Experience:** {experience_level} Level")
-            if salary_range:
+            salary_range = f"${salary_min:,} - ${salary_max:,}"
+            if salary_min and salary_max:
                 st.write(f"**Salary:** {salary_range}")
             st.write(f"**Description:** {job_description[:200]}...")
 

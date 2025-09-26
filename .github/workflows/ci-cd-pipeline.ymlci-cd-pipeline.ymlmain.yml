@@ -123,6 +123,7 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
           REDIS_URL: redis://localhost:6379/0
           JWT_SECRET_KEY: test-secret-key-for-ci
+          API_KEY_SECRET: test-api-key-for-ci
           API_V1_PREFIX: /api/v1
         run: |
           if [ -d "services/${{ matrix.service }}/tests" ]; then
