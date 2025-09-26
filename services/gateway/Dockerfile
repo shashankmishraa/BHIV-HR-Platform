@@ -24,8 +24,6 @@ COPY app/ ./app/
 # Copy shared modules
 COPY shared/ ./shared/
 
-# Copy configuration files
-COPY ../../config/ ./config/
 
 # Set PYTHONPATH to recognize app as root package
 ENV PYTHONPATH=/app

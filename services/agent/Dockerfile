@@ -24,8 +24,6 @@ COPY app.py .
 COPY semantic_engine/ ./semantic_engine/
 COPY shared/ ./shared/
 
-# Copy configuration files
-COPY ../config/ ./config/
 
 # Expose port
 EXPOSE 9000
