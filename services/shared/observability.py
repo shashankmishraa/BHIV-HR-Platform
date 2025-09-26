@@ -10,10 +10,33 @@ from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 import psutil
 import asyncio
-from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse, PlainTextResponse
 import structlog
+
+# Import Prometheus with fallback
+try:
+    from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
+    PROMETHEUS_AVAILABLE = True
+except ImportError:
+    PROMETHEUS_AVAILABLE = False
+    # Create mock classes for fallback
+    class Counter:
+        def __init__(self, *args, **kwargs): pass
+        def labels(self, *args, **kwargs): return self
+        def inc(self, *args, **kwargs): pass
+    
+    class Histogram:
+        def __init__(self, *args, **kwargs): pass
+        def labels(self, *args, **kwargs): return self
+        def observe(self, *args, **kwargs): pass
+    
+    class Gauge:
+        def __init__(self, *args, **kwargs): pass
+        def set(self, *args, **kwargs): pass
+    
+    def generate_latest(): return "# Prometheus not available\n"
+    CONTENT_TYPE_LATEST = "text/plain"
 
 # Prometheus Metrics
 REQUEST_COUNT = Counter('http_requests_total', 'Total HTTP requests', ['method', 'endpoint', 'status'])
@@ -118,6 +141,8 @@ class MetricsCollector:
     @staticmethod
     def get_metrics() -> str:
         """Get Prometheus formatted metrics"""
+        if not PROMETHEUS_AVAILABLE:
+            return "# Prometheus client not available\n# metrics_available false\n"
         MetricsCollector.update_system_metrics()
         return generate_latest()
 

@@ -1,11 +1,13 @@
 FROM python:3.12.7-slim
 
-# Install system dependencies for cryptography
+# Install system dependencies for cryptography and CA certificates
 RUN apt-get update && apt-get install -y \
     build-essential \
     libssl-dev \
     libffi-dev \
     python3-dev \
+    ca-certificates \
+    && update-ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -21,6 +23,9 @@ COPY app/ ./app/
 
 # Copy shared modules
 COPY shared/ ./shared/
+
+# Copy configuration files
+COPY ../../config/ ./config/
 
 # Set PYTHONPATH to recognize app as root package
 ENV PYTHONPATH=/app

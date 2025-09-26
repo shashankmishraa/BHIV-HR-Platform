@@ -1,0 +1,30 @@
+{
+  "app": {
+    "name": "BHIV HR Platform",
+    "version": "3.2.0",
+    "environment": "production"
+  },
+  "database": {
+    "pool_size": 10,
+    "max_overflow": 20,
+    "pool_timeout": 30,
+    "pool_recycle": 3600
+  },
+  "security": {
+    "jwt_algorithm": "HS256",
+    "jwt_expiration_hours": 24,
+    "rate_limit_requests": 60,
+    "rate_limit_window": 60
+  },
+  "monitoring": {
+    "health_check_interval": 30,
+    "metrics_enabled": true,
+    "log_level": "INFO"
+  },
+  "services": {
+    "gateway_url": "https://bhiv-hr-gateway-901a.onrender.com",
+    "agent_url": "https://bhiv-hr-agent-o6nx.onrender.com",
+    "portal_url": "https://bhiv-hr-portal-xk2k.onrender.com",
+    "client_portal_url": "https://bhiv-hr-client-portal-zdbt.onrender.com"
+  }
+}

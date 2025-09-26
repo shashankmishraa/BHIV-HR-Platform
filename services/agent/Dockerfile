@@ -6,6 +6,8 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     libffi-dev \
     python3-dev \
+    ca-certificates \
+    && update-ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -21,6 +23,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app.py .
 COPY semantic_engine/ ./semantic_engine/
 COPY shared/ ./shared/
+
+# Copy configuration files
+COPY ../config/ ./config/
 
 # Expose port
 EXPOSE 9000

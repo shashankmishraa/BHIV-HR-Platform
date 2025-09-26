@@ -21,11 +21,11 @@ class Settings(BaseSettings):
     port: int = Field(default=8000, env="PORT")
 
     # Database
-    database_url: str = Field(..., env="DATABASE_URL")
+    database_url: str = Field(default="postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb", env="DATABASE_URL")
 
     # Security
-    api_key_secret: str = Field(..., env="API_KEY_SECRET")
-    jwt_secret: str = Field(..., env="JWT_SECRET")
+    api_key_secret: str = Field(default="test-api-key-fallback", env="API_KEY_SECRET")
+    jwt_secret: str = Field(default="test-jwt-secret-fallback", env="JWT_SECRET")
     security_enabled: bool = Field(default=True, env="SECURITY_ENABLED")
 
     # CORS
@@ -83,7 +83,18 @@ settings = Settings()
 
 
 def get_settings() -> Settings:
-    """Get application settings"""
+    """Get application settings with validation"""
+    # Validate critical settings
+    if not settings.api_key_secret or settings.api_key_secret == "test-api-key-fallback":
+        import os
+        if os.getenv("ENVIRONMENT", "").lower() == "production":
+            raise RuntimeError("Missing API_KEY_SECRET in production environment")
+    
+    if not settings.jwt_secret or settings.jwt_secret == "test-jwt-secret-fallback":
+        import os
+        if os.getenv("ENVIRONMENT", "").lower() == "production":
+            raise RuntimeError("Missing JWT_SECRET in production environment")
+    
     return settings
 
 

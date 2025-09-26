@@ -2,11 +2,15 @@
 Version: 3.2.0 - Production Ready Modular System with Comprehensive Observability
 """
 
+import gc
 import logging
 import os
 import time
 import uuid
 from datetime import datetime, timezone
+
+# Configure garbage collection for memory optimization
+gc.set_threshold(700, 10, 10)
 
 # Import observability framework
 import sys
@@ -95,10 +99,11 @@ async def check_database_health():
 
 # Add AI Agent health check
 async def check_agent_health():
-    """AI Agent service health check"""
+    """AI Agent service health check with SSL verification"""
     try:
         import httpx
-        async with httpx.AsyncClient() as client:
+        ssl_verify = os.getenv("SSL_VERIFY", "true") == "true"
+        async with httpx.AsyncClient(verify=ssl_verify) as client:
             response = await client.get(f"{settings.agent_service_url}/health", timeout=5.0)
             if response.status_code == 200:
                 return {
@@ -160,6 +165,12 @@ async def process_middleware(request: Request, call_next):
 
     return response
 
+
+# Health probe endpoint that bypasses rate limits
+@app.get("/health/probe", tags=["Health"])
+async def health_probe():
+    """Simple health probe for monitoring systems - bypasses rate limits"""
+    return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
 
 # Include module routers
 app.include_router(core_router, prefix="", tags=["Core"])
@@ -303,7 +314,15 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 # Application Events
 @app.on_event("startup")
 async def startup_event():
-    """Application startup event"""
+    """Application startup event with validation"""
+    # Validate critical configuration
+    try:
+        settings = get_settings()
+        logger.info("Configuration validation passed")
+    except RuntimeError as e:
+        logger.error(f"Configuration validation failed: {e}")
+        raise
+    
     logger.info("=" * 80)
     logger.info("BHIV HR Platform API Gateway - Modular Architecture")
     logger.info("=" * 80)
