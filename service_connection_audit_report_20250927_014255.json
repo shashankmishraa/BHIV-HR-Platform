@@ -1,0 +1,346 @@
+{
+  "audit_timestamp": "2025-09-26T20:12:25.147507+00:00",
+  "audit_version": "1.0.0",
+  "services": {
+    "gateway": {
+      "name": "API Gateway",
+      "url": "https://bhiv-hr-gateway-901a.onrender.com",
+      "status": "reachable",
+      "response_time": 1583.28,
+      "endpoints_verified": [
+        {
+          "endpoint": "/",
+          "status": 200,
+          "response_time": 1583.28
+        },
+        {
+          "endpoint": "/health",
+          "status": 200,
+          "response_time": 314.61
+        }
+      ],
+      "issues": [],
+      "capabilities": {
+        "message": "BHIV HR Platform API Gateway",
+        "version": "3.2.0",
+        "status": "operational",
+        "environment": "production",
+        "timestamp": "2025-09-26T20:12:26.613245+00:00",
+        "total_endpoints": "180+",
+        "modules": [
+          "core",
+          "candidates",
+          "jobs",
+          "auth",
+          "workflows",
+          "monitoring"
+        ]
+      },
+      "health_status": {
+        "status": "healthy",
+        "service": "BHIV HR Gateway",
+        "version": "3.2.0",
+        "timestamp": "2025-09-26T20:12:26.933725+00:00",
+        "components": {
+          "core": "healthy",
+          "database": "healthy",
+          "workflows": "healthy"
+        }
+      }
+    },
+    "agent": {
+      "name": "AI Agent",
+      "url": "https://bhiv-hr-agent-o6nx.onrender.com",
+      "status": "reachable",
+      "response_time": 454.39,
+      "endpoints_verified": [
+        {
+          "endpoint": "/",
+          "status": 200,
+          "response_time": 454.39
+        },
+        {
+          "endpoint": "/health",
+          "status": 200,
+          "response_time": 270.14
+        }
+      ],
+      "issues": [],
+      "capabilities": {
+        "service": "BHIV AI Agent",
+        "version": "3.1.0",
+        "semantic_engine": "enabled",
+        "endpoints": {
+          "match": "POST /match - Get top candidates for job",
+          "analyze": "GET /analyze/{candidate_id} - Analyze candidate",
+          "health": "GET /health - Service health check",
+          "semantic_status": "GET /semantic-status - Semantic engine status",
+          "test_db": "GET /test-db - Database connectivity test",
+          "http_methods_test": "GET /http-methods-test - HTTP methods testing",
+          "favicon": "GET /favicon.ico - Service favicon"
+        },
+        "supported_methods": [
+          "GET",
+          "POST",
+          "HEAD",
+          "OPTIONS"
+        ]
+      },
+      "health_status": {
+        "status": "healthy",
+        "service": "BHIV AI Agent",
+        "version": "3.1.0",
+        "semantic_engine": "enabled",
+        "timestamp": "2025-09-26T20:12:27.699831+00:00",
+        "uptime": "operational",
+        "methods_supported": [
+          "GET",
+          "HEAD"
+        ]
+      }
+    },
+    "portal": {
+      "name": "HR Portal",
+      "url": "https://bhiv-hr-portal-xk2k.onrender.com",
+      "status": "unknown",
+      "response_time": null,
+      "endpoints_verified": [],
+      "issues": [
+        "Root endpoint error: ",
+        "Health endpoint error: "
+      ],
+      "capabilities": {}
+    },
+    "client_portal": {
+      "name": "Client Portal",
+      "url": "https://bhiv-hr-client-portal-zdbt.onrender.com",
+      "status": "reachable",
+      "response_time": 537.39,
+      "endpoints_verified": [
+        {
+          "endpoint": "/",
+          "status": 200,
+          "response_time": 537.39
+        },
+        {
+          "endpoint": "/health",
+          "status": 200,
+          "response_time": 744.97
+        }
+      ],
+      "issues": [],
+      "capabilities": {
+        "content_type": "text/html"
+      },
+      "health_status": "non_json_response"
+    }
+  },
+  "routing_verification": {
+    "modules_verified": [
+      "core",
+      "candidates",
+      "jobs",
+      "auth",
+      "workflows",
+      "monitoring"
+    ],
+    "endpoints_tested": [
+      {
+        "endpoint": "/system/modules",
+        "status": 200,
+        "accessible": true
+      },
+      {
+        "endpoint": "/system/architecture",
+        "status": 200,
+        "accessible": true
+      },
+      {
+        "endpoint": "/health/detailed",
+        "status": 200,
+        "accessible": true
+      },
+      {
+        "endpoint": "/metrics",
+        "status": 200,
+        "accessible": true
+      },
+      {
+        "endpoint": "/health/probe",
+        "status": 404,
+        "accessible": false
+      }
+    ],
+    "routing_issues": [
+      "/health/probe returned 404"
+    ],
+    "module_integration": {
+      "modules": [
+        {
+          "name": "core",
+          "description": "Basic API endpoints and health checks",
+          "endpoints": 4,
+          "status": "active"
+        },
+        {
+          "name": "candidates",
+          "description": "Candidate management with workflow integration",
+          "endpoints": 12,
+          "status": "active"
+        },
+        {
+          "name": "jobs",
+          "description": "Job posting and management with AI matching",
+          "endpoints": 10,
+          "status": "active"
+        },
+        {
+          "name": "auth",
+          "description": "Authentication and security workflows",
+          "endpoints": 17,
+          "status": "active"
+        },
+        {
+          "name": "workflows",
+          "description": "Workflow orchestration and pipeline management",
+          "endpoints": 15,
+          "status": "active"
+        },
+        {
+          "name": "monitoring",
+          "description": "System health and performance analytics",
+          "endpoints": 25,
+          "status": "active"
+        }
+      ],
+      "total_modules": 6,
+      "total_endpoints": "180+",
+      "architecture": "modular",
+      "version": "3.2.0"
+    }
+  },
+  "integration_points": {
+    "agent_integration": {
+      "ai_endpoints_verified": [
+        {
+          "endpoint": "/semantic-status",
+          "status": 200,
+          "accessible": true
+        },
+        {
+          "endpoint": "/test-db",
+          "status": 200,
+          "accessible": true
+        },
+        {
+          "endpoint": "/status",
+          "status": 200,
+          "accessible": true
+        },
+        {
+          "endpoint": "/version",
+          "status": 200,
+          "accessible": true
+        },
+        {
+          "endpoint": "/v1/models/status",
+          "status": 200,
+          "accessible": true
+        }
+      ],
+      "semantic_engine_status": {
+        "semantic_engine_enabled": true,
+        "components": {
+          "job_matcher": true,
+          "advanced_matcher": true,
+          "batch_matcher": true,
+          "semantic_processor": true
+        },
+        "algorithm_version": "3.0.0-semantic",
+        "capabilities": [
+          "Advanced semantic matching",
+          "Bias mitigation",
+          "Skill embeddings",
+          "Cultural fit analysis",
+          "Batch processing",
+          "Model artifacts"
+        ],
+        "model_statistics": {
+          "skill_embeddings_count": 38,
+          "job_templates_count": 4,
+          "cache_size": 0,
+          "embedding_dimension": 100,
+          "model_version": "2.1.0"
+        }
+      },
+      "database_connectivity": {
+        "status": "connected",
+        "candidates_count": 30,
+        "samples": [
+          [
+            2,
+            "Jane Smith"
+          ],
+          [
+            3,
+            "Mike Johnson"
+          ],
+          [
+            4,
+            "John Smith"
+          ]
+        ],
+        "timestamp": "2025-09-26T20:12:53.620832+00:00",
+        "connection_pool": "direct"
+      },
+      "integration_issues": []
+    }
+  },
+  "issues_found": [
+    "Root endpoint error: ",
+    "Health endpoint error: ",
+    "/health/probe returned 404"
+  ],
+  "recommendations": [],
+  "summary": {
+    "total_services_audited": 4,
+    "services_reachable": 3,
+    "total_issues_found": 3,
+    "critical_issues": 2,
+    "routing_modules_verified": 6,
+    "audit_status": "completed",
+    "overall_health": "healthy"
+  },
+  "project_structure": {
+    "configuration_files": [
+      {
+        "file": "services/gateway/app/main.py",
+        "exists": true,
+        "size": 12329
+      },
+      {
+        "file": "services/agent/app.py",
+        "exists": true,
+        "size": 44996
+      },
+      {
+        "file": "services/shared/observability.py",
+        "exists": true,
+        "size": 12475
+      },
+      {
+        "file": "services/shared/config.py",
+        "exists": true,
+        "size": 3601
+      },
+      {
+        "file": "config/settings.json",
+        "exists": true,
+        "size": 754
+      }
+    ],
+    "routing_files": [],
+    "missing_files": [],
+    "structure_issues": []
+  }
+}

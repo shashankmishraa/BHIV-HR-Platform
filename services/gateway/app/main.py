@@ -13,7 +13,10 @@ from datetime import datetime, timezone
 gc.set_threshold(700, 10, 10)
 
 # Import observability framework
-from shared.observability import setup_observability, MetricsCollector
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))
+from observability import setup_observability, MetricsCollector
 
 # Import metrics
 from app.metrics import get_metrics_response, metrics_collector, metrics_middleware

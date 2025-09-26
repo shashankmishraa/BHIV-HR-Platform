@@ -66,7 +66,7 @@ except ImportError as e:
     def setup_production_logging(): pass
 
 # Import observability framework
-sys.path.append('../shared')
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
 try:
     from observability import setup_observability, MetricsCollector
     OBSERVABILITY_ENABLED = True
@@ -568,7 +568,7 @@ def semantic_engine_status():
 @app.head(
     "/test-db", tags=["System Diagnostics"], summary="Database Connectivity Test (HEAD)"
 )
-def test_database():
+async def test_database():
     """Test database connectivity and return sample data
 
     Returns:
@@ -1049,7 +1049,7 @@ async def analyze_candidate(candidate_id: int):
 
 
 @app.get("/status", tags=["System Diagnostics"], summary="Agent Service Status")
-def get_agent_status():
+async def get_agent_status():
     """Agent Service Status with real database connectivity check"""
     # Test actual database connectivity
     db_status = "disconnected"
@@ -1098,7 +1098,7 @@ def get_agent_version():
 
 # Legacy metrics endpoint (observability framework provides /metrics)
 @app.get("/metrics/legacy", tags=["System Diagnostics"], summary="Legacy Agent Metrics Endpoint")
-def get_agent_metrics():
+async def get_agent_metrics():
     """Legacy Agent Metrics Endpoint with real system metrics"""
     try:
         # Get real system metrics
@@ -1113,7 +1113,7 @@ def get_agent_metrics():
         candidate_count = 0
 
         try:
-            with get_db_connection() as conn:
+            async with get_db_connection() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute("SELECT COUNT(*) FROM candidates")
                     candidate_count = cursor.fetchone()[0]
