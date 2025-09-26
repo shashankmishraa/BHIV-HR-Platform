@@ -54,8 +54,11 @@ class CircuitBreaker:
 def safe_json_parse(data): return {}
 def setup_production_logging(): pass
 
-# Import unified observability framework
+# Import unified observability framework with better error handling
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
+UNIFIED_OBSERVABILITY = False
+OBSERVABILITY_ENABLED = False
+
 try:
     from observability_manager import (
         setup_unified_observability,
@@ -65,17 +68,18 @@ try:
         get_async_manager
     )
     UNIFIED_OBSERVABILITY = True
+    OBSERVABILITY_ENABLED = True
     print("SUCCESS: Unified observability framework loaded")
-except ImportError:
+except ImportError as e:
     try:
         from observability import setup_observability, MetricsCollector
         UNIFIED_OBSERVABILITY = False
         OBSERVABILITY_ENABLED = True
-        print("WARNING: Using basic observability framework")
-    except ImportError:
+        print("INFO: Using basic observability framework")
+    except ImportError as e2:
         UNIFIED_OBSERVABILITY = False
         OBSERVABILITY_ENABLED = False
-        print("WARNING: No observability framework available")
+        print("INFO: Running without observability framework (health endpoint still available)")
 
 # Import semantic engine components
 try:
@@ -191,32 +195,44 @@ app = FastAPI(
     version="3.2.0",
 )
 
-# Setup unified observability
-if UNIFIED_OBSERVABILITY:
-    metrics_collector, health_checker, alert_manager, tracer = setup_unified_observability(app, "BHIV AI Agent", "3.2.0")
-    observability_manager = get_observability_manager()
-    async_manager = get_async_manager()
-    print(f"Unified observability initialized - Enhanced: {observability_manager.is_enhanced()}")
-elif OBSERVABILITY_ENABLED:
-    health_checker = setup_observability(app, "BHIV AI Agent", "3.2.0")
-    metrics_collector = MetricsCollector()
-    alert_manager = None
-    tracer = None
-    observability_manager = None
-    async_manager = None
-    print("Basic observability initialized")
-else:
-    health_checker = None
-    metrics_collector = None
-    alert_manager = None
-    tracer = None
-    observability_manager = None
-    async_manager = None
+# Setup unified observability with fallback
+health_checker = None
+metrics_collector = None
+alert_manager = None
+tracer = None
+observability_manager = None
+async_manager = None
 
-# Register health checks after setup
+if UNIFIED_OBSERVABILITY:
+    try:
+        metrics_collector, health_checker, alert_manager, tracer = setup_unified_observability(app, "BHIV AI Agent", "3.2.0")
+        observability_manager = get_observability_manager()
+        async_manager = get_async_manager()
+        print(f"Unified observability initialized - Enhanced: {observability_manager.is_enhanced()}")
+    except Exception as e:
+        print(f"Failed to setup unified observability: {e}")
+        UNIFIED_OBSERVABILITY = False
+        OBSERVABILITY_ENABLED = False
+elif OBSERVABILITY_ENABLED:
+    try:
+        health_checker = setup_observability(app, "BHIV AI Agent", "3.2.0")
+        metrics_collector = MetricsCollector()
+        print("Basic observability initialized")
+    except Exception as e:
+        print(f"Failed to setup basic observability: {e}")
+        OBSERVABILITY_ENABLED = False
+
+if not UNIFIED_OBSERVABILITY and not OBSERVABILITY_ENABLED:
+    print("INFO: Running with direct health endpoints (no framework dependency)")
+
+# Register health checks after setup (if available)
 if health_checker:
-    health_checker.add_dependency("database", check_database_health)
-    health_checker.add_dependency("semantic_engine", check_semantic_engine_health)
+    try:
+        health_checker.add_dependency("database", check_database_health)
+        health_checker.add_dependency("semantic_engine", check_semantic_engine_health)
+        print("Health dependencies registered")
+    except Exception as e:
+        print(f"Failed to register health dependencies: {e}")
 
 # Mount static files for favicon and assets
 static_dir = os.path.join(os.path.dirname(__file__), "static")
@@ -537,6 +553,21 @@ def read_root():
         "supported_methods": ["GET", "POST", "HEAD", "OPTIONS"],
     }
 
+
+# Primary health check endpoint (always available)
+@app.get("/health", tags=["Core API Endpoints"], summary="Health Check")
+@app.head("/health", tags=["Core API Endpoints"], summary="Health Check (HEAD)")
+def health_check():
+    return {
+        "status": "healthy",
+        "service": "BHIV AI Agent",
+        "version": "3.2.0",
+        "semantic_engine": "enabled" if SEMANTIC_ENABLED else "fallback",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "uptime": "operational",
+        "methods_supported": ["GET", "HEAD"],
+        "observability_enabled": UNIFIED_OBSERVABILITY or OBSERVABILITY_ENABLED
+    }
 
 # Legacy health check (observability framework provides comprehensive health checks)
 @app.get("/health/legacy", tags=["Core API Endpoints"], summary="Legacy Health Check")
