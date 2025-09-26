@@ -54,11 +54,21 @@ class CircuitBreaker:
 def safe_json_parse(data): return {}
 def setup_production_logging(): pass
 
-# Import unified observability framework with better error handling
+# Enterprise observability framework with proper fallback chain
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
+
+# Initialize observability variables
 UNIFIED_OBSERVABILITY = False
 OBSERVABILITY_ENABLED = False
+setup_unified_observability = None
+initialize_unified_async = None
+shutdown_unified_async = None
+get_observability_manager = None
+get_async_manager = None
+setup_observability = None
+MetricsCollector = None
 
+# Primary: Try unified observability framework
 try:
     from observability_manager import (
         setup_unified_observability,
@@ -69,17 +79,30 @@ try:
     )
     UNIFIED_OBSERVABILITY = True
     OBSERVABILITY_ENABLED = True
-    print("SUCCESS: Unified observability framework loaded")
+    logger.info("SUCCESS: Unified observability framework loaded")
 except ImportError as e:
+    logger.warning(f"Unified observability not available: {e}")
+    
+    # Secondary: Try basic observability framework
     try:
         from observability import setup_observability, MetricsCollector
         UNIFIED_OBSERVABILITY = False
         OBSERVABILITY_ENABLED = True
-        print("INFO: Using basic observability framework")
+        logger.info("INFO: Basic observability framework loaded")
     except ImportError as e2:
-        UNIFIED_OBSERVABILITY = False
-        OBSERVABILITY_ENABLED = False
-        print("INFO: Running without observability framework (health endpoint still available)")
+        logger.warning(f"Basic observability not available: {e2}")
+        
+        # Tertiary: Use simple observability as last resort
+        try:
+            from observability_simple import setup_simple_observability, MetricsCollector
+            setup_observability = setup_simple_observability
+            UNIFIED_OBSERVABILITY = False
+            OBSERVABILITY_ENABLED = True
+            logger.info("INFO: Simple observability framework loaded")
+        except ImportError as e3:
+            logger.error(f"No observability framework available: {e3}")
+            UNIFIED_OBSERVABILITY = False
+            OBSERVABILITY_ENABLED = False
 
 # Import semantic engine components
 try:
@@ -195,7 +218,7 @@ app = FastAPI(
     version="3.2.0",
 )
 
-# Setup unified observability with fallback
+# Enterprise observability initialization with proper error handling
 health_checker = None
 metrics_collector = None
 alert_manager = None
@@ -203,36 +226,68 @@ tracer = None
 observability_manager = None
 async_manager = None
 
-if UNIFIED_OBSERVABILITY:
+if UNIFIED_OBSERVABILITY and setup_unified_observability:
     try:
-        metrics_collector, health_checker, alert_manager, tracer = setup_unified_observability(app, "BHIV AI Agent", "3.2.0")
+        # Initialize unified observability with full enterprise features
+        metrics_collector, health_checker, alert_manager, tracer = setup_unified_observability(
+            app, "BHIV AI Agent", "3.2.0"
+        )
         observability_manager = get_observability_manager()
         async_manager = get_async_manager()
-        print(f"Unified observability initialized - Enhanced: {observability_manager.is_enhanced()}")
+        
+        logger.info(f"Unified observability initialized - Enhanced: {observability_manager.is_enhanced()}")
+        logger.info("Enterprise features: Distributed tracing, advanced metrics, alerting")
+        
     except Exception as e:
-        print(f"Failed to setup unified observability: {e}")
+        logger.error(f"Failed to initialize unified observability: {e}")
+        # Fallback to basic observability
         UNIFIED_OBSERVABILITY = False
-        OBSERVABILITY_ENABLED = False
-elif OBSERVABILITY_ENABLED:
+        
+elif OBSERVABILITY_ENABLED and setup_observability:
     try:
-        health_checker = setup_observability(app, "BHIV AI Agent", "3.2.0")
-        metrics_collector = MetricsCollector()
-        print("Basic observability initialized")
+        # Initialize basic observability framework
+        if UNIFIED_OBSERVABILITY:
+            # This shouldn't happen, but handle gracefully
+            health_checker = setup_observability(app, "BHIV AI Agent", "3.2.0")
+            metrics_collector = MetricsCollector() if MetricsCollector else None
+        else:
+            # Standard basic observability setup
+            result = setup_observability(app, "BHIV AI Agent", "3.2.0")
+            if isinstance(result, tuple):
+                metrics_collector, health_checker, alert_manager, tracer = result
+            else:
+                health_checker = result
+                metrics_collector = MetricsCollector() if MetricsCollector else None
+        
+        logger.info("Basic observability initialized successfully")
+        
     except Exception as e:
-        print(f"Failed to setup basic observability: {e}")
+        logger.error(f"Failed to initialize basic observability: {e}")
         OBSERVABILITY_ENABLED = False
 
 if not UNIFIED_OBSERVABILITY and not OBSERVABILITY_ENABLED:
-    print("INFO: Running with direct health endpoints (no framework dependency)")
+    logger.warning("No observability framework available - running with minimal monitoring")
+    # Create minimal health endpoint manually
+    @app.get("/health")
+    async def minimal_health_check():
+        return {
+            "status": "healthy",
+            "service": "BHIV AI Agent",
+            "version": "3.2.0",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "observability": "minimal"
+        }
 
-# Register health checks after setup (if available)
-if health_checker:
+# Register health dependencies with proper error handling
+if health_checker and hasattr(health_checker, 'add_dependency'):
     try:
         health_checker.add_dependency("database", check_database_health)
         health_checker.add_dependency("semantic_engine", check_semantic_engine_health)
-        print("Health dependencies registered")
+        logger.info("Health dependencies registered successfully")
     except Exception as e:
-        print(f"Failed to register health dependencies: {e}")
+        logger.error(f"Failed to register health dependencies: {e}")
+else:
+    logger.warning("Health checker not available - dependencies not registered")
 
 # Mount static files for favicon and assets
 static_dir = os.path.join(os.path.dirname(__file__), "static")
@@ -1335,58 +1390,100 @@ async def update_agent_config():
 
 @app.on_event("startup")
 async def startup_event():
-    """Enhanced startup with async processing initialization"""
-    # Initialize database connection
+    """Enterprise startup with comprehensive initialization"""
+    logger.info("=" * 80)
+    logger.info("BHIV AI Agent - Enterprise Startup Sequence")
+    logger.info("=" * 80)
+    
+    # Environment detection
     environment = os.getenv("ENVIRONMENT", "development").lower()
+    logger.info(f"Environment: {environment}")
+    
+    # Database configuration
     if environment == "production":
         default_db_url = "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu"
     else:
         default_db_url = "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@db:5432/bhiv_hr_jcuu"
     
     database_url = os.getenv("DATABASE_URL", default_db_url)
+    logger.info(f"Database: {database_url.split('@')[1] if '@' in database_url else 'configured'}")
     
     # Initialize unified async processing if available
-    if UNIFIED_OBSERVABILITY and async_manager:
+    if UNIFIED_OBSERVABILITY and async_manager and initialize_unified_async:
         try:
+            logger.info("Initializing unified async processing...")
             success = await initialize_unified_async(database_url)
             if success:
-                logger.info("Unified async processing initialized")
+                logger.info("✅ Unified async processing initialized")
             else:
-                logger.info("Async processing not available, using fallback")
+                logger.warning("⚠️ Async processing not available, using fallback")
                 db_manager.init_pool(database_url)
         except Exception as e:
-            logger.error(f"Failed to initialize unified async: {e}")
-            # Fallback to basic initialization
+            logger.error(f"❌ Failed to initialize unified async: {e}")
+            logger.info("Falling back to basic database initialization")
             db_manager.init_pool(database_url)
     else:
-        # Fallback initialization
+        logger.info("Using basic database initialization")
         db_manager.init_pool(database_url)
     
     # Start task queue workers
-    await task_queue.start_workers(num_workers=2)
+    try:
+        await task_queue.start_workers(num_workers=2)
+        logger.info("✅ Task queue workers started")
+    except Exception as e:
+        logger.error(f"❌ Failed to start task queue workers: {e}")
     
-    logger.info(f"AI Agent startup complete - Unified: {UNIFIED_OBSERVABILITY}")
+    # Log observability status
+    logger.info(f"Observability Status:")
+    logger.info(f"  - Unified: {UNIFIED_OBSERVABILITY}")
+    logger.info(f"  - Basic: {OBSERVABILITY_ENABLED}")
+    
     if observability_manager:
-        logger.info(f"Enhanced Observability: {observability_manager.is_enhanced()}")
+        logger.info(f"  - Enhanced Mode: {observability_manager.is_enhanced()}")
     if async_manager:
-        logger.info(f"Enhanced Async: {async_manager.is_enhanced()}")
+        logger.info(f"  - Async Enhanced: {async_manager.is_enhanced()}")
+    
+    # Log semantic engine status
+    logger.info(f"Semantic Engine: {'✅ Advanced' if SEMANTIC_ENABLED else '⚠️ Fallback'}")
+    
+    logger.info("=" * 80)
+    logger.info("🚀 BHIV AI Agent startup complete - Ready for requests")
+    logger.info("=" * 80)
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """Enhanced cleanup with async resource management"""
+    """Enterprise shutdown with comprehensive cleanup"""
+    logger.info("=" * 80)
+    logger.info("BHIV AI Agent - Enterprise Shutdown Sequence")
+    logger.info("=" * 80)
+    
     # Unified shutdown if available
-    if UNIFIED_OBSERVABILITY:
+    if UNIFIED_OBSERVABILITY and shutdown_unified_async:
         try:
+            logger.info("Shutting down unified async processing...")
             await shutdown_unified_async()
-            logger.info("Unified async processing shutdown complete")
+            logger.info("✅ Unified async processing shutdown complete")
         except Exception as e:
-            logger.error(f"Error during unified shutdown: {e}")
+            logger.error(f"❌ Error during unified shutdown: {e}")
     
-    # Fallback cleanup
-    await http_manager.close()
-    await task_queue.stop()
+    # Cleanup HTTP manager
+    try:
+        await http_manager.close()
+        logger.info("✅ HTTP manager closed")
+    except Exception as e:
+        logger.error(f"❌ Error closing HTTP manager: {e}")
     
-    logger.info("AI Agent shutdown complete")
+    # Stop task queue
+    try:
+        await task_queue.stop()
+        logger.info("✅ Task queue stopped")
+    except Exception as e:
+        logger.error(f"❌ Error stopping task queue: {e}")
+    
+    # Log final status
+    logger.info("=" * 80)
+    logger.info("🛑 BHIV AI Agent shutdown complete")
+    logger.info("=" * 80)
 
 if __name__ == "__main__":
     import uvicorn
