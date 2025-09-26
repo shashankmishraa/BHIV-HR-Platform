@@ -65,22 +65,27 @@ except ImportError as e:
     def safe_json_parse(data): return {}
     def setup_production_logging(): pass
 
-# Import enhanced observability framework
+# Import unified observability framework
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
 try:
-    from observability_enhanced import setup_enhanced_observability, EnhancedMetricsCollector
-    from async_manager import initialize_async_engine, get_async_engine, AsyncProcessingEngine
-    ENHANCED_OBSERVABILITY = True
-    print("SUCCESS: Enhanced observability framework loaded")
+    from observability_manager import (
+        setup_unified_observability,
+        initialize_unified_async,
+        shutdown_unified_async,
+        get_observability_manager,
+        get_async_manager
+    )
+    UNIFIED_OBSERVABILITY = True
+    print("SUCCESS: Unified observability framework loaded")
 except ImportError:
     try:
         from observability import setup_observability, MetricsCollector
+        UNIFIED_OBSERVABILITY = False
         OBSERVABILITY_ENABLED = True
-        ENHANCED_OBSERVABILITY = False
-        print("WARNING: Using fallback observability framework")
+        print("WARNING: Using basic observability framework")
     except ImportError:
+        UNIFIED_OBSERVABILITY = False
         OBSERVABILITY_ENABLED = False
-        ENHANCED_OBSERVABILITY = False
         print("WARNING: No observability framework available")
 
 # Import semantic engine components
@@ -137,17 +142,18 @@ circuit_breaker = CircuitBreaker(failure_threshold=3, timeout=30)
 async def check_database_health():
     """Enhanced database health check for AI Agent"""
     try:
-        if ENHANCED_OBSERVABILITY:
-            # Use async connection pool
-            async_engine = get_async_engine()
-            async with async_engine.connection_pool.acquire() as conn:
-                if conn:
-                    await conn.execute("SELECT 1")
-                    return {
-                        "status": "healthy",
-                        "connection_type": "async_pool",
-                        "pool_size": async_engine.connection_pool.max_size
-                    }
+        if async_manager and async_manager.is_enhanced():
+            # Use unified async connection pool
+            async_engine = async_manager.get_async_engine()
+            if async_engine:
+                async with async_engine.connection_pool.acquire() as conn:
+                    if conn:
+                        await conn.execute("SELECT 1")
+                        return {
+                            "status": "healthy",
+                            "connection_type": "unified_async_pool",
+                            "pool_size": async_engine.connection_pool.max_size
+                        }
         
         # Fallback to existing connection method
         async with get_db_connection() as conn:
@@ -196,21 +202,27 @@ app = FastAPI(
     version="3.2.0",
 )
 
-# Setup enhanced observability
-if ENHANCED_OBSERVABILITY:
-    metrics_collector, health_checker, alert_manager, tracer = setup_enhanced_observability(app, "BHIV AI Agent", "3.2.0")
-    print("Enhanced observability initialized")
+# Setup unified observability
+if UNIFIED_OBSERVABILITY:
+    metrics_collector, health_checker, alert_manager, tracer = setup_unified_observability(app, "BHIV AI Agent", "3.2.0")
+    observability_manager = get_observability_manager()
+    async_manager = get_async_manager()
+    print(f"Unified observability initialized - Enhanced: {observability_manager.is_enhanced()}")
 elif OBSERVABILITY_ENABLED:
     health_checker = setup_observability(app, "BHIV AI Agent", "3.2.0")
     metrics_collector = MetricsCollector()
     alert_manager = None
     tracer = None
-    print("Fallback observability initialized")
+    observability_manager = None
+    async_manager = None
+    print("Basic observability initialized")
 else:
     health_checker = None
     metrics_collector = None
     alert_manager = None
     tracer = None
+    observability_manager = None
+    async_manager = None
 
 # Register health checks after setup
 if health_checker:
@@ -549,7 +561,7 @@ def legacy_health_check():
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "uptime": "operational",
         "methods_supported": ["GET", "HEAD"],
-        "observability_enabled": OBSERVABILITY_ENABLED
+        "observability_enabled": UNIFIED_OBSERVABILITY or OBSERVABILITY_ENABLED
     }
 
 
@@ -1162,7 +1174,7 @@ async def get_agent_metrics():
                 "total_candidates": candidate_count,
                 "semantic_engine_status": "enabled" if SEMANTIC_ENABLED else "fallback",
                 "connection_pool_status": "direct",
-                "observability_enabled": OBSERVABILITY_ENABLED
+                "observability_enabled": UNIFIED_OBSERVABILITY or OBSERVABILITY_ENABLED
             },
             "performance_metrics": {
                 "cpu_usage_percent": round(cpu_percent, 2),
@@ -1186,7 +1198,7 @@ async def get_agent_metrics():
                 "service": "BHIV AI Agent",
                 "status": "operational",
                 "semantic_engine": "enabled" if SEMANTIC_ENABLED else "fallback",
-                "observability_enabled": OBSERVABILITY_ENABLED
+                "observability_enabled": UNIFIED_OBSERVABILITY or OBSERVABILITY_ENABLED
             },
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
@@ -1313,13 +1325,17 @@ async def startup_event():
     
     database_url = os.getenv("DATABASE_URL", default_db_url)
     
-    # Initialize enhanced async processing if available
-    if ENHANCED_OBSERVABILITY:
+    # Initialize unified async processing if available
+    if UNIFIED_OBSERVABILITY and async_manager:
         try:
-            await initialize_async_engine(database_url)
-            logger.info("Enhanced async processing engine initialized")
+            success = await initialize_unified_async(database_url)
+            if success:
+                logger.info("Unified async processing initialized")
+            else:
+                logger.info("Async processing not available, using fallback")
+                db_manager.init_pool(database_url)
         except Exception as e:
-            logger.error(f"Failed to initialize async engine: {e}")
+            logger.error(f"Failed to initialize unified async: {e}")
             # Fallback to basic initialization
             db_manager.init_pool(database_url)
     else:
@@ -1329,19 +1345,22 @@ async def startup_event():
     # Start task queue workers
     await task_queue.start_workers(num_workers=2)
     
-    logger.info(f"AI Agent startup complete - Enhanced: {ENHANCED_OBSERVABILITY}")
+    logger.info(f"AI Agent startup complete - Unified: {UNIFIED_OBSERVABILITY}")
+    if observability_manager:
+        logger.info(f"Enhanced Observability: {observability_manager.is_enhanced()}")
+    if async_manager:
+        logger.info(f"Enhanced Async: {async_manager.is_enhanced()}")
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Enhanced cleanup with async resource management"""
-    # Enhanced shutdown if available
-    if ENHANCED_OBSERVABILITY:
+    # Unified shutdown if available
+    if UNIFIED_OBSERVABILITY:
         try:
-            from async_manager import shutdown_async_engine
-            await shutdown_async_engine()
-            logger.info("Enhanced async engine shutdown complete")
+            await shutdown_unified_async()
+            logger.info("Unified async processing shutdown complete")
         except Exception as e:
-            logger.error(f"Error during enhanced shutdown: {e}")
+            logger.error(f"Error during unified shutdown: {e}")
     
     # Fallback cleanup
     await http_manager.close()

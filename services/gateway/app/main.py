@@ -12,18 +12,28 @@ from datetime import datetime, timezone
 # Configure garbage collection for memory optimization
 gc.set_threshold(700, 10, 10)
 
-# Import enhanced observability framework
+# Import unified observability framework
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))
 try:
-    from observability_enhanced import setup_enhanced_observability, EnhancedMetricsCollector
-    from async_manager import initialize_async_engine, get_async_engine
-    ENHANCED_OBSERVABILITY = True
+    from observability_manager import (
+        setup_unified_observability, 
+        initialize_unified_async,
+        shutdown_unified_async,
+        get_observability_manager,
+        get_async_manager
+    )
+    UNIFIED_OBSERVABILITY = True
 except ImportError:
-    from observability import setup_observability, MetricsCollector
-    ENHANCED_OBSERVABILITY = False
-    print("Using fallback observability framework")
+    # Final fallback
+    try:
+        from observability import setup_observability, MetricsCollector
+        UNIFIED_OBSERVABILITY = False
+        print("Using basic observability framework")
+    except ImportError:
+        UNIFIED_OBSERVABILITY = False
+        print("No observability framework available")
 
 # Import metrics
 from app.metrics import get_metrics_response, metrics_collector, metrics_middleware
@@ -76,14 +86,19 @@ app = FastAPI(
     },
 )
 
-# Setup enhanced observability
-if ENHANCED_OBSERVABILITY:
-    metrics_collector, health_checker, alert_manager, tracer = setup_enhanced_observability(app, "BHIV HR Gateway", "3.2.0")
+# Setup unified observability
+if UNIFIED_OBSERVABILITY:
+    metrics_collector, health_checker, alert_manager, tracer = setup_unified_observability(app, "BHIV HR Gateway", "3.2.0")
+    observability_manager = get_observability_manager()
+    async_manager = get_async_manager()
 else:
-    health_checker = setup_observability(app, "BHIV HR Gateway", "3.2.0")
-    metrics_collector = MetricsCollector()
+    # Final fallback
+    health_checker = setup_observability(app, "BHIV HR Gateway", "3.2.0") if 'setup_observability' in globals() else None
+    metrics_collector = MetricsCollector() if 'MetricsCollector' in globals() else None
     alert_manager = None
     tracer = None
+    observability_manager = None
+    async_manager = None
 
 # Import configuration
 from app.shared.config import get_settings, is_production
@@ -99,17 +114,18 @@ environment = settings.environment.lower()
 async def check_database_health():
     """Enhanced database health check with connection pooling"""
     try:
-        if ENHANCED_OBSERVABILITY:
-            # Use async engine for enhanced performance
-            async_engine = get_async_engine()
-            async with async_engine.connection_pool.acquire() as conn:
-                if conn:
-                    await conn.execute("SELECT 1")
-                    return {
-                        "status": "healthy",
-                        "connection_type": "async_pool",
-                        "pool_size": async_engine.connection_pool.max_size
-                    }
+        if async_manager and async_manager.is_enhanced():
+            # Use unified async engine for enhanced performance
+            async_engine = async_manager.get_async_engine()
+            if async_engine:
+                async with async_engine.connection_pool.acquire() as conn:
+                    if conn:
+                        await conn.execute("SELECT 1")
+                        return {
+                            "status": "healthy",
+                            "connection_type": "unified_async_pool",
+                            "pool_size": async_engine.connection_pool.max_size
+                        }
         
         # Fallback to existing method
         result = await db_manager.test_connection()
@@ -128,14 +144,15 @@ async def check_database_health():
 async def check_agent_health():
     """Enhanced AI Agent service health check with connection pooling"""
     try:
-        if ENHANCED_OBSERVABILITY:
-            # Use enhanced HTTP manager
-            async_engine = get_async_engine()
-            response = await async_engine.http_manager.request(
-                "GET", 
-                f"{settings.agent_service_url}/health",
-                timeout=5.0
-            )
+        if async_manager and async_manager.is_enhanced():
+            # Use unified HTTP manager
+            async_engine = async_manager.get_async_engine()
+            if async_engine:
+                response = await async_engine.http_manager.request(
+                    "GET", 
+                    f"{settings.agent_service_url}/health",
+                    timeout=5.0
+                )
             
             if response.status < 400:
                 response_data = await response.json()
@@ -369,14 +386,17 @@ async def startup_event():
         logger.error(f"Configuration validation failed: {e}")
         raise
     
-    # Initialize async processing engine if enhanced observability is available
-    if ENHANCED_OBSERVABILITY:
+    # Initialize unified async processing
+    if UNIFIED_OBSERVABILITY and async_manager:
         try:
             database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu")
-            await initialize_async_engine(database_url)
-            logger.info("Enhanced async processing engine initialized")
+            success = await initialize_unified_async(database_url)
+            if success:
+                logger.info("Unified async processing initialized")
+            else:
+                logger.info("Async processing not available, using fallback")
         except Exception as e:
-            logger.error(f"Failed to initialize async engine: {e}")
+            logger.error(f"Failed to initialize async processing: {e}")
     
     logger.info("=" * 80)
     logger.info("BHIV HR Platform API Gateway - Enhanced Architecture")
@@ -384,7 +404,11 @@ async def startup_event():
     logger.info(f"Version: 3.2.0")
     logger.info(f"Environment: {environment}")
     logger.info(f"Architecture: Modular + Enhanced Observability")
-    logger.info(f"Enhanced Observability: {ENHANCED_OBSERVABILITY}")
+    logger.info(f"Unified Observability: {UNIFIED_OBSERVABILITY}")
+    if observability_manager:
+        logger.info(f"Enhanced Mode: {observability_manager.is_enhanced()}")
+    if async_manager:
+        logger.info(f"Async Enhanced: {async_manager.is_enhanced()}")
     logger.info(f"Total Modules: 6")
     logger.info(f"Total Endpoints: 180+")
     logger.info(f"Modules: core, candidates, jobs, auth, workflows, monitoring")
@@ -396,14 +420,13 @@ async def shutdown_event():
     """Enhanced application shutdown with resource cleanup"""
     logger.info("BHIV HR Platform API Gateway shutting down...")
     
-    # Cleanup async resources if enhanced observability is available
-    if ENHANCED_OBSERVABILITY:
+    # Cleanup unified async resources
+    if UNIFIED_OBSERVABILITY:
         try:
-            from async_manager import shutdown_async_engine
-            await shutdown_async_engine()
-            logger.info("Async processing engine shutdown complete")
+            await shutdown_unified_async()
+            logger.info("Unified async processing shutdown complete")
         except Exception as e:
-            logger.error(f"Error during async engine shutdown: {e}")
+            logger.error(f"Error during unified async shutdown: {e}")
     
     logger.info("Gateway shutdown complete")
 
