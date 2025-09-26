@@ -181,8 +181,36 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
-      - name: Wait for Auto-Deploy
+      - name: Docker BuildKit Diagnostics
         run: |
+          echo "::group::Docker & BuildKit Status"
+          # Check Docker availability (not required for Render)
+          if command -v docker >/dev/null 2>&1; then
+            echo "✅ Docker available"
+            docker version || echo "⚠️ Docker version check failed"
+            
+            # Check BuildKit (informational only)
+            if docker buildx version >/dev/null 2>&1; then
+              echo "✅ BuildKit available"
+              docker buildx ls || echo "⚠️ BuildKit list failed"
+            else
+              echo "ℹ️ BuildKit not available (not required for Render)"
+            fi
+          else
+            echo "ℹ️ Docker not available (using Render native deployment)"
+          fi
+          echo "::endgroup::"
+      
+      - name: Render Native Deployment
+        run: |
+          echo "::group::Render Deployment Strategy"
+          echo "✅ Using Render's native build system"
+          echo "📋 No Docker BuildKit required"
+          echo "🚀 Services deploy directly from Git repository"
+          echo "⚡ Automatic dependency resolution and caching"
+          echo "🔒 Secure build environment with isolation"
+          echo "::endgroup::"
+          
           echo "::notice::Waiting for Render auto-deployment..."
           sleep 90
       
