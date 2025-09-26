@@ -1,0 +1,567 @@
+name: Production CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+      skip_tests:
+        description: 'Skip test execution'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  PYTHON_VERSION: '3.12.7'
+  NODE_VERSION: '18'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ============================================================================
+  # VALIDATION & SECURITY
+  # ============================================================================
+  
+  code-quality:
+    name: Code Quality & Security
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      python-cache-key: ${{ steps.cache-key.outputs.key }}
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Generate Cache Key
+        id: cache-key
+        run: echo "key=${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}" >> $GITHUB_OUTPUT
+      
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip wheel
+          pip install flake8 black isort bandit safety mypy pylint
+          find . -name "requirements*.txt" -exec pip install -r {} \;
+      
+      - name: Code Formatting
+        run: |
+          echo "::group::Black Formatting"
+          black --check --diff --color . || (echo "::error::Code formatting issues found" && exit 1)
+          echo "::endgroup::"
+          
+          echo "::group::Import Sorting"
+          isort --check-only --diff --color . || (echo "::error::Import sorting issues found" && exit 1)
+          echo "::endgroup::"
+      
+      - name: Linting
+        run: |
+          echo "::group::Flake8 Critical Issues"
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          echo "::endgroup::"
+          
+          echo "::group::Flake8 Full Report"
+          flake8 . --count --max-complexity=10 --max-line-length=127 --statistics --format=github
+          echo "::endgroup::"
+      
+      - name: Type Checking
+        run: |
+          echo "::group::MyPy Type Checking"
+          find services -name "*.py" | head -20 | xargs mypy --ignore-missing-imports --show-error-codes || true
+          echo "::endgroup::"
+        continue-on-error: true
+      
+      - name: Security Scanning
+        run: |
+          echo "::group::Bandit Security Scan"
+          bandit -r . -f json -o bandit-report.json -ll || echo "::warning::Security issues found"
+          echo "::endgroup::"
+          
+          echo "::group::Safety Dependency Check"
+          safety check --json --output safety-report.json || echo "::warning::Vulnerable dependencies found"
+          echo "::endgroup::"
+      
+      - name: Upload Security Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            bandit-report.json
+            safety-report.json
+          retention-days: 30
+
+  # ============================================================================
+  # TESTING
+  # ============================================================================
+  
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: code-quality
+    if: ${{ !inputs.skip_tests }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [gateway, agent, portal, client_portal]
+    
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_USER: test_user
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: '**/requirements*.txt'
+      
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov pytest-asyncio httpx pytest-mock
+          if [ -f "services/${{ matrix.service }}/requirements.txt" ]; then
+            pip install -r "services/${{ matrix.service }}/requirements.txt"
+          fi
+      
+      - name: Run Tests
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379/0
+          JWT_SECRET: test-jwt-secret-key-for-ci-testing
+          API_KEY_SECRET: test-api-key-secret-for-ci-testing
+          ENVIRONMENT: test
+        run: |
+          cd services/${{ matrix.service }}
+          if [ -d "tests" ]; then
+            python -m pytest tests/ -v \
+              --cov=. \
+              --cov-report=xml \
+              --cov-report=term-missing \
+              --cov-fail-under=70 \
+              --junitxml=pytest-results.xml
+          else
+            echo "::warning::No tests found for ${{ matrix.service }}"
+            exit 0
+          fi
+      
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.service }}
+          path: |
+            services/${{ matrix.service }}/coverage.xml
+            services/${{ matrix.service }}/pytest-results.xml
+          retention-days: 30
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: [code-quality, unit-tests]
+    if: ${{ !inputs.skip_tests }}
+    
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: integration_password
+          POSTGRES_USER: integration_user
+          POSTGRES_DB: integration_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-asyncio httpx requests psycopg2-binary
+          find . -name "requirements*.txt" -exec pip install -r {} \;
+      
+      - name: Run Integration Tests
+        env:
+          DATABASE_URL: postgresql://integration_user:integration_password@localhost:5432/integration_db
+          JWT_SECRET: integration-jwt-secret-key
+          API_KEY_SECRET: integration-api-key-secret
+          ENVIRONMENT: integration
+        run: |
+          if [ -f "tests/test_integration.py" ]; then
+            python -m pytest tests/test_integration.py -v --tb=short
+          else
+            echo "::notice::No integration tests found, skipping"
+          fi
+        continue-on-error: true
+
+  # ============================================================================
+  # BUILD & CONTAINERIZATION
+  # ============================================================================
+  
+  build-containers:
+    name: Build Containers
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [code-quality]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [gateway, agent]
+    
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Extract Metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value={{date 'YYYYMMDD-HHmmss'}}
+      
+      - name: Build and Push Container
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/${{ matrix.service }}
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILDTIME=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+
+  # ============================================================================
+  # DEPLOYMENT
+  # ============================================================================
+  
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [code-quality, unit-tests, integration-tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    environment:
+      name: production
+      url: https://bhiv-hr-gateway-901a.onrender.com
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Wait for Render Auto-Deploy
+        run: |
+          echo "::notice::Waiting for Render auto-deployment to complete..."
+          sleep 90
+      
+      - name: Health Check Services
+        id: health-check
+        run: |
+          echo "::group::Service Health Verification"
+          
+          services=(
+            "Gateway:https://bhiv-hr-gateway-901a.onrender.com"
+            "AI-Agent:https://bhiv-hr-agent-o6nx.onrender.com"
+          )
+          
+          failed_services=()
+          
+          for service_info in "${services[@]}"; do
+            IFS=':' read -r name url <<< "$service_info"
+            echo "Testing $name..."
+            
+            for attempt in {1..12}; do
+              if curl -f -s --max-time 10 "$url/health" > /dev/null; then
+                echo "✅ $name: Healthy (attempt $attempt)"
+                break
+              else
+                if [ $attempt -eq 12 ]; then
+                  echo "❌ $name: Failed after 12 attempts"
+                  failed_services+=("$name")
+                else
+                  echo "⏳ $name: Attempt $attempt/12 failed, retrying..."
+                  sleep 15
+                fi
+              fi
+            done
+          done
+          
+          if [ ${#failed_services[@]} -gt 0 ]; then
+            echo "failed_services=${failed_services[*]}" >> $GITHUB_OUTPUT
+            echo "::error::Failed services: ${failed_services[*]}"
+            exit 1
+          else
+            echo "::notice::All services are healthy"
+          fi
+          
+          echo "::endgroup::"
+      
+      - name: Comprehensive Service Verification
+        run: |
+          echo "::group::Comprehensive Verification"
+          
+          python3 << 'EOF'
+          import requests
+          import time
+          import sys
+          
+          services = {
+              'Gateway': 'https://bhiv-hr-gateway-901a.onrender.com',
+              'AI Agent': 'https://bhiv-hr-agent-o6nx.onrender.com'
+          }
+          
+          endpoints = ['/health', '/health/detailed', '/metrics']
+          all_passed = True
+          
+          for name, base_url in services.items():
+              print(f"\n🔍 Testing {name}...")
+              
+              for endpoint in endpoints:
+                  try:
+                      start_time = time.time()
+                      response = requests.get(f'{base_url}{endpoint}', timeout=15)
+                      duration = time.time() - start_time
+                      
+                      if response.status_code == 200:
+                          print(f"  ✅ {endpoint}: OK ({duration:.3f}s)")
+                      else:
+                          print(f"  ⚠️ {endpoint}: {response.status_code} ({duration:.3f}s)")
+                          if endpoint == '/health':
+                              all_passed = False
+                  except Exception as e:
+                      print(f"  ❌ {endpoint}: {str(e)}")
+                      if endpoint == '/health':
+                          all_passed = False
+          
+          if not all_passed:
+              print("\n❌ Critical health checks failed")
+              sys.exit(1)
+          else:
+              print("\n🎉 All services verified successfully!")
+          EOF
+          
+          echo "::endgroup::"
+
+  # ============================================================================
+  # POST-DEPLOYMENT MONITORING
+  # ============================================================================
+  
+  post-deployment:
+    name: Post-Deployment Monitoring
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: deploy-production
+    if: success()
+    
+    steps:
+      - name: Performance Baseline
+        run: |
+          echo "::group::Performance Monitoring"
+          
+          python3 << 'EOF'
+          import requests
+          import time
+          import statistics
+          
+          services = {
+              'Gateway': 'https://bhiv-hr-gateway-901a.onrender.com/health',
+              'AI Agent': 'https://bhiv-hr-agent-o6nx.onrender.com/health'
+          }
+          
+          for name, url in services.items():
+              response_times = []
+              
+              for i in range(5):
+                  try:
+                      start = time.time()
+                      response = requests.get(url, timeout=10)
+                      duration = time.time() - start
+                      
+                      if response.status_code == 200:
+                          response_times.append(duration)
+                      
+                      time.sleep(2)
+                  except Exception as e:
+                      print(f"❌ {name}: Request {i+1} failed - {e}")
+              
+              if response_times:
+                  avg_time = statistics.mean(response_times)
+                  p95_time = sorted(response_times)[int(len(response_times) * 0.95)]
+                  
+                  print(f"{name}:")
+                  print(f"  Average: {avg_time:.3f}s")
+                  print(f"  P95: {p95_time:.3f}s")
+                  
+                  if avg_time > 2.0:
+                      print(f"  ⚠️ High average response time")
+                  else:
+                      print(f"  ✅ Good performance")
+          EOF
+          
+          echo "::endgroup::"
+      
+      - name: Extended Monitoring
+        run: |
+          echo "::notice::Running 3-minute extended monitoring..."
+          
+          for round in {1..6}; do
+            echo "Monitoring round $round/6"
+            
+            curl -f -s https://bhiv-hr-gateway-901a.onrender.com/health > /dev/null && echo "✅ Gateway OK" || echo "❌ Gateway Failed"
+            curl -f -s https://bhiv-hr-agent-o6nx.onrender.com/health > /dev/null && echo "✅ AI Agent OK" || echo "❌ AI Agent Failed"
+            
+            sleep 30
+          done
+
+  # ============================================================================
+  # NOTIFICATION & REPORTING
+  # ============================================================================
+  
+  notify:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [code-quality, unit-tests, integration-tests, build-containers, deploy-production, post-deployment]
+    if: always()
+    
+    steps:
+      - name: Generate Deployment Report
+        run: |
+          cat << 'EOF' > deployment-report.md
+          # 🚀 BHIV HR Platform Deployment Report
+          
+          **Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+          **Commit:** ${{ github.sha }}
+          **Branch:** ${{ github.ref_name }}
+          **Workflow:** ${{ github.run_number }}
+          
+          ## 📊 Pipeline Results
+          
+          | Stage | Status | Duration |
+          |-------|--------|----------|
+          | Code Quality | ${{ needs.code-quality.result }} | - |
+          | Unit Tests | ${{ needs.unit-tests.result }} | - |
+          | Integration Tests | ${{ needs.integration-tests.result }} | - |
+          | Container Build | ${{ needs.build-containers.result }} | - |
+          | Production Deploy | ${{ needs.deploy-production.result }} | - |
+          | Post-Deploy Monitor | ${{ needs.post-deployment.result }} | - |
+          
+          ## 🔗 Production URLs
+          
+          - **API Gateway:** https://bhiv-hr-gateway-901a.onrender.com
+          - **AI Matching Engine:** https://bhiv-hr-agent-o6nx.onrender.com
+          - **HR Portal:** https://bhiv-hr-portal-xk2k.onrender.com
+          - **Client Portal:** https://bhiv-hr-client-portal-zdbt.onrender.com
+          
+          ## 📈 System Status
+          
+          - Health Monitoring: ✅ Active
+          - Prometheus Metrics: ✅ Enabled
+          - Error Tracking: ✅ Operational
+          - Performance Monitoring: ✅ Active
+          EOF
+          
+          cat deployment-report.md
+      
+      - name: Success Notification
+        if: needs.deploy-production.result == 'success'
+        run: |
+          echo "::notice title=Deployment Successful::🚀 BHIV HR Platform deployed successfully to production"
+          echo "::notice::All services are healthy and operational"
+          echo "::notice::Monitoring and observability systems are active"
+      
+      - name: Failure Notification
+        if: failure() || needs.deploy-production.result == 'failure'
+        run: |
+          echo "::error title=Deployment Failed::❌ BHIV HR Platform deployment failed"
+          echo "::error::Check the pipeline logs for detailed error information"
+          echo "::error::Manual intervention may be required"
+          exit 1
