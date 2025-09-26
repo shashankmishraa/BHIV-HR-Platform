@@ -10,9 +10,17 @@ import time
 from contextlib import asynccontextmanager
 from typing import Optional, Dict, Any
 
-import aiohttp
-import psycopg2
-from psycopg2 import pool
+try:
+    import aiohttp
+except ImportError:
+    aiohttp = None
+
+try:
+    import psycopg2
+    import psycopg2.pool as pool
+except ImportError:
+    psycopg2 = None
+    pool = None
 
 
 class CircuitBreaker:
@@ -26,13 +34,16 @@ class CircuitBreaker:
 
     async def call(self, func, *args, **kwargs):
         if self.state == "OPEN":
-            if time.time() - self.last_failure_time > self.timeout:
+            if self.last_failure_time and time.time() - self.last_failure_time > self.timeout:
                 self.state = "HALF_OPEN"
             else:
                 raise Exception("Circuit breaker is OPEN")
 
         try:
-            result = await func(*args, **kwargs)
+            if asyncio.iscoroutinefunction(func):
+                result = await func(*args, **kwargs)
+            else:
+                result = func(*args, **kwargs)
             if self.state == "HALF_OPEN":
                 self.state = "CLOSED"
                 self.failure_count = 0
@@ -53,8 +64,12 @@ class DatabaseManager:
         self.retry_delay = 1
 
     def init_pool(self, database_url: str):
+        if not psycopg2 or not pool:
+            logging.error("psycopg2 not available, cannot initialize database pool")
+            return
+        
         try:
-            self.pool = psycopg2.pool.ThreadedConnectionPool(
+            self.pool = pool.ThreadedConnectionPool(
                 1, 10,  # min=1, max=10
                 database_url,
                 connect_timeout=10
@@ -74,22 +89,26 @@ class DatabaseManager:
                 conn = self.pool.getconn()
                 yield conn
                 return
-            except psycopg2.OperationalError:
-                if attempt < self.max_retries - 1:
-                    await asyncio.sleep(self.retry_delay)
-                    continue
+            except Exception as e:
+                if psycopg2 and isinstance(e, psycopg2.OperationalError):
+                    if attempt < self.max_retries - 1:
+                        await asyncio.sleep(self.retry_delay)
+                        continue
                 raise
             finally:
-                if conn:
+                if conn and self.pool:
                     self.pool.putconn(conn)
 
 
 class HTTPSessionManager:
     """Manages HTTP sessions to prevent leaks"""
     def __init__(self):
-        self.session: Optional[aiohttp.ClientSession] = None
+        self.session = None
 
-    async def get_session(self) -> aiohttp.ClientSession:
+    async def get_session(self):
+        if not aiohttp:
+            raise ImportError("aiohttp not available")
+        
         if not self.session or self.session.closed:
             timeout = aiohttp.ClientTimeout(total=30)
             self.session = aiohttp.ClientSession(timeout=timeout)
