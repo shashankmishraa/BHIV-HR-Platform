@@ -1,5 +1,5 @@
 """BHIV HR Platform API Gateway - Modular Architecture
-Version: 3.2.0 - Production Ready Modular System
+Version: 3.2.0 - Production Ready Modular System with Comprehensive Observability
 """
 
 import logging
@@ -7,6 +7,11 @@ import os
 import time
 import uuid
 from datetime import datetime, timezone
+
+# Import observability framework
+import sys
+sys.path.append('/app/services/shared')
+from observability import setup_observability, MetricsCollector
 
 # Import metrics
 from app.metrics import get_metrics_response, metrics_collector, metrics_middleware
@@ -28,7 +33,7 @@ app = FastAPI(
     title="BHIV HR Platform API Gateway",
     version="3.2.0",
     description="""
-    Enterprise HR Platform with Modular Workflow Architecture
+    Enterprise HR Platform with Modular Workflow Architecture & Comprehensive Observability
     
     ## Features
     - 180+ REST API Endpoints
@@ -37,6 +42,7 @@ app = FastAPI(
     - Pipeline Automation Engine
     - Real-time Monitoring & Analytics
     - Enterprise Security & Authentication
+    - Comprehensive Observability (Health Checks, Metrics, Logging)
     
     ## Modules
     - **Core**: Basic API endpoints and health checks
@@ -45,6 +51,12 @@ app = FastAPI(
     - **Auth**: Authentication and security workflows
     - **Workflows**: Workflow orchestration and pipeline management
     - **Monitoring**: System health and performance analytics
+    
+    ## Observability
+    - **Health Checks**: /health, /health/detailed, /health/ready, /health/live
+    - **Metrics**: /metrics (Prometheus), /metrics/json
+    - **Structured Logging**: JSON formatted logs with correlation IDs
+    - **Error Tracking**: Comprehensive error monitoring and alerting
     """,
     contact={
         "name": "BHIV HR Platform Team",
@@ -52,14 +64,62 @@ app = FastAPI(
     },
 )
 
+# Setup comprehensive observability
+health_checker = setup_observability(app, "BHIV HR Gateway", "3.2.0")
+
 # Import configuration
 from app.shared.config import get_settings, is_production
+from app.shared.database import db_manager
 
 # Configure logging
 settings = get_settings()
 logging.basicConfig(level=getattr(logging, settings.log_level))
 logger = logging.getLogger("gateway")
 environment = settings.environment.lower()
+
+# Add database health check
+async def check_database_health():
+    """Database health check for observability"""
+    try:
+        result = await db_manager.test_connection()
+        return {
+            "status": "healthy" if result["status"] == "connected" else "unhealthy",
+            "connection_pool": result.get("connection_pool", "unknown"),
+            "response_time_ms": result.get("response_time", 0) * 1000
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "error": str(e)
+        }
+
+# Add AI Agent health check
+async def check_agent_health():
+    """AI Agent service health check"""
+    try:
+        import httpx
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{settings.agent_service_url}/health", timeout=5.0)
+            if response.status_code == 200:
+                return {
+                    "status": "healthy",
+                    "response_time_ms": response.elapsed.total_seconds() * 1000,
+                    "version": response.json().get("version", "unknown")
+                }
+            else:
+                return {
+                    "status": "unhealthy",
+                    "status_code": response.status_code
+                }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "error": str(e)
+        }
+
+# Register health checks
+health_checker.add_dependency("database", check_database_health)
+health_checker.add_dependency("ai_agent", check_agent_health)
 
 # CORS Configuration
 app.add_middleware(
@@ -73,12 +133,12 @@ app.add_middleware(
 )
 
 
-# Enhanced Middleware with Metrics
+# Enhanced Middleware with Metrics (Observability middleware is automatically added)
 @app.middleware("http")
 async def process_middleware(request: Request, call_next):
     """Enhanced request processing middleware with metrics collection"""
     start_time = time.time()
-    request_id = f"req_{uuid.uuid4().hex[:8]}"
+    request_id = getattr(request.state, 'correlation_id', f"req_{uuid.uuid4().hex[:8]}")
 
     # Add request context
     request.state.request_id = request_id
@@ -92,15 +152,11 @@ async def process_middleware(request: Request, call_next):
 
     # Add response headers
     response.headers["X-Process-Time"] = str(round(process_time, 4))
-    response.headers["X-Gateway-Version"] = "3.2.1-modular"
+    response.headers["X-Gateway-Version"] = "3.2.1-modular-observability"
     response.headers["X-Request-ID"] = request_id
     response.headers["X-Environment"] = environment
     response.headers["X-Total-Modules"] = "6"
-
-    # Log request
-    logger.info(
-        f"Request {request_id}: {request.method} {request.url.path} - {response.status_code} - {process_time:.4f}s"
-    )
+    response.headers["X-Observability"] = "enabled"
 
     return response
 
@@ -201,9 +257,11 @@ async def get_system_architecture():
     }
 
 
-@app.get("/metrics")
-async def get_prometheus_metrics():
-    """Get Prometheus-compatible metrics"""
+# Metrics endpoint is now handled by observability framework
+# Legacy endpoint for backward compatibility
+@app.get("/metrics/legacy")
+async def get_legacy_metrics():
+    """Legacy metrics endpoint for backward compatibility"""
     return get_metrics_response()
 
 

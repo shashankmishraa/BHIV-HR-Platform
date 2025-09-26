@@ -17,6 +17,15 @@ from fastapi.staticfiles import StaticFiles
 from psycopg2 import pool
 from pydantic import BaseModel
 
+# Import observability framework
+sys.path.append('../shared')
+try:
+    from observability import setup_observability, MetricsCollector
+    OBSERVABILITY_ENABLED = True
+except ImportError:
+    OBSERVABILITY_ENABLED = False
+    print("WARNING: Observability framework not available")
+
 # Import semantic engine components
 try:
     from semantic_engine import (
@@ -65,6 +74,42 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Add database health check for observability
+if OBSERVABILITY_ENABLED and health_checker:
+    def check_database_health():
+        """Database health check for AI Agent"""
+        try:
+            with get_db_connection() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT 1")
+                    cursor.fetchone()
+                return {
+                    "status": "healthy",
+                    "connection_type": "direct"
+                }
+        except Exception as e:
+            return {
+                "status": "unhealthy",
+                "error": str(e)
+            }
+    
+    def check_semantic_engine_health():
+        """Semantic engine health check"""
+        return {
+            "status": "healthy" if SEMANTIC_ENABLED else "degraded",
+            "engine_type": "advanced" if SEMANTIC_ENABLED else "fallback",
+            "components": {
+                "job_matcher": semantic_matcher is not None,
+                "advanced_matcher": advanced_matcher is not None,
+                "batch_matcher": batch_matcher is not None,
+                "semantic_processor": semantic_processor is not None
+            }
+        }
+    
+    # Register health checks
+    health_checker.add_dependency("database", check_database_health)
+    health_checker.add_dependency("semantic_engine", check_semantic_engine_health)
+
 
 # Security: Input sanitization for logging
 def sanitize_for_logging(input_str: str) -> str:
@@ -80,9 +125,15 @@ from fastapi.openapi.utils import get_openapi
 
 app = FastAPI(
     title="BHIV AI Matching Engine",
-    description="Advanced AI-Powered Semantic Candidate Matching Service",
+    description="Advanced AI-Powered Semantic Candidate Matching Service with Comprehensive Observability",
     version="3.2.0",
 )
+
+# Setup comprehensive observability
+if OBSERVABILITY_ENABLED:
+    health_checker = setup_observability(app, "BHIV AI Agent", "3.2.0")
+else:
+    health_checker = None
 
 # Mount static files for favicon and assets
 static_dir = os.path.join(os.path.dirname(__file__), "static")
@@ -456,17 +507,19 @@ def read_root():
     }
 
 
-@app.get("/health", tags=["Core API Endpoints"], summary="Health Check")
-@app.head("/health", tags=["Core API Endpoints"], summary="Health Check (HEAD)")
-def health_check():
+# Legacy health check (observability framework provides comprehensive health checks)
+@app.get("/health/legacy", tags=["Core API Endpoints"], summary="Legacy Health Check")
+@app.head("/health/legacy", tags=["Core API Endpoints"], summary="Legacy Health Check (HEAD)")
+def legacy_health_check():
     return {
         "status": "healthy",
         "service": "BHIV AI Agent",
-        "version": "3.1.0",
+        "version": "3.2.0",
         "semantic_engine": "enabled" if SEMANTIC_ENABLED else "fallback",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "uptime": "operational",
         "methods_supported": ["GET", "HEAD"],
+        "observability_enabled": OBSERVABILITY_ENABLED
     }
 
 
@@ -1046,9 +1099,10 @@ def get_agent_version():
     }
 
 
-@app.get("/metrics", tags=["System Diagnostics"], summary="Agent Metrics Endpoint")
+# Legacy metrics endpoint (observability framework provides /metrics)
+@app.get("/metrics/legacy", tags=["System Diagnostics"], summary="Legacy Agent Metrics Endpoint")
 def get_agent_metrics():
-    """Agent Metrics Endpoint with real system metrics"""
+    """Legacy Agent Metrics Endpoint with real system metrics"""
     try:
         # Get real system metrics
         cpu_percent = psutil.cpu_percent(interval=1)
@@ -1077,6 +1131,7 @@ def get_agent_metrics():
                 "total_candidates": candidate_count,
                 "semantic_engine_status": "enabled" if SEMANTIC_ENABLED else "fallback",
                 "connection_pool_status": "direct",
+                "observability_enabled": OBSERVABILITY_ENABLED
             },
             "performance_metrics": {
                 "cpu_usage_percent": round(cpu_percent, 2),
@@ -1100,6 +1155,7 @@ def get_agent_metrics():
                 "service": "BHIV AI Agent",
                 "status": "operational",
                 "semantic_engine": "enabled" if SEMANTIC_ENABLED else "fallback",
+                "observability_enabled": OBSERVABILITY_ENABLED
             },
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
