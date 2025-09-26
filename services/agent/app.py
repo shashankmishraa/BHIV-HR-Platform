@@ -74,41 +74,36 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Add database health check for observability
-if OBSERVABILITY_ENABLED and health_checker:
-    def check_database_health():
-        """Database health check for AI Agent"""
-        try:
-            with get_db_connection() as conn:
-                with conn.cursor() as cursor:
-                    cursor.execute("SELECT 1")
-                    cursor.fetchone()
-                return {
-                    "status": "healthy",
-                    "connection_type": "direct"
-                }
-        except Exception as e:
+# Health check functions (will be registered after observability setup)
+def check_database_health():
+    """Database health check for AI Agent"""
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT 1")
+                cursor.fetchone()
             return {
-                "status": "unhealthy",
-                "error": str(e)
+                "status": "healthy",
+                "connection_type": "direct"
             }
-    
-    def check_semantic_engine_health():
-        """Semantic engine health check"""
+    except Exception as e:
         return {
-            "status": "healthy" if SEMANTIC_ENABLED else "degraded",
-            "engine_type": "advanced" if SEMANTIC_ENABLED else "fallback",
-            "components": {
-                "job_matcher": semantic_matcher is not None,
-                "advanced_matcher": advanced_matcher is not None,
-                "batch_matcher": batch_matcher is not None,
-                "semantic_processor": semantic_processor is not None
-            }
+            "status": "unhealthy",
+            "error": str(e)
         }
-    
-    # Register health checks
-    health_checker.add_dependency("database", check_database_health)
-    health_checker.add_dependency("semantic_engine", check_semantic_engine_health)
+
+def check_semantic_engine_health():
+    """Semantic engine health check"""
+    return {
+        "status": "healthy" if SEMANTIC_ENABLED else "degraded",
+        "engine_type": "advanced" if SEMANTIC_ENABLED else "fallback",
+        "components": {
+            "job_matcher": semantic_matcher is not None,
+            "advanced_matcher": advanced_matcher is not None,
+            "batch_matcher": batch_matcher is not None,
+            "semantic_processor": semantic_processor is not None
+        }
+    }
 
 
 # Security: Input sanitization for logging
@@ -132,6 +127,9 @@ app = FastAPI(
 # Setup comprehensive observability
 if OBSERVABILITY_ENABLED:
     health_checker = setup_observability(app, "BHIV AI Agent", "3.2.0")
+    # Register health checks after setup
+    health_checker.add_dependency("database", check_database_health)
+    health_checker.add_dependency("semantic_engine", check_semantic_engine_health)
 else:
     health_checker = None
 
