@@ -4,10 +4,12 @@ import logging
 import os
 import re
 import sys
+import time
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
+import aiohttp
 import psutil
 import psycopg2
 from fastapi import FastAPI, HTTPException, Request, Response
@@ -16,6 +18,12 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from psycopg2 import pool
 from pydantic import BaseModel
+
+# Import production fixes
+from fixes import (
+    DatabaseManager, HTTPSessionManager, TaskQueue, CircuitBreaker,
+    safe_json_parse, setup_production_logging
+)
 
 # Import observability framework
 sys.path.append('../shared')
@@ -66,25 +74,27 @@ except ImportError as e:
             }
 
 
-# Configure secure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler(), logging.FileHandler("agent.log", mode="a")],
-)
+# Configure production logging
+setup_production_logging()
 logger = logging.getLogger(__name__)
 
+# Initialize production components
+db_manager = DatabaseManager()
+http_manager = HTTPSessionManager()
+task_queue = TaskQueue(max_size=50)
+circuit_breaker = CircuitBreaker(failure_threshold=3, timeout=30)
+
 # Health check functions (will be registered after observability setup)
-def check_database_health():
+async def check_database_health():
     """Database health check for AI Agent"""
     try:
-        with get_db_connection() as conn:
+        async with get_db_connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT 1")
                 cursor.fetchone()
             return {
                 "status": "healthy",
-                "connection_type": "direct"
+                "connection_type": "pooled"
             }
     except Exception as e:
         return {
@@ -278,61 +288,9 @@ class MatchResponse(BaseModel):
     status: str
 
 
-@contextmanager
 def get_db_connection():
-    """Get database connection with proper resource management
-
-    Yields:
-        psycopg2.connection: Database connection object
-
-    Raises:
-        HTTPException: If connection fails
-    """
-    conn = None
-    try:
-        # Environment-aware database URL
-        environment = os.getenv("ENVIRONMENT", "development").lower()
-        if environment == "production":
-            # Production database on Render
-            default_db_url = "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb"
-        else:
-            # Local development database in Docker
-            default_db_url = "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@db:5432/bhiv_hr_nqzb"
-
-        database_url = os.getenv("DATABASE_URL", default_db_url)
-        if database_url:
-            conn = psycopg2.connect(database_url)
-        else:
-            conn = psycopg2.connect(
-                host=os.getenv("DB_HOST", "db"),
-                database=os.getenv("DB_NAME", "bhiv_hr_nqzb"),
-                user=os.getenv("DB_USER", "bhiv_user"),
-                password=os.getenv("DB_PASSWORD", "B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J"),
-                port=os.getenv("DB_PORT", "5432"),
-            )
-
-        if not conn:
-            raise HTTPException(status_code=500, detail="Database connection failed")
-
-        yield conn
-
-    except psycopg2.OperationalError as e:
-        logger.error(f"Database operational error: {sanitize_for_logging(str(e))}")
-        raise HTTPException(status_code=503, detail="Database temporarily unavailable")
-    except psycopg2.DatabaseError as e:
-        logger.error(f"Database error: {sanitize_for_logging(str(e))}")
-        raise HTTPException(status_code=500, detail="Database error occurred")
-    except Exception as e:
-        logger.error(f"Unexpected database error: {sanitize_for_logging(str(e))}")
-        raise HTTPException(status_code=500, detail="Database connection failed")
-    finally:
-        if conn:
-            try:
-                conn.close()
-            except Exception as e:
-                logger.error(
-                    f"Error closing connection: {sanitize_for_logging(str(e))}"
-                )
+    """Get database connection using production database manager"""
+    return db_manager.get_connection()
 
 
 def calculate_skills_match(job_requirements: str, candidate_skills: str) -> tuple:
@@ -577,7 +535,7 @@ def test_database():
         dict: Database status with candidate count and samples
     """
     try:
-        with get_db_connection() as conn:
+        async with get_db_connection() as conn:
             with conn.cursor() as cursor:
                 # Get candidate count
                 cursor.execute("SELECT COUNT(*) FROM candidates")
@@ -594,7 +552,7 @@ def test_database():
             "candidates_count": count,
             "samples": samples,
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "connection_pool": "direct",
+            "connection_pool": "pooled",
         }
     except HTTPException:
         raise
@@ -674,7 +632,7 @@ async def match_candidates(request: MatchRequest):
     )
 
     try:
-        with get_db_connection() as conn:
+        async with get_db_connection() as conn:
             with conn.cursor() as cursor:
                 # Get job details with enhanced requirements parsing
                 cursor.execute(
@@ -713,7 +671,8 @@ async def match_candidates(request: MatchRequest):
                            technical_skills, seniority_level, education_level
                     FROM candidates 
                     ORDER BY created_at DESC
-                """
+                    LIMIT 100
+                """  # Limit for performance
                 )
 
                 candidates = cursor.fetchall()
@@ -982,7 +941,7 @@ def process_with_fallback_algorithm(
 async def analyze_candidate(candidate_id: int):
     """Detailed candidate analysis with proper error handling"""
     try:
-        with get_db_connection() as conn:
+        async with get_db_connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(
                     """
@@ -1055,7 +1014,7 @@ def get_agent_status():
     # Test actual database connectivity
     db_status = "disconnected"
     try:
-        with get_db_connection() as conn:
+        async with get_db_connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT 1")
                 db_status = "active"
@@ -1267,6 +1226,31 @@ async def update_agent_config():
     """Update agent configuration"""
     return {"updated": True, "config_version": "v3.2.1", "status": "success"}
 
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize production components on startup"""
+    # Initialize database pool
+    environment = os.getenv("ENVIRONMENT", "development").lower()
+    if environment == "production":
+        default_db_url = "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb"
+    else:
+        default_db_url = "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@db:5432/bhiv_hr_nqzb"
+    
+    database_url = os.getenv("DATABASE_URL", default_db_url)
+    db_manager.init_pool(database_url)
+    
+    # Start task queue workers
+    await task_queue.start_workers(num_workers=2)
+    
+    logger.info("AI Agent startup complete with production fixes")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup resources on shutdown"""
+    await http_manager.close()
+    await task_queue.stop()
+    logger.info("AI Agent shutdown complete")
 
 if __name__ == "__main__":
     import uvicorn
