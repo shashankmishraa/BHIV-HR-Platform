@@ -13,9 +13,7 @@ from datetime import datetime, timezone
 gc.set_threshold(700, 10, 10)
 
 # Import observability framework
-import sys
-sys.path.append('/app/services/shared')
-from observability import setup_observability, MetricsCollector
+from shared.observability import setup_observability, MetricsCollector
 
 # Import metrics
 from app.metrics import get_metrics_response, metrics_collector, metrics_middleware
