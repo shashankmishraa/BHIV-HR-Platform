@@ -22,6 +22,7 @@ on:
 
 env:
   PYTHON_VERSION: '3.12.7'
+  # CI/CD uses hardcoded test values, production uses GitHub secrets
   JWT_SECRET: ci-test-jwt-secret-key
   API_KEY_SECRET: ci-test-api-key-secret
 
@@ -149,6 +150,8 @@ jobs:
       - name: Run Tests
         env:
           DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/test_db
+          JWT_SECRET: ${{ env.JWT_SECRET }}
+          API_KEY_SECRET: ${{ env.API_KEY_SECRET }}
           ENVIRONMENT: test
         run: |
           cd services/${{ matrix.service }}
@@ -170,7 +173,7 @@ jobs:
     
     environment:
       name: ${{ inputs.deploy_env || 'production' }}
-      url: https://bhiv-hr-gateway-901a.onrender.com
+      url: ${{ inputs.deploy_env == 'staging' && 'https://staging-gateway.onrender.com' || 'https://bhiv-hr-gateway-901a.onrender.com' }}
     
     steps:
       - name: Checkout

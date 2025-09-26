@@ -1,0 +1,57 @@
+# Environment Configuration for BHIV HR Platform
+
+production:
+  name: "Production"
+  gateway_url: "https://bhiv-hr-gateway-901a.onrender.com"
+  agent_url: "https://bhiv-hr-agent-o6nx.onrender.com"
+  portal_url: "https://bhiv-hr-portal-xk2k.onrender.com"
+  client_portal_url: "https://bhiv-hr-client-portal-zdbt.onrender.com"
+  database_url: "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb"
+  environment_variables:
+    ENVIRONMENT: "production"
+    PYTHON_VERSION: "3.11.11"
+    # Secrets managed in GitHub/Render
+    JWT_SECRET: "{{ secrets.JWT_SECRET }}"
+    API_KEY_SECRET: "{{ secrets.API_KEY_SECRET }}"
+    DATABASE_URL: "{{ secrets.DATABASE_URL }}"
+
+staging:
+  name: "Staging"
+  gateway_url: "https://staging-gateway.onrender.com"
+  agent_url: "https://staging-agent.onrender.com"
+  portal_url: "https://staging-portal.onrender.com"
+  client_portal_url: "https://staging-client.onrender.com"
+  database_url: "postgresql://staging_connection_string"
+  environment_variables:
+    ENVIRONMENT: "staging"
+    PYTHON_VERSION: "3.11.11"
+    # Staging secrets
+    JWT_SECRET: "{{ secrets.STAGING_JWT_SECRET }}"
+    API_KEY_SECRET: "{{ secrets.STAGING_API_KEY_SECRET }}"
+    DATABASE_URL: "{{ secrets.STAGING_DATABASE_URL }}"
+
+development:
+  name: "Development"
+  gateway_url: "http://localhost:8000"
+  agent_url: "http://localhost:9000"
+  portal_url: "http://localhost:8501"
+  client_portal_url: "http://localhost:8502"
+  database_url: "postgresql://bhiv_user:password@localhost:5432/bhiv_hr_dev"
+  environment_variables:
+    ENVIRONMENT: "development"
+    PYTHON_VERSION: "3.12.7"
+    JWT_SECRET: "dev-jwt-secret-key"
+    API_KEY_SECRET: "dev-api-key-secret"
+    DATABASE_URL: "postgresql://bhiv_user:password@localhost:5432/bhiv_hr_dev"
+
+test:
+  name: "Test"
+  gateway_url: "http://localhost:8000"
+  agent_url: "http://localhost:9000"
+  database_url: "postgresql://test_user:test_pass@localhost:5432/test_db"
+  environment_variables:
+    ENVIRONMENT: "test"
+    PYTHON_VERSION: "3.12.7"
+    JWT_SECRET: "test-jwt-secret-key"
+    API_KEY_SECRET: "test-api-key-secret"
+    DATABASE_URL: "postgresql://test_user:test_pass@localhost:5432/test_db"
