@@ -65,14 +65,23 @@ except ImportError as e:
     def safe_json_parse(data): return {}
     def setup_production_logging(): pass
 
-# Import observability framework
+# Import enhanced observability framework
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
 try:
-    from observability import setup_observability, MetricsCollector
-    OBSERVABILITY_ENABLED = True
+    from observability_enhanced import setup_enhanced_observability, EnhancedMetricsCollector
+    from async_manager import initialize_async_engine, get_async_engine, AsyncProcessingEngine
+    ENHANCED_OBSERVABILITY = True
+    print("SUCCESS: Enhanced observability framework loaded")
 except ImportError:
-    OBSERVABILITY_ENABLED = False
-    print("WARNING: Observability framework not available")
+    try:
+        from observability import setup_observability, MetricsCollector
+        OBSERVABILITY_ENABLED = True
+        ENHANCED_OBSERVABILITY = False
+        print("WARNING: Using fallback observability framework")
+    except ImportError:
+        OBSERVABILITY_ENABLED = False
+        ENHANCED_OBSERVABILITY = False
+        print("WARNING: No observability framework available")
 
 # Import semantic engine components
 try:
@@ -126,8 +135,21 @@ circuit_breaker = CircuitBreaker(failure_threshold=3, timeout=30)
 
 # Health check functions (will be registered after observability setup)
 async def check_database_health():
-    """Database health check for AI Agent"""
+    """Enhanced database health check for AI Agent"""
     try:
+        if ENHANCED_OBSERVABILITY:
+            # Use async connection pool
+            async_engine = get_async_engine()
+            async with async_engine.connection_pool.acquire() as conn:
+                if conn:
+                    await conn.execute("SELECT 1")
+                    return {
+                        "status": "healthy",
+                        "connection_type": "async_pool",
+                        "pool_size": async_engine.connection_pool.max_size
+                    }
+        
+        # Fallback to existing connection method
         async with get_db_connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT 1")
@@ -174,14 +196,26 @@ app = FastAPI(
     version="3.2.0",
 )
 
-# Setup comprehensive observability
-if OBSERVABILITY_ENABLED:
+# Setup enhanced observability
+if ENHANCED_OBSERVABILITY:
+    metrics_collector, health_checker, alert_manager, tracer = setup_enhanced_observability(app, "BHIV AI Agent", "3.2.0")
+    print("Enhanced observability initialized")
+elif OBSERVABILITY_ENABLED:
     health_checker = setup_observability(app, "BHIV AI Agent", "3.2.0")
-    # Register health checks after setup
-    health_checker.add_dependency("database", check_database_health)
-    health_checker.add_dependency("semantic_engine", check_semantic_engine_health)
+    metrics_collector = MetricsCollector()
+    alert_manager = None
+    tracer = None
+    print("Fallback observability initialized")
 else:
     health_checker = None
+    metrics_collector = None
+    alert_manager = None
+    tracer = None
+
+# Register health checks after setup
+if health_checker:
+    health_checker.add_dependency("database", check_database_health)
+    health_checker.add_dependency("semantic_engine", check_semantic_engine_health)
 
 # Mount static files for favicon and assets
 static_dir = os.path.join(os.path.dirname(__file__), "static")
@@ -1269,8 +1303,8 @@ async def update_agent_config():
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize production components on startup"""
-    # Initialize database pool
+    """Enhanced startup with async processing initialization"""
+    # Initialize database connection
     environment = os.getenv("ENVIRONMENT", "development").lower()
     if environment == "production":
         default_db_url = "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu"
@@ -1278,18 +1312,41 @@ async def startup_event():
         default_db_url = "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@db:5432/bhiv_hr_jcuu"
     
     database_url = os.getenv("DATABASE_URL", default_db_url)
-    db_manager.init_pool(database_url)
+    
+    # Initialize enhanced async processing if available
+    if ENHANCED_OBSERVABILITY:
+        try:
+            await initialize_async_engine(database_url)
+            logger.info("Enhanced async processing engine initialized")
+        except Exception as e:
+            logger.error(f"Failed to initialize async engine: {e}")
+            # Fallback to basic initialization
+            db_manager.init_pool(database_url)
+    else:
+        # Fallback initialization
+        db_manager.init_pool(database_url)
     
     # Start task queue workers
     await task_queue.start_workers(num_workers=2)
     
-    logger.info("AI Agent startup complete with production fixes")
+    logger.info(f"AI Agent startup complete - Enhanced: {ENHANCED_OBSERVABILITY}")
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """Cleanup resources on shutdown"""
+    """Enhanced cleanup with async resource management"""
+    # Enhanced shutdown if available
+    if ENHANCED_OBSERVABILITY:
+        try:
+            from async_manager import shutdown_async_engine
+            await shutdown_async_engine()
+            logger.info("Enhanced async engine shutdown complete")
+        except Exception as e:
+            logger.error(f"Error during enhanced shutdown: {e}")
+    
+    # Fallback cleanup
     await http_manager.close()
     await task_queue.stop()
+    
     logger.info("AI Agent shutdown complete")
 
 if __name__ == "__main__":

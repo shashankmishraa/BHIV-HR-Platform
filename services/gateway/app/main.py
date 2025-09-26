@@ -12,11 +12,18 @@ from datetime import datetime, timezone
 # Configure garbage collection for memory optimization
 gc.set_threshold(700, 10, 10)
 
-# Import observability framework
+# Import enhanced observability framework
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))
-from observability import setup_observability, MetricsCollector
+try:
+    from observability_enhanced import setup_enhanced_observability, EnhancedMetricsCollector
+    from async_manager import initialize_async_engine, get_async_engine
+    ENHANCED_OBSERVABILITY = True
+except ImportError:
+    from observability import setup_observability, MetricsCollector
+    ENHANCED_OBSERVABILITY = False
+    print("Using fallback observability framework")
 
 # Import metrics
 from app.metrics import get_metrics_response, metrics_collector, metrics_middleware
@@ -69,8 +76,14 @@ app = FastAPI(
     },
 )
 
-# Setup comprehensive observability
-health_checker = setup_observability(app, "BHIV HR Gateway", "3.2.0")
+# Setup enhanced observability
+if ENHANCED_OBSERVABILITY:
+    metrics_collector, health_checker, alert_manager, tracer = setup_enhanced_observability(app, "BHIV HR Gateway", "3.2.0")
+else:
+    health_checker = setup_observability(app, "BHIV HR Gateway", "3.2.0")
+    metrics_collector = MetricsCollector()
+    alert_manager = None
+    tracer = None
 
 # Import configuration
 from app.shared.config import get_settings, is_production
@@ -82,10 +95,23 @@ logging.basicConfig(level=getattr(logging, settings.log_level))
 logger = logging.getLogger("gateway")
 environment = settings.environment.lower()
 
-# Add database health check
+# Enhanced database health check with async optimization
 async def check_database_health():
-    """Database health check for observability"""
+    """Enhanced database health check with connection pooling"""
     try:
+        if ENHANCED_OBSERVABILITY:
+            # Use async engine for enhanced performance
+            async_engine = get_async_engine()
+            async with async_engine.connection_pool.acquire() as conn:
+                if conn:
+                    await conn.execute("SELECT 1")
+                    return {
+                        "status": "healthy",
+                        "connection_type": "async_pool",
+                        "pool_size": async_engine.connection_pool.max_size
+                    }
+        
+        # Fallback to existing method
         result = await db_manager.test_connection()
         return {
             "status": "healthy" if result["status"] == "connected" else "unhealthy",
@@ -98,25 +124,44 @@ async def check_database_health():
             "error": str(e)
         }
 
-# Add AI Agent health check
+# Enhanced AI Agent health check with async HTTP management
 async def check_agent_health():
-    """AI Agent service health check with SSL verification"""
+    """Enhanced AI Agent service health check with connection pooling"""
     try:
-        import httpx
-        ssl_verify = os.getenv("SSL_VERIFY", "true") == "true"
-        async with httpx.AsyncClient(verify=ssl_verify) as client:
-            response = await client.get(f"{settings.agent_service_url}/health", timeout=5.0)
-            if response.status_code == 200:
+        if ENHANCED_OBSERVABILITY:
+            # Use enhanced HTTP manager
+            async_engine = get_async_engine()
+            response = await async_engine.http_manager.request(
+                "GET", 
+                f"{settings.agent_service_url}/health",
+                timeout=5.0
+            )
+            
+            if response.status < 400:
+                response_data = await response.json()
                 return {
                     "status": "healthy",
-                    "response_time_ms": response.elapsed.total_seconds() * 1000,
-                    "version": response.json().get("version", "unknown")
+                    "response_time_ms": response.headers.get("X-Response-Time", "0"),
+                    "version": response_data.get("version", "unknown"),
+                    "connection_type": "pooled"
                 }
-            else:
-                return {
-                    "status": "unhealthy",
-                    "status_code": response.status_code
-                }
+        else:
+            # Fallback to httpx
+            import httpx
+            ssl_verify = os.getenv("SSL_VERIFY", "true") == "true"
+            async with httpx.AsyncClient(verify=ssl_verify) as client:
+                response = await client.get(f"{settings.agent_service_url}/health", timeout=5.0)
+                if response.status_code == 200:
+                    return {
+                        "status": "healthy",
+                        "response_time_ms": response.elapsed.total_seconds() * 1000,
+                        "version": response.json().get("version", "unknown")
+                    }
+        
+        return {
+            "status": "unhealthy",
+            "status_code": response.status_code if 'response' in locals() else "unknown"
+        }
     except Exception as e:
         return {
             "status": "unhealthy",
@@ -312,10 +357,10 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     )
 
 
-# Application Events
+# Enhanced Application Events
 @app.on_event("startup")
 async def startup_event():
-    """Application startup event with validation"""
+    """Enhanced application startup with async initialization"""
     # Validate critical configuration
     try:
         settings = get_settings()
@@ -324,12 +369,22 @@ async def startup_event():
         logger.error(f"Configuration validation failed: {e}")
         raise
     
+    # Initialize async processing engine if enhanced observability is available
+    if ENHANCED_OBSERVABILITY:
+        try:
+            database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu")
+            await initialize_async_engine(database_url)
+            logger.info("Enhanced async processing engine initialized")
+        except Exception as e:
+            logger.error(f"Failed to initialize async engine: {e}")
+    
     logger.info("=" * 80)
-    logger.info("BHIV HR Platform API Gateway - Modular Architecture")
+    logger.info("BHIV HR Platform API Gateway - Enhanced Architecture")
     logger.info("=" * 80)
     logger.info(f"Version: 3.2.0")
     logger.info(f"Environment: {environment}")
-    logger.info(f"Architecture: Modular")
+    logger.info(f"Architecture: Modular + Enhanced Observability")
+    logger.info(f"Enhanced Observability: {ENHANCED_OBSERVABILITY}")
     logger.info(f"Total Modules: 6")
     logger.info(f"Total Endpoints: 180+")
     logger.info(f"Modules: core, candidates, jobs, auth, workflows, monitoring")
@@ -338,8 +393,19 @@ async def startup_event():
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """Application shutdown event"""
+    """Enhanced application shutdown with resource cleanup"""
     logger.info("BHIV HR Platform API Gateway shutting down...")
+    
+    # Cleanup async resources if enhanced observability is available
+    if ENHANCED_OBSERVABILITY:
+        try:
+            from async_manager import shutdown_async_engine
+            await shutdown_async_engine()
+            logger.info("Async processing engine shutdown complete")
+        except Exception as e:
+            logger.error(f"Error during async engine shutdown: {e}")
+    
+    logger.info("Gateway shutdown complete")
 
 
 if __name__ == "__main__":
