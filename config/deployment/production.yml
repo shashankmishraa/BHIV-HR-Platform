@@ -1,0 +1,61 @@
+# Production Deployment Configuration
+# BHIV HR Platform v3.2.0
+
+deployment:
+  name: "Production"
+  platform: "Render"
+  region: "Oregon, US West"
+  
+services:
+  gateway:
+    name: "bhiv-hr-gateway-901a"
+    url: "https://bhiv-hr-gateway-901a.onrender.com"
+    type: "Web Service"
+    build_command: "pip install -r requirements.txt"
+    start_command: "cd /app && python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    
+  agent:
+    name: "bhiv-hr-agent-o6nx"
+    url: "https://bhiv-hr-agent-o6nx.onrender.com"
+    type: "Web Service"
+    build_command: "pip install -r requirements.txt"
+    start_command: "uvicorn app:app --host 0.0.0.0 --port $PORT"
+    
+  portal:
+    name: "bhiv-hr-portal-xk2k"
+    url: "https://bhiv-hr-portal-xk2k.onrender.com"
+    type: "Web Service"
+    build_command: "pip install -r requirements.txt"
+    start_command: "streamlit run app.py --server.port $PORT --server.address 0.0.0.0"
+    
+  client_portal:
+    name: "bhiv-hr-client-portal-zdbt"
+    url: "https://bhiv-hr-client-portal-zdbt.onrender.com"
+    type: "Web Service"
+    build_command: "pip install -r requirements.txt"
+    start_command: "streamlit run app.py --server.port $PORT --server.address 0.0.0.0"
+
+database:
+  provider: "Render PostgreSQL"
+  version: "17"
+  url: "postgresql://bhiv_user:***@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb"
+  
+environment:
+  PYTHON_VERSION: "3.12.7"
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "INFO"
+  METRICS_ENABLED: "true"
+  OBSERVABILITY_ENABLED: "true"
+
+monitoring:
+  health_checks: "enabled"
+  metrics_collection: "prometheus"
+  logging: "structured_json"
+  alerts: "enabled"
+  
+security:
+  https: "enabled"
+  ssl_certificates: "auto_managed"
+  cors: "configured"
+  rate_limiting: "enabled"
+  secrets_management: "github_secrets"

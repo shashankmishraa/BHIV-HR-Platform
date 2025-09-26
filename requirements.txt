@@ -1,16 +1,18 @@
 # BHIV HR Platform - Root Dependencies
-# Consolidated requirements for the entire platform
+# Updated for Python 3.12.7 compatibility - January 2025
 
 # Core Framework
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-streamlit==1.37.0
-streamlit-authenticator==0.4.2
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+streamlit==1.40.0
+streamlit-authenticator==0.4.3
+pydantic==2.5.3
+pydantic-settings==2.1.0
 
 # Database
-sqlalchemy==2.0.23
+sqlalchemy==2.0.25
 psycopg2-binary==2.9.9
-alembic==1.12.1
+alembic==1.13.1
 
 # Authentication & Security
 python-jose[cryptography]==3.3.0
@@ -18,16 +20,17 @@ passlib[bcrypt]==1.7.4
 python-multipart==0.0.6
 pyotp==2.9.0
 qrcode[pil]==7.4.2
+cryptography==42.0.0
 
 # AI & ML
-scikit-learn==1.3.2
+scikit-learn==1.4.0
 numpy==1.26.4
 pandas==2.2.0
 nltk==3.9.1
 
 # HTTP & API
 requests==2.31.0
-httpx==0.25.2
+httpx==0.26.0
 aiohttp==3.9.1
 
 # File Processing
@@ -36,14 +39,16 @@ python-docx==1.1.0
 openpyxl==3.1.2
 
 # Monitoring & Logging
-prometheus-client==0.19.0
-structlog==23.2.0
+prometheus-client==0.20.0
+structlog==24.1.0
+psutil==5.9.8
 
 # Development & Testing
-pytest==7.4.3
-pytest-asyncio==0.21.1
-black==23.11.0
-flake8==6.1.0
+pytest==8.0.0
+pytest-asyncio==0.23.3
+black==24.1.0
+flake8==7.0.0
+isort==5.13.2
 
 # Production
 gunicorn==21.2.0
