@@ -10,6 +10,7 @@
 - **HR Portal**: https://bhiv-hr-portal-cead.onrender.com/ ✅
 - **Client Portal**: https://bhiv-hr-client-portal-5g33.onrender.com/ ✅
 - **Status**: 🟢 **ALL SERVICES LIVE & OPERATIONAL** | **Cost**: $0/month (Free tier)
+- **Last Updated**: January 2025 | **Version**: v4.0.0 | **Architecture**: Enterprise-Grade
 
 ### **🔑 Demo Access**
 ```bash
@@ -22,7 +23,7 @@ API Key: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
 curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" https://bhiv-hr-gateway-46pz.onrender.com/health
 ```
 
-## 🏗️ System Architecture v3.2.0
+## 🏗️ System Architecture v4.0.0
 
 ### **Unified CI/CD Pipeline**
 ```yaml
@@ -36,8 +37,8 @@ curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr
 ### **Microservices Overview**
 | Service | Purpose | Technology | Version | Status |
 |---------|---------|------------|---------|--------|
-| **API Gateway** | REST API Backend | FastAPI 3.1.0 | v3.2.0 | 🟢 Live |
-| **AI Agent** | Candidate Matching | FastAPI 2.1.0 | v3.2.0 | ✅ Live |
+| **API Gateway** | REST API Backend | FastAPI 0.104+ | v4.0.0 | 🟢 Live |
+| **AI Agent** | Candidate Matching | FastAPI 0.104+ | v4.0.0 | ✅ Live |
 | **HR Portal** | HR Dashboard | Streamlit | Latest | ✅ Live |
 | **Client Portal** | Client Interface | Streamlit | Latest | ✅ Live |
 | **Database** | Data Storage | PostgreSQL 17 | Latest | ✅ Live |
@@ -387,7 +388,7 @@ curl https://bhiv-hr-agent-o6nx.onrender.com/status
 
 *Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
 
-**Last Updated**: January 18, 2025 | **Version**: v3.2.0 | **Status**: 🟢 Production Ready | **Cost**: $0/month | **Quality**: Enterprise-Grade | **Verified**: ✅ All Systems Operational
+**Last Updated**: January 2025 | **Version**: v4.0.0 | **Status**: 🟢 Production Ready | **Cost**: $0/month | **Quality**: Enterprise-Grade | **Verified**: ✅ All Systems Operational
 
 ---
 

@@ -47,7 +47,7 @@ class ServiceConfig:
         """Get agent service URL"""
         if self.environment == "production":
             return os.getenv(
-                "AGENT_SERVICE_URL", "https://bhiv-hr-agent-o6nx.onrender.com"
+                "AGENT_SERVICE_URL", "https://bhiv-hr-agent-m1me.onrender.com"
             )
         else:
             return os.getenv("AGENT_SERVICE_URL", "http://agent:9000")
@@ -55,7 +55,7 @@ class ServiceConfig:
     def _get_portal_url(self) -> str:
         """Get portal service URL"""
         if self.environment == "production":
-            return os.getenv("PORTAL_URL", "https://bhiv-hr-portal-xk2k.onrender.com")
+            return os.getenv("PORTAL_URL", "https://bhiv-hr-portal-cead.onrender.com")
         else:
             return os.getenv("PORTAL_URL", "http://portal:8501")
 
@@ -63,7 +63,7 @@ class ServiceConfig:
         """Get client portal service URL"""
         if self.environment == "production":
             return os.getenv(
-                "CLIENT_PORTAL_URL", "https://bhiv-hr-client-portal-zdbt.onrender.com"
+                "CLIENT_PORTAL_URL", "https://bhiv-hr-client-portal-5g33.onrender.com"
             )
         else:
             return os.getenv("CLIENT_PORTAL_URL", "http://client_portal:8502")
