@@ -12,7 +12,7 @@ services:
       DATABASE_URL: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb
       ENVIRONMENT: production
       JWT_SECRET: prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA
-      PYTHON_VERSION: 3.11.11
+      PYTHON_VERSION: 3.12.7
 
   agent:
     name: bhiv-hr-agent-o6nx
@@ -24,7 +24,7 @@ services:
       DATABASE_URL: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb
       ENVIRONMENT: production
       JWT_SECRET: prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA
-      PYTHON_VERSION: 3.11.11
+      PYTHON_VERSION: 3.12.7
 
   portal:
     name: bhiv-hr-portal-xk2k
@@ -37,7 +37,7 @@ services:
       ENVIRONMENT: production
       GATEWAY_URL: https://bhiv-hr-gateway-901a.onrender.com
       JWT_SECRET: prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA
-      PYTHON_VERSION: 3.11.11
+      PYTHON_VERSION: 3.12.7
 
   client_portal:
     name: bhiv-hr-client-portal-zdbt
@@ -50,7 +50,7 @@ services:
       ENVIRONMENT: production
       GATEWAY_URL: https://bhiv-hr-gateway-901a.onrender.com
       JWT_SECRET: prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA
-      PYTHON_VERSION: 3.11.11
+      PYTHON_VERSION: 3.12.7
       DATABASE_URL: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb
 
 database:

@@ -9,7 +9,7 @@ production:
   database_url: "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb"
   environment_variables:
     ENVIRONMENT: "production"
-    PYTHON_VERSION: "3.11.11"
+    PYTHON_VERSION: "3.12.7"
     # Secrets managed in GitHub/Render
     JWT_SECRET: "{{ secrets.JWT_SECRET }}"
     API_KEY_SECRET: "{{ secrets.API_KEY_SECRET }}"
@@ -24,7 +24,7 @@ staging:
   database_url: "postgresql://staging_connection_string"
   environment_variables:
     ENVIRONMENT: "staging"
-    PYTHON_VERSION: "3.11.11"
+    PYTHON_VERSION: "3.12.7"
     # Staging secrets
     JWT_SECRET: "{{ secrets.STAGING_JWT_SECRET }}"
     API_KEY_SECRET: "{{ secrets.STAGING_API_KEY_SECRET }}"
