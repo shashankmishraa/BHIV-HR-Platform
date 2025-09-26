@@ -1,0 +1,48 @@
+name: Fast Health Check
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: '*/30 * * * *'  # Every 30 minutes
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    name: Quick Health Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Test All Services
+        run: |
+          echo "🔍 Quick health check of all services..."
+          
+          # Gateway
+          if curl -f -s https://bhiv-hr-gateway-901a.onrender.com/health > /dev/null; then
+            echo "✅ Gateway: Healthy"
+          else
+            echo "❌ Gateway: Unhealthy"
+            exit 1
+          fi
+          
+          # AI Agent
+          if curl -f -s https://bhiv-hr-agent-o6nx.onrender.com/health > /dev/null; then
+            echo "✅ AI Agent: Healthy"
+          else
+            echo "❌ AI Agent: Unhealthy"
+            exit 1
+          fi
+          
+          # Portals (optional)
+          curl -f -s https://bhiv-hr-portal-xk2k.onrender.com/ > /dev/null && echo "✅ HR Portal: Accessible" || echo "⚠️ HR Portal: Check needed"
+          curl -f -s https://bhiv-hr-client-portal-zdbt.onrender.com/ > /dev/null && echo "✅ Client Portal: Accessible" || echo "⚠️ Client Portal: Check needed"
+          
+          echo "🎉 Health check completed!"
+      
+      - name: Notify Status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ All services are healthy"
+          else
+            echo "❌ Some services need attention"
+          fi
