@@ -24,13 +24,13 @@ class DatabaseManager:
             # Production database on Render
             return os.getenv(
                 "DATABASE_URL",
-                "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb",
+                "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu",
             )
         else:
             # Local development database
             return os.getenv(
                 "DATABASE_URL",
-                "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@db:5432/bhiv_hr_nqzb",
+                "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@db:5432/bhiv_hr_jcuu",
             )
 
     @contextmanager

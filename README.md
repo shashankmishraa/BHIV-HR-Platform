@@ -5,10 +5,10 @@
 ## 🌐 Live Production Platform
 
 ### **✅ Currently Deployed on Render**
-- **API Gateway**: https://bhiv-hr-gateway-901a.onrender.com/docs ✅
-- **AI Matching Engine**: https://bhiv-hr-agent-o6nx.onrender.com/docs ✅
-- **HR Portal**: https://bhiv-hr-portal-xk2k.onrender.com/ ✅
-- **Client Portal**: https://bhiv-hr-client-portal-zdbt.onrender.com/ ✅
+- **API Gateway**: https://bhiv-hr-gateway-46pz.onrender.com/docs ✅
+- **AI Matching Engine**: https://bhiv-hr-agent-m1me.onrender.com/docs ✅
+- **HR Portal**: https://bhiv-hr-portal-cead.onrender.com/ ✅
+- **Client Portal**: https://bhiv-hr-client-portal-5g33.onrender.com/ ✅
 - **Status**: 🟢 **ALL SERVICES LIVE & OPERATIONAL** | **Cost**: $0/month (Free tier)
 
 ### **🔑 Demo Access**
@@ -19,7 +19,7 @@ Password: demo123
 
 # API Testing
 API Key: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
-curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" https://bhiv-hr-gateway-901a.onrender.com/health
+curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" https://bhiv-hr-gateway-46pz.onrender.com/health
 ```
 
 ## 🏗️ System Architecture v3.2.0
@@ -119,17 +119,17 @@ Shared Infrastructure:
 ### **🚀 5-Minute Setup**
 ```bash
 # Live Platform - No Setup Required
-HR Portal: https://bhiv-hr-portal-xk2k.onrender.com/
-Client Portal: https://bhiv-hr-client-portal-zdbt.onrender.com/
+HR Portal: https://bhiv-hr-portal-cead.onrender.com/
+Client Portal: https://bhiv-hr-client-portal-5g33.onrender.com/
 Credentials: TECH001 / demo123
 
 # API Testing
 curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
-     https://bhiv-hr-gateway-901a.onrender.com/health
+     https://bhiv-hr-gateway-46pz.onrender.com/health
 
 # Health Monitoring
-curl https://bhiv-hr-gateway-901a.onrender.com/health/detailed
-curl https://bhiv-hr-agent-o6nx.onrender.com/metrics
+curl https://bhiv-hr-gateway-46pz.onrender.com/health/detailed
+curl https://bhiv-hr-agent-m1me.onrender.com/metrics
 ```
 
 ### **💻 Development Setup**
@@ -207,8 +207,8 @@ bhiv-hr-platform/
 # Production Environment (Python 3.12.7)
 ENVIRONMENT=production
 PYTHON_VERSION=3.12.7
-GATEWAY_URL=https://bhiv-hr-gateway-901a.onrender.com
-AGENT_SERVICE_URL=https://bhiv-hr-agent-o6nx.onrender.com
+GATEWAY_URL=https://bhiv-hr-gateway-46pz.onrender.com
+AGENT_SERVICE_URL=https://bhiv-hr-agent-m1me.onrender.com
 
 # Security (Managed via GitHub Secrets)
 JWT_SECRET={{ secrets.JWT_SECRET }}

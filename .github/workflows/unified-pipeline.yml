@@ -175,7 +175,7 @@ jobs:
     
     environment:
       name: ${{ inputs.deploy_env || 'production' }}
-      url: ${{ inputs.deploy_env == 'staging' && 'https://staging-gateway.onrender.com' || 'https://bhiv-hr-gateway-901a.onrender.com' }}
+      url: ${{ inputs.deploy_env == 'staging' && 'https://staging-gateway.onrender.com' || 'https://bhiv-hr-gateway-46pz.onrender.com' }}
     
     steps:
       - name: Checkout
@@ -192,7 +192,7 @@ jobs:
           echo "::group::Service Health Check"
           
           declare -A services=(
-            ["Gateway"]="https://bhiv-hr-gateway-901a.onrender.com"
+            ["Gateway"]="https://bhiv-hr-gateway-46pz.onrender.com"
             ["AI-Agent"]="https://bhiv-hr-agent-o6nx.onrender.com"
           )
           
@@ -237,7 +237,7 @@ jobs:
           import statistics
           
           services = {
-              'Gateway': 'https://bhiv-hr-gateway-901a.onrender.com',
+              'Gateway': 'https://bhiv-hr-gateway-46pz.onrender.com',
               'AI Agent': 'https://bhiv-hr-agent-o6nx.onrender.com'
           }
           
@@ -300,7 +300,7 @@ jobs:
           for round in {1..6}; do
             echo "Monitoring round $round/6"
             
-            gateway_status=$(curl -f -s -w "%{http_code}" https://bhiv-hr-gateway-901a.onrender.com/health -o /dev/null || echo "000")
+            gateway_status=$(curl -f -s -w "%{http_code}" https://bhiv-hr-gateway-46pz.onrender.com/health -o /dev/null || echo "000")
             agent_status=$(curl -f -s -w "%{http_code}" https://bhiv-hr-agent-o6nx.onrender.com/health -o /dev/null || echo "000")
             
             if [ "$gateway_status" = "200" ]; then
@@ -351,7 +351,7 @@ jobs:
           
           ## 🔗 Production Services
           
-          - **API Gateway:** https://bhiv-hr-gateway-901a.onrender.com
+          - **API Gateway:** https://bhiv-hr-gateway-46pz.onrender.com
           - **AI Matching:** https://bhiv-hr-agent-o6nx.onrender.com
           - **HR Portal:** https://bhiv-hr-portal-xk2k.onrender.com
           - **Client Portal:** https://bhiv-hr-client-portal-zdbt.onrender.com

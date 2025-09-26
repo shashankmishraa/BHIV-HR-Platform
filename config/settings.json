@@ -22,9 +22,9 @@
     "log_level": "INFO"
   },
   "services": {
-    "gateway_url": "https://bhiv-hr-gateway-901a.onrender.com",
-    "agent_url": "https://bhiv-hr-agent-o6nx.onrender.com",
-    "portal_url": "https://bhiv-hr-portal-xk2k.onrender.com",
-    "client_portal_url": "https://bhiv-hr-client-portal-zdbt.onrender.com"
+    "gateway_url": "https://bhiv-hr-gateway-46pz.onrender.com",
+    "agent_url": "https://bhiv-hr-agent-m1me.onrender.com",
+    "portal_url": "https://bhiv-hr-portal-cead.onrender.com",
+    "client_portal_url": "https://bhiv-hr-client-portal-5g33.onrender.com"
   }
 }

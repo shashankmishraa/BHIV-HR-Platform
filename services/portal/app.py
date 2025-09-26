@@ -71,7 +71,7 @@ except ImportError:
 environment = os.getenv("ENVIRONMENT", "development").lower()
 if environment == "production":
     default_agent_url = "https://bhiv-hr-agent-o6nx.onrender.com"
-    default_gateway_url = "https://bhiv-hr-gateway-901a.onrender.com"
+    default_gateway_url = "https://bhiv-hr-gateway-46pz.onrender.com"
 else:
     default_agent_url = "http://agent:9000"
     default_gateway_url = "http://gateway:8000"

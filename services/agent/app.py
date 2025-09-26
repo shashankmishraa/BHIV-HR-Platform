@@ -1273,9 +1273,9 @@ async def startup_event():
     # Initialize database pool
     environment = os.getenv("ENVIRONMENT", "development").lower()
     if environment == "production":
-        default_db_url = "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb"
+        default_db_url = "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu"
     else:
-        default_db_url = "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@db:5432/bhiv_hr_nqzb"
+        default_db_url = "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@db:5432/bhiv_hr_jcuu"
     
     database_url = os.getenv("DATABASE_URL", default_db_url)
     db_manager.init_pool(database_url)

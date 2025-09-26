@@ -8,7 +8,7 @@ import streamlit as st
 environment = os.getenv("ENVIRONMENT", "development").lower()
 if environment == "production":
     # Production URLs on Render
-    default_gateway_url = "https://bhiv-hr-gateway-901a.onrender.com"
+    default_gateway_url = "https://bhiv-hr-gateway-46pz.onrender.com"
     default_agent_url = "https://bhiv-hr-agent-o6nx.onrender.com"
 else:
     # Local development URLs in Docker

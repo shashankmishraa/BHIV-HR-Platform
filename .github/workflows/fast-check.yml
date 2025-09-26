@@ -17,7 +17,7 @@ jobs:
           echo "🔍 Quick health check of all services..."
           
           # Gateway
-          if curl -f -s https://bhiv-hr-gateway-901a.onrender.com/health > /dev/null; then
+          if curl -f -s https://bhiv-hr-gateway-46pz.onrender.com/health > /dev/null; then
             echo "✅ Gateway: Healthy"
           else
             echo "❌ Gateway: Unhealthy"

@@ -28,18 +28,18 @@ class ServiceConfig:
         if self.environment == "production":
             return os.getenv(
                 "DATABASE_URL",
-                "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb",
+                "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu",
             )
         else:
             return os.getenv(
                 "DATABASE_URL",
-                "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@db:5432/bhiv_hr_nqzb",
+                "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@db:5432/bhiv_hr_jcuu",
             )
 
     def _get_gateway_url(self) -> str:
         """Get gateway service URL"""
         if self.environment == "production":
-            return os.getenv("GATEWAY_URL", "https://bhiv-hr-gateway-901a.onrender.com")
+            return os.getenv("GATEWAY_URL", "https://bhiv-hr-gateway-46pz.onrender.com")
         else:
             return os.getenv("GATEWAY_URL", "http://gateway:8000")
 

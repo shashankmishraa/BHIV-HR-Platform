@@ -2,11 +2,11 @@
 
 production:
   name: "Production"
-  gateway_url: "https://bhiv-hr-gateway-901a.onrender.com"
-  agent_url: "https://bhiv-hr-agent-o6nx.onrender.com"
-  portal_url: "https://bhiv-hr-portal-xk2k.onrender.com"
-  client_portal_url: "https://bhiv-hr-client-portal-zdbt.onrender.com"
-  database_url: "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb"
+  gateway_url: "https://bhiv-hr-gateway-46pz.onrender.com"
+  agent_url: "https://bhiv-hr-agent-m1me.onrender.com"
+  portal_url: "https://bhiv-hr-portal-cead.onrender.com"
+  client_portal_url: "https://bhiv-hr-client-portal-5g33.onrender.com"
+  database_url: "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu"
   environment_variables:
     ENVIRONMENT: "production"
     PYTHON_VERSION: "3.12.7"

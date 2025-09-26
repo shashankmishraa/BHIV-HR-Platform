@@ -3,64 +3,64 @@
 
 services:
   gateway:
-    name: bhiv-hr-gateway-901a
-    url: https://bhiv-hr-gateway-901a.onrender.com
-    trigger_key: V6wlJ-fv6EY
-    deploy_hook: https://api.render.com/deploy/srv-d3744qje5dus7390foq0?key=V6wlJ-fv6EY
+    name: bhiv-hr-gateway-46pz
+    url: https://bhiv-hr-gateway-46pz.onrender.com
+    trigger_key: W4WZMj1i9g0
+    deploy_hook: https://api.render.com/deploy/srv-d3bfsejuibrs73feao6g?key=W4WZMj1i9g0
     environment_variables:
       API_KEY_SECRET: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
-      DATABASE_URL: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb
+      DATABASE_URL: postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu
       ENVIRONMENT: production
       JWT_SECRET: prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA
       PYTHON_VERSION: 3.12.7
 
   agent:
-    name: bhiv-hr-agent-o6nx
-    url: https://bhiv-hr-agent-o6nx.onrender.com
+    name: bhiv-hr-agent-m1me
+    url: https://bhiv-hr-agent-m1me.onrender.com
     trigger_key: cto8n-Ctivw
     deploy_hook: https://api.render.com/deploy/srv-d3747q3uibrs738n539g?key=cto8n-Ctivw
     environment_variables:
       API_KEY_SECRET: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
-      DATABASE_URL: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb
+      DATABASE_URL: postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu
       ENVIRONMENT: production
       JWT_SECRET: prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA
       PYTHON_VERSION: 3.12.7
 
   portal:
-    name: bhiv-hr-portal-xk2k
-    url: https://bhiv-hr-portal-xk2k.onrender.com
-    trigger_key: dTyTmqjQwu4
-    deploy_hook: https://api.render.com/deploy/srv-d374emmmcj7s73fdbbb0?key=dTyTmqjQwu4
+    name: bhiv-hr-portal-cead
+    url: https://bhiv-hr-portal-cead.onrender.com
+    trigger_key: LXdmYEdUCTU
+    deploy_hook: https://api.render.com/deploy/srv-d3bg3igdl3ps739btv5g?key=LXdmYEdUCTU
     environment_variables:
-      AGENT_SERVICE_URL: https://bhiv-hr-agent-o6nx.onrender.com
+      AGENT_SERVICE_URL: https://bhiv-hr-agent-m1me.onrender.com
       API_KEY_SECRET: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
       ENVIRONMENT: production
-      GATEWAY_URL: https://bhiv-hr-gateway-901a.onrender.com
+      GATEWAY_URL: https://bhiv-hr-gateway-46pz.onrender.com
       JWT_SECRET: prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA
       PYTHON_VERSION: 3.12.7
 
   client_portal:
-    name: bhiv-hr-client-portal-zdbt
-    url: https://bhiv-hr-client-portal-zdbt.onrender.com
-    trigger_key: aV7OERRhxS4
-    deploy_hook: https://api.render.com/deploy/srv-d374kkre5dus7390tlgg?key=aV7OERRhxS4
+    name: bhiv-hr-client-portal-5g33
+    url: https://bhiv-hr-client-portal-5g33.onrender.com
+    trigger_key: NZPMJzMGWU0
+    deploy_hook: https://api.render.com/deploy/srv-d3bg4s56ubrc739n5ps0?key=NZPMJzMGWU0
     environment_variables:
-      AGENT_SERVICE_URL: https://bhiv-hr-agent-o6nx.onrender.com
+      AGENT_SERVICE_URL: https://bhiv-hr-agent-m1me.onrender.com
       API_KEY_SECRET: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
       ENVIRONMENT: production
-      GATEWAY_URL: https://bhiv-hr-gateway-901a.onrender.com
+      GATEWAY_URL: https://bhiv-hr-gateway-46pz.onrender.com
       JWT_SECRET: prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA
       PYTHON_VERSION: 3.12.7
-      DATABASE_URL: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb
+      DATABASE_URL: postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu
 
 database:
-  internal_url: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb
-  external_url: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb
-  psql_command: render psql dpg-d373qrogjchc73bu9gug-a
+  internal_url: postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a/bhiv_hr_jcuu
+  external_url: postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu
+  psql_command: PGPASSWORD=3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2 psql -h dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com -U bhiv_user bhiv_hr_jcuu
   
 deployment_commands:
   trigger_all: |
-    curl -X POST https://api.render.com/deploy/srv-d3744qje5dus7390foq0?key=V6wlJ-fv6EY
+    curl -X POST https://api.render.com/deploy/srv-d3bfsejuibrs73feao6g?key=W4WZMj1i9g0
     curl -X POST https://api.render.com/deploy/srv-d3747q3uibrs738n539g?key=cto8n-Ctivw
-    curl -X POST https://api.render.com/deploy/srv-d374emmmcj7s73fdbbb0?key=dTyTmqjQwu4
-    curl -X POST https://api.render.com/deploy/srv-d374kkre5dus7390tlgg?key=aV7OERRhxS4
+    curl -X POST https://api.render.com/deploy/srv-d3bg3igdl3ps739btv5g?key=LXdmYEdUCTU
+    curl -X POST https://api.render.com/deploy/srv-d3bg4s56ubrc739n5ps0?key=NZPMJzMGWU0
