@@ -1,11 +1,11 @@
 """Authentication workflow router"""
 
-from fastapi import APIRouter, Form, HTTPException, BackgroundTasks
-from datetime import datetime, timedelta
 import secrets
+from datetime import datetime, timedelta
 
 from app.shared.models import UserCreate
-from app.shared.security import security_manager, create_access_token
+from app.shared.security import create_access_token, security_manager
+from fastapi import APIRouter, BackgroundTasks, Form, HTTPException
 
 router = APIRouter(prefix="/v1/auth", tags=["Authentication"])
 

@@ -4,12 +4,12 @@ Import Validation Script for BHIV HR Platform
 Validates that all imports are using absolute paths and can be resolved correctly
 """
 
-import os
-import sys
 import ast
 import importlib.util
+import os
+import sys
 from pathlib import Path
-from typing import List, Dict, Tuple
+from typing import Dict, List, Tuple
 
 
 class ImportValidator:

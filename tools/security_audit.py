@@ -4,13 +4,12 @@ BHIV HR Platform - Security Audit Tool
 Comprehensive security audit for environment configuration and secrets
 """
 
-from pathlib import Path
-from typing import Dict, List, Any
 import os
 import re
-import sys
-
 import subprocess
+import sys
+from pathlib import Path
+from typing import Any, Dict, List
 
 
 class SecurityAuditor:

@@ -5,14 +5,15 @@ BHIV HR Platform - Complete System Validation
 Tests every endpoint, service, feature, and functionality
 """
 
-import requests
-import json
-import time
 import concurrent.futures
-import threading
-from datetime import datetime
-import sys
+import json
 import os
+import sys
+import threading
+import time
+from datetime import datetime
+
+import requests
 
 # Configuration
 BASE_URL = "http://localhost:8000"

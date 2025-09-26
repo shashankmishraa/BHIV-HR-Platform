@@ -4,12 +4,13 @@ Test Enhanced Authentication System
 Comprehensive testing of the new authentication system with all methods and fallbacks
 """
 
-import sys
-import os
 import asyncio
-import requests
 import json
+import os
+import sys
 from datetime import datetime
+
+import requests
 
 # Add the services directory to the path
 sys.path.insert(
@@ -224,9 +225,9 @@ def test_authentication_methods():
     # Import the enhanced authentication system for direct testing
     try:
         from enhanced_auth_system import (
-            enhanced_auth_system,
-            AuthenticationMethod,
             AuthenticationLevel,
+            AuthenticationMethod,
+            enhanced_auth_system,
         )
 
         print("1️⃣ Testing API Key Validation...")

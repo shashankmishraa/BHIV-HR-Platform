@@ -1,8 +1,8 @@
 """Candidate upload component"""
 
-import streamlit as st
-import pandas as pd
 import httpx
+import pandas as pd
+import streamlit as st
 
 
 def show_candidate_upload(API_BASE, headers, SECURITY_ENABLED, sanitizer=None):

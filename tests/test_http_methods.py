@@ -4,8 +4,8 @@ BHIV HR Platform - HTTP Methods Testing Script
 Tests HTTP method handling including HEAD, OPTIONS, and unsupported methods
 """
 
-from datetime import datetime
 import time
+from datetime import datetime
 
 import requests
 

@@ -4,12 +4,12 @@ Dynamic Job Creator - Replaces create_demo_jobs.py
 Creates jobs dynamically based on real market data and client needs
 """
 
-from datetime import datetime, timedelta
-from typing import List, Dict
 import json
 import os
-
 import random
+from datetime import datetime, timedelta
+from typing import Dict, List
+
 import requests
 
 API_BASE = os.getenv("GATEWAY_URL", "http://localhost:8000")

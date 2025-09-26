@@ -1,7 +1,7 @@
 """Shared configuration management for BHIV HR Platform Services"""
 
 import os
-from typing import Dict, Any
+from typing import Any, Dict
 
 
 class ServiceConfig:

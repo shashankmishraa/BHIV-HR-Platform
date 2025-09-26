@@ -1,8 +1,9 @@
 """Shared validation utilities for BHIV HR Platform"""
 
-from typing import List, Union, Dict, Any
-from pydantic import BaseModel, Field, field_validator
 from enum import Enum
+from typing import Any, Dict, List, Union
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class ExperienceLevel(str, Enum):

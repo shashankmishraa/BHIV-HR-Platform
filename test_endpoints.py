@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Simple endpoint testing tool"""
 
-import httpx
 import json
 import time
+
+import httpx
 
 
 def test_endpoints():

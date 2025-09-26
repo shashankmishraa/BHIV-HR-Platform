@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Comprehensive endpoint testing"""
 
-import httpx
 import json
+
+import httpx
 
 
 def test_comprehensive_endpoints():

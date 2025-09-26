@@ -1,28 +1,28 @@
-from contextlib import contextmanager
-from datetime import datetime, timezone
-from typing import List, Dict, Any
 import asyncio
 import json
 import logging
 import os
 import re
 import sys
+from contextlib import contextmanager
+from datetime import datetime, timezone
+from typing import Any, Dict, List
 
+import psutil
+import psycopg2
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse, FileResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from psycopg2 import pool
 from pydantic import BaseModel
-import psutil
-import psycopg2
 
 # Import semantic engine components
 try:
     from semantic_engine import (
-        SemanticJobMatcher,
         AdvancedSemanticMatcher,
         BatchMatcher,
+        SemanticJobMatcher,
         SemanticProcessor,
     )
 

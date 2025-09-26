@@ -5,11 +5,12 @@ Tests all live service endpoints and identifies non-functional ones
 """
 
 import asyncio
-import httpx
 import json
 import time
-from typing import Dict, List, Any
 from datetime import datetime
+from typing import Any, Dict, List
+
+import httpx
 
 
 class EndpointAnalyzer:

@@ -5,8 +5,9 @@ Creates missing database tables and resolves Priority 1 issue
 """
 
 import os
-import psycopg2
 from datetime import datetime
+
+import psycopg2
 
 
 def create_database_schema():

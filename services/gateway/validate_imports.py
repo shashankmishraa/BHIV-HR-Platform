@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Import validation script for BHIV HR Platform Gateway"""
 
-import sys
 import os
+import sys
 
 # Set test environment variables with placeholder values
 os.environ["DATABASE_URL"] = "postgresql://<user>:<password>@localhost:5432/<database>"
@@ -21,17 +21,17 @@ def test_imports():
     try:
         # Test shared modules
         print("[OK] Testing shared modules...")
-        from app.shared.models import JobCreate, CandidateCreate, WorkflowStatus
-        from app.shared.validation import ValidationUtils
-        from app.shared.security import security_manager
         from app.shared.config import get_settings
         from app.shared.database import db_manager
+        from app.shared.models import CandidateCreate, JobCreate, WorkflowStatus
+        from app.shared.security import security_manager
+        from app.shared.validation import ValidationUtils
 
         print("[OK] Shared modules imported successfully")
 
         # Test workflow engine
         print("[OK] Testing workflow engine...")
-        from app.workflow_engine import workflow_engine, create_job_posting_workflow
+        from app.workflow_engine import create_job_posting_workflow, workflow_engine
 
         print("[OK] Workflow engine imported successfully")
 
@@ -43,12 +43,12 @@ def test_imports():
 
         # Test module routers
         print("[OK] Testing module routers...")
-        from app.modules.core import router as core_router
-        from app.modules.candidates import router as candidates_router
-        from app.modules.jobs import router as jobs_router
         from app.modules.auth import router as auth_router
-        from app.modules.workflows import router as workflows_router
+        from app.modules.candidates import router as candidates_router
+        from app.modules.core import router as core_router
+        from app.modules.jobs import router as jobs_router
         from app.modules.monitoring import router as monitoring_router
+        from app.modules.workflows import router as workflows_router
 
         print("[OK] All module routers imported successfully")
 

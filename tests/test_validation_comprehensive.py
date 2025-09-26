@@ -4,8 +4,9 @@ Comprehensive validation tests for HR Portal and Client Portal
 Tests all validation scenarios including edge cases
 """
 
-import sys
 import os
+import sys
+
 import pytest
 from pydantic import ValidationError
 
@@ -16,7 +17,7 @@ sys.path.insert(
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "services"))
 
 from services.shared.models import JobCreate, JobUpdate
-from services.shared.validation import ValidationUtils, StandardJobCreate
+from services.shared.validation import StandardJobCreate, ValidationUtils
 
 
 class TestJobValidation:

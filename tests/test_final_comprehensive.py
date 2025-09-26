@@ -4,11 +4,12 @@ FINAL COMPREHENSIVE TESTING SUITE
 BHIV HR Platform - Complete validation of all endpoints, services, and functionalities
 """
 
-import requests
 import json
+import sys
 import time
 from datetime import datetime
-import sys
+
+import requests
 
 # Configuration
 BASE_URL = "http://localhost:8000"

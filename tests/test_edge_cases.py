@@ -4,8 +4,9 @@ BHIV HR Platform - Edge Cases Testing
 Tests edge cases and error conditions
 """
 
-import requests
 import json
+
+import requests
 
 API_BASE = "http://localhost:8000"
 API_KEY = "myverysecureapikey123"

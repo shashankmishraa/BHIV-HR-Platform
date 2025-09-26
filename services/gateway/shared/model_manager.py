@@ -2,10 +2,9 @@
 Centralized model management
 """
 
-from typing import Dict, Any
 import os
-
 import pickle
+from typing import Any, Dict
 
 
 class ModelManager:

@@ -4,8 +4,8 @@ BHIV HR Platform - Test Configuration
 Centralized configuration for all testing frameworks
 """
 
-from typing import Dict, Any, List
 import os
+from typing import Any, Dict, List
 
 
 class TestConfig:

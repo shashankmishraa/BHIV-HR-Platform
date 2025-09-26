@@ -1,6 +1,6 @@
-from typing import Dict, List, Tuple, Optional, Any
 import logging
 import re
+from typing import Any, Dict, List, Optional, Tuple
 
 from .advanced_matcher import AdvancedSemanticMatcher
 from .job_matcher import SemanticJobMatcher

@@ -1,11 +1,11 @@
-from pathlib import Path
 import json
 import os
+import tempfile
+import zipfile
+from pathlib import Path
 
 import httpx
 import streamlit as st
-import tempfile
-import zipfile
 
 
 def show_batch_upload():
@@ -149,8 +149,9 @@ def scan_resume_folder():
 
 def trigger_resume_processing():
     """Trigger resume processing and upload to API"""
-    import httpx
     import os
+
+    import httpx
 
     API_BASE = os.getenv("GATEWAY_URL", "http://gateway:8000")
     API_KEY = os.getenv("API_KEY_SECRET", "myverysecureapikey123")

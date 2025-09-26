@@ -1,12 +1,12 @@
 """Candidates workflow router"""
 
-from fastapi import APIRouter, Query, File, UploadFile, Form, BackgroundTasks
-from typing import List, Optional
-from datetime import datetime
 import hashlib
 import secrets
+from datetime import datetime
+from typing import List, Optional
 
 from app.shared.models import CandidateCreate
+from fastapi import APIRouter, BackgroundTasks, File, Form, Query, UploadFile
 
 router = APIRouter(prefix="/v1/candidates", tags=["Candidates"])
 

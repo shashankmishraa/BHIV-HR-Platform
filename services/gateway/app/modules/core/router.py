@@ -1,8 +1,9 @@
 """Core API endpoints router"""
 
-from fastapi import APIRouter
-from datetime import datetime, timezone
 import os
+from datetime import datetime, timezone
+
+from fastapi import APIRouter
 
 router = APIRouter(tags=["Core"])
 

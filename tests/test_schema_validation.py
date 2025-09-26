@@ -4,11 +4,12 @@ SCHEMA VALIDATION AND COMPREHENSIVE TESTING
 BHIV HR Platform - Validate all data models and API schemas
 """
 
-import requests
 import json
+import sys
 import time
 from datetime import datetime
-import sys
+
+import requests
 
 # Configuration
 BASE_URL = "http://localhost:8000"

@@ -2,25 +2,26 @@
 
 # pyright: reportMissingImports=false
 
-from datetime import datetime
 import os
+import secrets
+import uuid
+from datetime import datetime
+
 import httpx
 import pandas as pd
 import streamlit as st
-import uuid
-import secrets
+from components.ai_matching import show_ai_matching
+from components.batch_operations import show_batch_operations
+from components.candidate_search import show_candidate_search
+from components.candidate_upload import show_candidate_upload
+from components.dashboard import show_dashboard
+from components.export_reports import show_export_reports
+from components.interview_management import show_interview_management
 
 # Import components
 from components.job_creation import show_job_creation
-from components.dashboard import show_dashboard
-from components.candidate_search import show_candidate_search
-from components.candidate_upload import show_candidate_upload
-from components.ai_matching import show_ai_matching
-from components.interview_management import show_interview_management
-from components.values_assessment import show_values_assessment
-from components.export_reports import show_export_reports
 from components.job_monitor import show_job_monitor
-from components.batch_operations import show_batch_operations
+from components.values_assessment import show_values_assessment
 
 # Page config
 favicon_path = os.path.join(os.path.dirname(__file__), "static", "favicon.ico")
@@ -40,10 +41,10 @@ if "request_count" not in st.session_state:
 
 # Enhanced security setup with graceful fallback
 try:
-    from security_config import secure_api
     from input_sanitizer import sanitizer
-    from sql_protection import sql_guard
     from rate_limiter import form_limiter
+    from security_config import secure_api
+    from sql_protection import sql_guard
 
     SECURITY_ENABLED = True
     headers = secure_api.get_headers()

@@ -4,8 +4,8 @@ Simple API Response Time Test
 Test individual API calls to identify bottlenecks
 """
 
-from datetime import datetime
 import time
+from datetime import datetime
 
 import requests
 

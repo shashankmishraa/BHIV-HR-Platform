@@ -1,9 +1,10 @@
 """Shared Pydantic models for the BHIV HR Platform Gateway"""
 
-from pydantic import BaseModel, Field, validator, field_validator
-from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional, Union
+
+from pydantic import BaseModel, Field, field_validator, validator
 
 
 class WorkflowStatus(str, Enum):

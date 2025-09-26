@@ -4,24 +4,23 @@ Comprehensive test suite for semantic engine functionality
 Tests all components and verifies proper integration
 """
 
-from pathlib import Path
 import json
 import os
 import sys
 import time
-
 import unittest
+from pathlib import Path
 
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 try:
     from services.semantic_engine import (
-        SemanticJobMatcher,
         AdvancedSemanticMatcher,
         BatchMatcher,
-        SemanticProcessor,
         ModelManager,
+        SemanticJobMatcher,
+        SemanticProcessor,
     )
 
     SEMANTIC_AVAILABLE = True

@@ -1,10 +1,11 @@
 """Shared database utilities for BHIV HR Platform Services"""
 
-import os
-import psycopg2
-from contextlib import contextmanager
-from typing import Dict, Any, Optional
 import logging
+import os
+from contextlib import contextmanager
+from typing import Any, Dict, Optional
+
+import psycopg2
 
 logger = logging.getLogger(__name__)
 

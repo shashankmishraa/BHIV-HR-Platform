@@ -1,7 +1,7 @@
 """Candidate search and filtering component"""
 
-import streamlit as st
 import httpx
+import streamlit as st
 
 
 def show_candidate_search(API_BASE, headers, SECURITY_ENABLED, sql_guard=None):

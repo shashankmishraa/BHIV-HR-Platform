@@ -4,10 +4,11 @@ BHIV HR Platform - Updated Credentials Validation Test
 Tests all services with new production credentials and URLs
 """
 
-import requests
 import json
 import time
 from datetime import datetime
+
+import requests
 
 # Updated Production URLs
 GATEWAY_URL = "https://bhiv-hr-gateway-901a.onrender.com"

@@ -1,8 +1,9 @@
 """Values assessment component"""
 
-import streamlit as st
-import pandas as pd
 from datetime import datetime
+
+import pandas as pd
+import streamlit as st
 
 
 def show_values_assessment():

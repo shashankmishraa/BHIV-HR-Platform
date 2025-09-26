@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 """Complete Test Suite for All 166 Endpoints"""
 
-import sys
 import os
+import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "services", "gateway", "app"))
 
-from main_complete_166_final import app
-from fastapi.testclient import TestClient
 import json
 from datetime import datetime, timedelta
+
+from fastapi.testclient import TestClient
+from main_complete_166_final import app
 
 
 def test_all_166_endpoints():

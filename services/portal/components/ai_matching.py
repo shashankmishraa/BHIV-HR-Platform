@@ -1,7 +1,7 @@
 """AI matching and shortlisting component"""
 
-import streamlit as st
 import httpx
+import streamlit as st
 
 
 def show_ai_matching(API_BASE, AGENT_URL, headers):

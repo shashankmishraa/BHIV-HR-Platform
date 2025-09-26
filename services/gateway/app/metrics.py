@@ -1,16 +1,17 @@
 """Prometheus metrics integration for BHIV HR Platform"""
 
-from prometheus_client import (
-    Counter,
-    Histogram,
-    Gauge,
-    generate_latest,
-    CONTENT_TYPE_LATEST,
-)
-from fastapi import Request, Response
-import time
-import psutil
 import os
+import time
+
+import psutil
+from fastapi import Request, Response
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    Counter,
+    Gauge,
+    Histogram,
+    generate_latest,
+)
 
 # Metrics definitions
 REQUEST_COUNT = Counter(

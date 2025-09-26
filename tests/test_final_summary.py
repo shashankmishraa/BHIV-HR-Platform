@@ -4,10 +4,11 @@ FINAL SYSTEM SUMMARY AND VALIDATION
 BHIV HR Platform - Complete system assessment
 """
 
-import requests
 import json
 import time
 from datetime import datetime
+
+import requests
 
 # Configuration
 BASE_URL = "http://localhost:8000"

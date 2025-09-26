@@ -3,9 +3,10 @@
 Quick Validation Test - Test Fixed Endpoints
 """
 
-import requests
 import time
 from datetime import datetime
+
+import requests
 
 BASE_URL = "http://localhost:8000"
 AGENT_URL = "http://localhost:9000"

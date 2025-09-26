@@ -1,9 +1,10 @@
 """Monitoring and analytics router"""
 
-from fastapi import APIRouter, Query
-from typing import Optional
-from datetime import datetime, timezone
 import secrets
+from datetime import datetime, timezone
+from typing import Optional
+
+from fastapi import APIRouter, Query
 
 router = APIRouter(tags=["Monitoring"])
 

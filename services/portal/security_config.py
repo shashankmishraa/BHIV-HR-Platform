@@ -3,11 +3,11 @@ Enhanced Security Configuration for Portal
 Addresses CWE-798 and provides comprehensive security management
 """
 
-from typing import Optional, Dict, Any
 import logging
 import os
 import secrets
 import sys
+from typing import Any, Dict, Optional
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

@@ -1,10 +1,10 @@
-from pathlib import Path
 import os
 import re
+from pathlib import Path
 
-import PyPDF2
 import docx
 import pandas as pd
+import PyPDF2
 
 
 class ComprehensiveResumeExtractor:

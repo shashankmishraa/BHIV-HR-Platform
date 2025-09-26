@@ -1,11 +1,11 @@
-from pathlib import Path
-from typing import Dict, List, Optional, Any
 import json
 import logging
 import os
+import pickle
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 import numpy as np
-import pickle
 
 logger = logging.getLogger(__name__)
 

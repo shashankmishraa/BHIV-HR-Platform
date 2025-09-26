@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Check Docker deployment logs for gateway service issues"""
 
+import json
 import subprocess
 import sys
-import json
 from datetime import datetime
 
 

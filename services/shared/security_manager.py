@@ -3,15 +3,15 @@ Enterprise Security Manager
 Comprehensive security configuration and management system
 """
 
-from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, List
 import hashlib
 import logging
 import os
 import secrets
-
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
 import jwt
 
 logging.basicConfig(level=logging.INFO)
@@ -275,8 +275,8 @@ class SecurityManager:
     @staticmethod
     def generate_secure_password(length: int = 16) -> str:
         """Generate secure password"""
-        import string
         import random
+        import string
 
         chars = string.ascii_letters + string.digits + "!@#$%^&*()_+-="
         password = "".join(random.choice(chars) for _ in range(length))

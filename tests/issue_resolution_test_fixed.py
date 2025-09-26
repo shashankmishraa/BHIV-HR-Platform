@@ -4,8 +4,8 @@ BHIV HR Platform - Issue Resolution Test
 Test the specific issues that were identified and fixed
 """
 
-from datetime import datetime
 import time
+from datetime import datetime
 
 import requests
 

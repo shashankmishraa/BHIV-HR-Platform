@@ -4,9 +4,9 @@ Deploy Endpoint Fixes to Live Services
 Commits and pushes all endpoint fixes to trigger auto-deployment
 """
 
+import os
 import subprocess
 import sys
-import os
 from datetime import datetime
 
 

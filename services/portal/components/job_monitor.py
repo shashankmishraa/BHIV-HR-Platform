@@ -1,7 +1,7 @@
 """Job monitoring component"""
 
-import streamlit as st
 import httpx
+import streamlit as st
 
 
 def show_job_monitor(API_BASE, headers):

@@ -1,8 +1,9 @@
 """Export reports component"""
 
-import streamlit as st
-import httpx
 import io
+
+import httpx
+import streamlit as st
 
 
 def show_export_reports(API_BASE, headers):

@@ -4,8 +4,9 @@ Test API Key Authentication Fix
 Tests the corrected API key against the Gateway service
 """
 
-import requests
 import json
+
+import requests
 
 # Correct production API key
 PRODUCTION_API_KEY = "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o"

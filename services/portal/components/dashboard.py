@@ -1,8 +1,8 @@
 """Dashboard component for BHIV HR Portal"""
 
-import streamlit as st
 import httpx
 import pandas as pd
+import streamlit as st
 
 
 def show_dashboard(API_BASE, headers):

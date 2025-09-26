@@ -2,26 +2,26 @@
 Version: 3.2.0 - Production Ready Modular System
 """
 
-from fastapi import FastAPI, Request, BackgroundTasks
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError, HTTPException
-from datetime import datetime, timezone
-import time
-import uuid
 import logging
 import os
+import time
+import uuid
+from datetime import datetime, timezone
 
 # Import metrics
-from app.metrics import metrics_middleware, get_metrics_response, metrics_collector
+from app.metrics import get_metrics_response, metrics_collector, metrics_middleware
+from app.modules.auth import router as auth_router
+from app.modules.candidates import router as candidates_router
 
 # Import module routers
 from app.modules.core import router as core_router
-from app.modules.candidates import router as candidates_router
 from app.modules.jobs import router as jobs_router
-from app.modules.auth import router as auth_router
-from app.modules.workflows import router as workflows_router
 from app.modules.monitoring import router as monitoring_router
+from app.modules.workflows import router as workflows_router
+from fastapi import BackgroundTasks, FastAPI, Request
+from fastapi.exceptions import HTTPException, RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 # Initialize FastAPI application
 app = FastAPI(

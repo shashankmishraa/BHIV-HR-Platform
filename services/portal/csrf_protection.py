@@ -2,10 +2,10 @@
 CSRF protection for Streamlit forms
 """
 
-from typing import Optional
 import hashlib
 import secrets
 import time
+from typing import Optional
 
 
 class CSRFProtection:

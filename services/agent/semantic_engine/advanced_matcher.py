@@ -1,8 +1,7 @@
-from typing import Dict, List, Tuple, Any, Optional
 import logging
 import time
-
 from concurrent.futures import ThreadPoolExecutor
+from typing import Any, Dict, List, Optional, Tuple
 
 from .job_matcher import SemanticJobMatcher
 

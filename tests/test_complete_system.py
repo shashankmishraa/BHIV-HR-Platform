@@ -5,9 +5,9 @@ Tests all implemented fixes and verifies system readiness
 """
 
 import asyncio
+import json
 import os
 import sys
-import json
 from datetime import datetime, timezone
 
 # Add the app directory to the path
@@ -21,8 +21,8 @@ async def test_complete_authentication():
     print("Testing Complete Authentication System...")
 
     try:
-        from enhanced_auth_system import enhanced_auth_system
         from auth_manager import auth_manager
+        from enhanced_auth_system import enhanced_auth_system
 
         results = {
             "api_key_validation": False,
