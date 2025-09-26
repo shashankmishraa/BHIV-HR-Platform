@@ -186,8 +186,9 @@ async def check_agent_health():
         }
 
 # Register health checks
-health_checker.add_dependency("database", check_database_health)
-health_checker.add_dependency("ai_agent", check_agent_health)
+if health_checker:
+    health_checker.add_dependency("database", check_database_health)
+    health_checker.add_dependency("ai_agent", check_agent_health)
 
 # CORS Configuration
 app.add_middleware(
