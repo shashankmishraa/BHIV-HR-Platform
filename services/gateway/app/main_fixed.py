@@ -31,39 +31,30 @@ if shared_path not in sys.path:
 
 # Import observability with fallback
 try:
-    from observability_simple import setup_simple_observability
+    from observability_simple import setup_simple_observability, MetricsCollector
     logger.info("Simple observability loaded")
 except ImportError as e:
     logger.warning(f"Observability unavailable: {e}")
-    def setup_simple_observability(*args, **kwargs) -> None:
+    class MetricsCollector:
+        def collect_metrics(self):
+            return {}
+    def setup_simple_observability(*args, **kwargs):
         return None
-
-# Define consistent MetricsCollector interface
-class MetricsCollector:
-    def collect_metrics(self) -> Dict[str, Any]:
-        return {}
-    
-    def get_metrics(self) -> Dict[str, Any]:
-        return {"status": "unavailable", "message": "Metrics collector not available"}
 
 # Import metrics with fallback
 try:
-    from app.metrics import metrics_collector, metrics_middleware
+    from app.metrics import get_metrics_response, metrics_collector, metrics_middleware
     logger.info("Metrics module loaded")
 except ImportError as e:
     logger.warning(f"Metrics unavailable: {e}")
-    async def metrics_middleware(request: Request, call_next) -> Response:
+    def get_metrics_response():
+        return JSONResponse(content={"status": "unavailable"})
+    class FallbackCollector:
+        def record_request(self, *args, **kwargs):
+            pass
+    async def metrics_middleware(request, call_next):
         return await call_next(request)
-    metrics_collector = MetricsCollector()
-
-# Define metrics response function with consistent typing
-def get_metrics_response() -> Dict[str, Any]:
-    """Get metrics response data"""
-    try:
-        return metrics_collector.get_metrics()
-    except Exception as e:
-        logger.error(f"Error getting metrics: {e}")
-        return {"status": "error", "message": "Failed to retrieve metrics"}
+    metrics_collector = FallbackCollector()
 
 # Import config with fallback
 try:
@@ -75,14 +66,10 @@ try:
 except ImportError as e:
     logger.warning(f"Config unavailable: {e}")
     class Settings:
-        log_level = os.getenv('LOG_LEVEL', 'INFO')
-        environment = os.getenv('ENVIRONMENT', 'production')
+        log_level = 'INFO'
+        environment = 'production'
         cors_origins = ['*']
-        agent_service_url = os.getenv('AGENT_SERVICE_URL', '')
-        api_key_secret = os.getenv('API_KEY_SECRET', '')
-        jwt_secret = os.getenv('JWT_SECRET', '')
-        database_url = os.getenv('DATABASE_URL', '')
-        secret_key = os.getenv('SECRET_KEY', '')
+        agent_service_url = 'https://bhiv-hr-agent-m1me.onrender.com'
     settings = Settings()
     environment = 'production'
     class FallbackDB:
@@ -92,55 +79,16 @@ except ImportError as e:
 
 # Import module routers with fallbacks
 routers = {}
+modules = ['core', 'auth', 'candidates', 'jobs', 'monitoring', 'workflows']
 
-# Safe router imports without exec/eval
-try:
-    from app.modules.core import router as core_router
-    routers['core'] = core_router
-    logger.info("core router loaded")
-except ImportError as e:
-    logger.warning(f"core router unavailable: {e}")
-    routers['core'] = APIRouter()
-
-try:
-    from app.modules.auth import router as auth_router
-    routers['auth'] = auth_router
-    logger.info("auth router loaded")
-except ImportError as e:
-    logger.warning(f"auth router unavailable: {e}")
-    routers['auth'] = APIRouter()
-
-try:
-    from app.modules.candidates import router as candidates_router
-    routers['candidates'] = candidates_router
-    logger.info("candidates router loaded")
-except ImportError as e:
-    logger.warning(f"candidates router unavailable: {e}")
-    routers['candidates'] = APIRouter()
-
-try:
-    from app.modules.jobs import router as jobs_router
-    routers['jobs'] = jobs_router
-    logger.info("jobs router loaded")
-except ImportError as e:
-    logger.warning(f"jobs router unavailable: {e}")
-    routers['jobs'] = APIRouter()
-
-try:
-    from app.modules.monitoring import router as monitoring_router
-    routers['monitoring'] = monitoring_router
-    logger.info("monitoring router loaded")
-except ImportError as e:
-    logger.warning(f"monitoring router unavailable: {e}")
-    routers['monitoring'] = APIRouter()
-
-try:
-    from app.modules.workflows import router as workflows_router
-    routers['workflows'] = workflows_router
-    logger.info("workflows router loaded")
-except ImportError as e:
-    logger.warning(f"workflows router unavailable: {e}")
-    routers['workflows'] = APIRouter()
+for module in modules:
+    try:
+        exec(f"from app.modules.{module} import router as {module}_router")
+        routers[module] = eval(f"{module}_router")
+        logger.info(f"{module} router loaded")
+    except ImportError as e:
+        logger.warning(f"{module} router unavailable: {e}")
+        routers[module] = APIRouter()
 
 # Import user workflow router
 try:
@@ -295,11 +243,10 @@ async def health_probe():
     return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
 
 @app.get("/metrics")
-async def get_metrics() -> JSONResponse:
+async def get_metrics():
     """Prometheus metrics endpoint"""
     try:
-        response_data = get_metrics_response()
-        return JSONResponse(content=response_data)
+        return get_metrics_response()
     except Exception as e:
         logger.error(f"Metrics error: {e}")
         return JSONResponse(content={"error": "metrics unavailable"})

@@ -61,7 +61,7 @@ class ClientPortalHealthServer:
             
             # Check Gateway connectivity
             try:
-                gateway_url = "https://bhiv-hr-gateway-901a.onrender.com/health"
+                gateway_url = os.getenv('GATEWAY_URL', 'https://bhiv-hr-gateway-46pz.onrender.com') + '/health'
                 response = requests.get(gateway_url, timeout=5)
                 if response.status_code == 200:
                     status["dependencies"]["gateway"] = {
@@ -84,7 +84,8 @@ class ClientPortalHealthServer:
             # Check database connectivity
             try:
                 import psycopg2
-                db_url = "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb"
+                import os
+                db_url = os.getenv('DATABASE_URL', 'postgresql://localhost/bhiv_hr_dev')
                 conn = psycopg2.connect(db_url)
                 cursor = conn.cursor()
                 cursor.execute("SELECT 1")

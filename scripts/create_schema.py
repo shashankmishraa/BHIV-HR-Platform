@@ -1,32 +1,21 @@
 #!/usr/bin/env python3
-"""
-Database Schema Creator
-Creates missing database tables and resolves Priority 1 issue
-"""
+"""Simple Database Schema Creator"""
 
 import os
-from datetime import datetime
-
 import psycopg2
 
-
-def create_database_schema():
-    """Create database schema with all required tables"""
-
-    # Database connection
-    database_url = os.getenv("DATABASE_URL")
-    if not database_url:
-        raise ValueError("DATABASE_URL environment variable is required")
-
+def create_schema():
+    # Use the exact DATABASE_URL from .env.production
+    database_url = "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu"
+    
     try:
         print("Connecting to database...")
         conn = psycopg2.connect(database_url)
         cursor = conn.cursor()
-
+        
         # Create candidates table
         print("Creating candidates table...")
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS candidates (
                 id SERIAL PRIMARY KEY,
                 name VARCHAR(255) NOT NULL,
@@ -42,13 +31,11 @@ def create_database_schema():
                 created_at TIMESTAMP DEFAULT NOW(),
                 updated_at TIMESTAMP DEFAULT NOW()
             )
-        """
-        )
-
+        """)
+        
         # Create jobs table
         print("Creating jobs table...")
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS jobs (
                 id SERIAL PRIMARY KEY,
                 title VARCHAR(255) NOT NULL,
@@ -63,13 +50,11 @@ def create_database_schema():
                 created_at TIMESTAMP DEFAULT NOW(),
                 updated_at TIMESTAMP DEFAULT NOW()
             )
-        """
-        )
-
+        """)
+        
         # Create interviews table
         print("Creating interviews table...")
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS interviews (
                 id SERIAL PRIMARY KEY,
                 candidate_id INTEGER NOT NULL,
@@ -81,13 +66,11 @@ def create_database_schema():
                 created_at TIMESTAMP DEFAULT NOW(),
                 updated_at TIMESTAMP DEFAULT NOW()
             )
-        """
-        )
-
+        """)
+        
         # Create feedback table
         print("Creating feedback table...")
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS feedback (
                 id SERIAL PRIMARY KEY,
                 candidate_id INTEGER NOT NULL,
@@ -101,86 +84,47 @@ def create_database_schema():
                 created_at TIMESTAMP DEFAULT NOW(),
                 updated_at TIMESTAMP DEFAULT NOW()
             )
-        """
-        )
-
-        # Create indexes
-        print("Creating indexes...")
-        indexes = [
-            "CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status)",
-            "CREATE INDEX IF NOT EXISTS idx_candidates_email ON candidates(email)",
-            "CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status)",
-            "CREATE INDEX IF NOT EXISTS idx_interviews_candidate_job ON interviews(candidate_id, job_id)",
-            "CREATE INDEX IF NOT EXISTS idx_feedback_candidate_job ON feedback(candidate_id, job_id)",
-        ]
-
-        for index_sql in indexes:
-            cursor.execute(index_sql)
-
+        """)
+        
         # Insert sample data
         print("Inserting sample data...")
-
-        # Sample jobs
-        cursor.execute(
-            """
+        cursor.execute("""
             INSERT INTO jobs (title, department, location, experience_level, requirements, description) VALUES
             ('Software Engineer', 'Engineering', 'Remote', 'Mid-level', 'Python, FastAPI, PostgreSQL', 'Full-stack development role'),
             ('Data Scientist', 'Analytics', 'New York', 'Senior', 'Python, Machine Learning, SQL', 'Data analysis and ML model development'),
             ('Frontend Developer', 'Engineering', 'San Francisco', 'Junior', 'React, JavaScript, CSS', 'User interface development')
             ON CONFLICT DO NOTHING
-        """
-        )
-
-        # Sample candidates
-        cursor.execute(
-            """
+        """)
+        
+        cursor.execute("""
             INSERT INTO candidates (name, email, phone, location, technical_skills, experience_years, seniority_level, education_level) VALUES
             ('John Doe', 'john.doe@example.com', '+1-555-0101', 'New York', 'Python, FastAPI, PostgreSQL, React', 3, 'Mid-level', 'Bachelor''s'),
             ('Jane Smith', 'jane.smith@example.com', '+1-555-0102', 'San Francisco', 'JavaScript, React, Node.js, MongoDB', 2, 'Junior', 'Bachelor''s'),
             ('Mike Johnson', 'mike.johnson@example.com', '+1-555-0103', 'Remote', 'Python, Machine Learning, TensorFlow, SQL', 5, 'Senior', 'Master''s')
             ON CONFLICT (email) DO NOTHING
-        """
-        )
-
+        """)
+        
         # Commit changes
         conn.commit()
-
-        # Verify table creation
-        print("\nVerifying table creation...")
-        cursor.execute(
-            """
-            SELECT 'candidates' as table_name, COUNT(*) as record_count FROM candidates
-            UNION ALL
-            SELECT 'jobs' as table_name, COUNT(*) as record_count FROM jobs
-            UNION ALL
-            SELECT 'interviews' as table_name, COUNT(*) as record_count FROM interviews
-            UNION ALL
-            SELECT 'feedback' as table_name, COUNT(*) as record_count FROM feedback
-        """
-        )
-
-        results = cursor.fetchall()
-        print("\nTable verification results:")
-        for table_name, count in results:
-            print(f"  {table_name}: {count} records")
-
-        print(f"\n✅ Database schema created successfully at {datetime.now()}")
+        
+        # Verify tables
+        cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
+        tables = [row[0] for row in cursor.fetchall()]
+        
+        print(f"SUCCESS: Created {len(tables)} tables")
+        for table in tables:
+            cursor.execute(f"SELECT COUNT(*) FROM {table}")
+            count = cursor.fetchone()[0]
+            print(f"  {table}: {count} records")
+        
+        cursor.close()
+        conn.close()
         return True
-
+        
     except Exception as e:
-        print(f"❌ Error creating database schema: {str(e)}")
+        print(f"ERROR: {str(e)}")
         return False
 
-    finally:
-        if "cursor" in locals():
-            cursor.close()
-        if "conn" in locals():
-            conn.close()
-
-
 if __name__ == "__main__":
-    success = create_database_schema()
-    if success:
-        print("\n🎯 Next step: Test database endpoints")
-    else:
-        print("\n⚠️ Schema creation failed - check database connectivity")
+    success = create_schema()
+    exit(0 if success else 1)

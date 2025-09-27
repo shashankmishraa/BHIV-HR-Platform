@@ -15,7 +15,7 @@ on:
         options: ['full', 'health', 'api', 'performance']
 
 env:
-  API_KEY: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
+  API_KEY: ${{ secrets.PROD_API_KEY }}
   GATEWAY_URL: https://bhiv-hr-gateway-46pz.onrender.com
   AGENT_URL: https://bhiv-hr-agent-m1me.onrender.com
   PORTAL_URL: https://bhiv-hr-portal-cead.onrender.com

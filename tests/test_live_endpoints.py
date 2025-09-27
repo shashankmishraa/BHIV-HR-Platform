@@ -11,7 +11,8 @@ AGENT_URL = "https://bhiv-hr-agent-m1me.onrender.com"
 PORTAL_URL = "https://bhiv-hr-portal-cead.onrender.com"
 CLIENT_PORTAL_URL = "https://bhiv-hr-client-portal-5g33.onrender.com"
 
-API_KEY = "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o"
+import os
+API_KEY = os.getenv('PROD_API_KEY', 'prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o')
 
 class LiveEndpointTester:
     def __init__(self):

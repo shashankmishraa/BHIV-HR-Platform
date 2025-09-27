@@ -4,10 +4,10 @@
 **Comprehensive API documentation** for BHIV HR Platform v3.2.0 with 180+ endpoints across Gateway and AI Agent services.
 
 **Last Updated**: January 18, 2025  
-**API Version**: v3.2.0  
+**API Version**: v4.1.0 (Gateway), v3.2.0 (Agent)  
 **Base URLs**:
-- **Gateway**: https://bhiv-hr-gateway-901a.onrender.com
-- **AI Agent**: https://bhiv-hr-agent-o6nx.onrender.com
+- **Gateway**: https://bhiv-hr-gateway-46pz.onrender.com
+- **AI Agent**: https://bhiv-hr-agent-m1me.onrender.com
 
 ## 🔐 Authentication
 
@@ -18,7 +18,7 @@ Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
 
 # Example Request
 curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
-     https://bhiv-hr-gateway-901a.onrender.com/health
+     https://bhiv-hr-gateway-46pz.onrender.com/health
 ```
 
 ### **JWT Token Authentication**
