@@ -51,7 +51,7 @@ async def list_jobs(
     from app.shared.database import db_manager
     
     try:
-        async with db_manager.get_connection() as conn:
+        with db_manager.get_connection() as conn:
             cursor = conn.cursor()
             
             # Build dynamic query with filters
@@ -147,7 +147,7 @@ async def create_job(job: JobCreate, background_tasks: BackgroundTasks):
         validated_data = ValidationUtils.validate_job_data(job_data)
 
         # Insert into database
-        async with db_manager.get_connection() as conn:
+        with db_manager.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
                 INSERT INTO jobs (title, department, location, experience_level, 
@@ -220,7 +220,7 @@ async def get_job(job_id: str):
     from app.shared.database import db_manager
     
     try:
-        async with db_manager.get_connection() as conn:
+        with db_manager.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
                 SELECT id, title, department, location, experience_level,
@@ -334,7 +334,7 @@ async def get_job_analytics():
     from app.shared.database import db_manager
     
     try:
-        async with db_manager.get_connection() as conn:
+        with db_manager.get_connection() as conn:
             cursor = conn.cursor()
             
             # Total and active jobs
