@@ -6,6 +6,7 @@ Provides standardized health endpoints for monitoring
 import asyncio
 import json
 import logging
+import os
 import threading
 import time
 from datetime import datetime, timezone
@@ -61,7 +62,7 @@ class PortalHealthServer:
             
             # Check Gateway connectivity
             try:
-                gateway_url = "https://bhiv-hr-gateway-901a.onrender.com/health"
+                gateway_url = os.getenv('GATEWAY_URL', 'https://bhiv-hr-gateway-46pz.onrender.com') + '/health'
                 response = requests.get(gateway_url, timeout=5)
                 if response.status_code == 200:
                     status["dependencies"]["gateway"] = {
