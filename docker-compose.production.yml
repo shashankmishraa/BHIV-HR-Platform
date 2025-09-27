@@ -6,9 +6,9 @@ services:
   db:
     image: postgres:17-alpine
     environment:
-      POSTGRES_DB: bhiv_hr_nqzb
+      POSTGRES_DB: bhiv_hr_jcuu
       POSTGRES_USER: bhiv_user
-      POSTGRES_PASSWORD: B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J
+      POSTGRES_PASSWORD: 3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
     ports:
       - "5432:5432"
@@ -21,7 +21,7 @@ services:
       - ./services/db/04_insert_sample_data.sql:/docker-entrypoint-initdb.d/05-insert-data.sql
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bhiv_user -d bhiv_hr_nqzb"]
+      test: ["CMD-SHELL", "pg_isready -U bhiv_user -d bhiv_hr_jcuu"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -40,7 +40,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@db:5432/bhiv_hr_nqzb
+      DATABASE_URL: postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@db:5432/bhiv_hr_jcuu
       API_KEY_SECRET: ${API_KEY_SECRET:-prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o}
       JWT_SECRET: ${JWT_SECRET:-prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA}
       ENVIRONMENT: development
@@ -65,7 +65,7 @@ services:
     ports:
       - "9000:9000"
     environment:
-      DATABASE_URL: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@db:5432/bhiv_hr_nqzb
+      DATABASE_URL: postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@db:5432/bhiv_hr_jcuu
       API_KEY_SECRET: ${API_KEY_SECRET:-prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o}
       JWT_SECRET: ${JWT_SECRET:-prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA}
       ENVIRONMENT: development
@@ -110,7 +110,7 @@ services:
       AGENT_SERVICE_URL: http://agent:9000
       API_KEY_SECRET: ${API_KEY_SECRET:-prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o}
       JWT_SECRET: ${JWT_SECRET:-prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA}
-      DATABASE_URL: postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@db:5432/bhiv_hr_nqzb
+      DATABASE_URL: postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@db:5432/bhiv_hr_jcuu
       ENVIRONMENT: development
     depends_on:
       gateway:

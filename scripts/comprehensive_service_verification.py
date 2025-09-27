@@ -52,10 +52,10 @@ class ServiceVerifier:
         # Service configurations
         self.services = {
             "production": {
-                "gateway": "https://bhiv-hr-gateway-901a.onrender.com",
-                "agent": "https://bhiv-hr-agent-o6nx.onrender.com", 
-                "portal": "https://bhiv-hr-portal-xk2k.onrender.com",
-                "client_portal": "https://bhiv-hr-client-portal-zdbt.onrender.com"
+                "gateway": "https://bhiv-hr-gateway-46pz.onrender.com",
+                "agent": "https://bhiv-hr-agent-m1me.onrender.com", 
+                "portal": "https://bhiv-hr-portal-cead.onrender.com",
+                "client_portal": "https://bhiv-hr-client-portal-5g33.onrender.com"
             },
             "development": {
                 "gateway": "http://localhost:8000",
@@ -344,7 +344,7 @@ class ServiceVerifier:
         db_results = {}
         
         # Test production database
-        prod_db_url = "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb"
+        prod_db_url = "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu"
         
         self.print_info("Testing production database connectivity...")
         try:
@@ -385,7 +385,7 @@ class ServiceVerifier:
             self.add_issue("critical", "database", f"Production database unreachable: {str(e)}")
         
         # Test local database (if available)
-        local_db_url = "postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@localhost:5432/bhiv_hr_nqzb"
+        local_db_url = "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@localhost:5432/bhiv_hr_jcuu"
         
         self.print_info("Testing local database connectivity...")
         try:
