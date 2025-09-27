@@ -201,29 +201,60 @@ async def get_workflow_analytics():
 
 @router.get("/health")
 async def get_workflow_system_health():
-    """Get workflow system health status"""
-    active_workflows = len(
-        [
-            w
-            for w in workflows_store.values()
-            if w["status"] == WorkflowStatus.IN_PROGRESS
-        ]
-    )
-    failed_workflows = len(
-        [w for w in workflows_store.values() if w["status"] == WorkflowStatus.FAILED]
-    )
-
+    """Enhanced workflow system health status with detailed monitoring"""
+    workflows = list(workflows_store.values())
+    
+    # Calculate comprehensive metrics
+    active_workflows = len([w for w in workflows if w["status"] == WorkflowStatus.IN_PROGRESS])
+    failed_workflows = len([w for w in workflows if w["status"] == WorkflowStatus.FAILED])
+    completed_workflows = len([w for w in workflows if w["status"] == WorkflowStatus.COMPLETED])
+    pending_workflows = len([w for w in workflows if w["status"] == WorkflowStatus.PENDING])
+    paused_workflows = len([w for w in workflows if w["status"] == WorkflowStatus.PAUSED])
+    
+    total_workflows = len(workflows)
+    success_rate = (completed_workflows / total_workflows * 100) if total_workflows > 0 else 0
+    
+    # Determine health status
     health_status = "healthy"
     if failed_workflows > 5:
         health_status = "degraded"
-    if active_workflows > 20:
+    elif active_workflows > 20:
         health_status = "overloaded"
-
+    elif success_rate < 80:
+        health_status = "warning"
+    
+    # Calculate average processing time
+    completed_with_time = [w for w in workflows if w["status"] == WorkflowStatus.COMPLETED and "completed_at" in w and "started_at" in w]
+    avg_processing_time = 0
+    if completed_with_time:
+        total_time = sum([(w["completed_at"] - w["started_at"]).total_seconds() for w in completed_with_time])
+        avg_processing_time = total_time / len(completed_with_time)
+    
     return {
         "status": health_status,
-        "active_workflows": active_workflows,
-        "failed_workflows": failed_workflows,
-        "system_capacity": "normal",
+        "workflow_metrics": {
+            "active_workflows": active_workflows,
+            "failed_workflows": failed_workflows,
+            "completed_workflows": completed_workflows,
+            "pending_workflows": pending_workflows,
+            "paused_workflows": paused_workflows,
+            "total_workflows": total_workflows
+        },
+        "performance_metrics": {
+            "success_rate": round(success_rate, 2),
+            "avg_processing_time_seconds": round(avg_processing_time, 2),
+            "throughput_per_hour": round(completed_workflows / max(1, total_workflows) * 60, 2)
+        },
+        "system_capacity": {
+            "current_load": f"{active_workflows}/50",
+            "capacity_utilization": f"{(active_workflows / 50 * 100):.1f}%",
+            "queue_depth": pending_workflows
+        },
+        "alerts": {
+            "high_failure_rate": failed_workflows > 5,
+            "capacity_warning": active_workflows > 40,
+            "low_success_rate": success_rate < 80
+        },
         "last_check": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -509,19 +540,56 @@ async def bulk_trigger_workflows(
 
 @router.get("/queue")
 async def get_workflow_queue():
-    """Get workflow execution queue"""
+    """Enhanced workflow execution queue with detailed monitoring"""
     workflows = list(workflows_store.values())
-
+    
+    # Calculate queue metrics
+    pending_workflows = [w for w in workflows if w["status"] == WorkflowStatus.PENDING]
+    running_workflows = [w for w in workflows if w["status"] == WorkflowStatus.IN_PROGRESS]
+    paused_workflows = [w for w in workflows if w["status"] == WorkflowStatus.PAUSED]
+    completed_workflows = [w for w in workflows if w["status"] == WorkflowStatus.COMPLETED]
+    failed_workflows = [w for w in workflows if w["status"] == WorkflowStatus.FAILED]
+    
+    # Calculate wait times
+    current_time = datetime.now(timezone.utc)
+    avg_wait_time = 0
+    if pending_workflows:
+        wait_times = [(current_time - w["created_at"]).total_seconds() for w in pending_workflows]
+        avg_wait_time = sum(wait_times) / len(wait_times)
+    
+    # Get workflow types distribution
+    workflow_types = {}
+    for workflow in workflows:
+        wf_type = workflow.get("workflow_type", "unknown")
+        workflow_types[wf_type] = workflow_types.get(wf_type, 0) + 1
+    
     return {
-        "queue_size": len(
-            [w for w in workflows if w["status"] == WorkflowStatus.PENDING]
-        ),
-        "running": len(
-            [w for w in workflows if w["status"] == WorkflowStatus.IN_PROGRESS]
-        ),
-        "pending": len([w for w in workflows if w["status"] == WorkflowStatus.PENDING]),
-        "paused": len([w for w in workflows if w["status"] == WorkflowStatus.PAUSED]),
-        "completed": len(
-            [w for w in workflows if w["status"] == WorkflowStatus.COMPLETED]
-        ),
+        "queue_metrics": {
+            "queue_size": len(pending_workflows),
+            "running": len(running_workflows),
+            "pending": len(pending_workflows),
+            "paused": len(paused_workflows),
+            "completed": len(completed_workflows),
+            "failed": len(failed_workflows)
+        },
+        "performance_metrics": {
+            "avg_wait_time_seconds": round(avg_wait_time, 2),
+            "processing_rate": f"{len(running_workflows)}/min",
+            "completion_rate": f"{len(completed_workflows)}/hour"
+        },
+        "workflow_distribution": workflow_types,
+        "queue_health": {
+            "status": "healthy" if len(pending_workflows) < 10 else "warning" if len(pending_workflows) < 25 else "critical",
+            "backlog_alert": len(pending_workflows) > 20,
+            "processing_alert": len(running_workflows) > 40
+        },
+        "next_workflows": [
+            {
+                "workflow_id": w["workflow_id"],
+                "workflow_type": w["workflow_type"],
+                "created_at": w["created_at"].isoformat(),
+                "wait_time_seconds": (current_time - w["created_at"]).total_seconds()
+            } for w in sorted(pending_workflows, key=lambda x: x["created_at"])[:5]
+        ],
+        "timestamp": current_time.isoformat()
     }

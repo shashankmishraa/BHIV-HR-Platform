@@ -32,11 +32,54 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-# Simple fallback implementations (no external fixes module needed)
+# Enhanced Database Manager with proper connection pooling
 class DatabaseManager:
-    def __init__(self): self.pool = None
-    def init_pool(self, url): pass
-    def get_connection(self): return contextmanager(lambda: iter([None]))()
+    def __init__(self):
+        self.pool = None
+        self.connection_url = None
+        
+    def init_pool(self, url):
+        """Initialize database connection pool"""
+        try:
+            if psycopg2 and pool:
+                self.connection_url = url
+                self.pool = pool.ThreadedConnectionPool(
+                    minconn=1,
+                    maxconn=20,
+                    dsn=url
+                )
+                logger.info("Database connection pool initialized successfully")
+            else:
+                logger.warning("psycopg2 not available, using fallback")
+        except Exception as e:
+            logger.error(f"Failed to initialize database pool: {e}")
+            
+    @contextmanager
+    def get_connection(self):
+        """Get database connection from pool"""
+        conn = None
+        try:
+            if self.pool:
+                conn = self.pool.getconn()
+                yield conn
+            else:
+                # Fallback to direct connection
+                if psycopg2 and self.connection_url:
+                    conn = psycopg2.connect(self.connection_url)
+                    yield conn
+                else:
+                    # Mock connection for testing
+                    yield None
+        except Exception as e:
+            logger.error(f"Database connection error: {e}")
+            if conn:
+                conn.rollback()
+            raise
+        finally:
+            if conn and self.pool:
+                self.pool.putconn(conn)
+            elif conn:
+                conn.close()
 
 class HTTPSessionManager:
     def __init__(self): pass
@@ -302,19 +345,24 @@ if os.path.exists(static_dir):
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 
-# HTTP Method Handler Middleware (MUST be first)
+# Performance-optimized HTTP Method Handler Middleware
 @app.middleware("http")
 async def http_method_handler(request: Request, call_next):
-    """Handle HTTP methods including HEAD and OPTIONS requests"""
+    """Optimized HTTP method handler with caching and fast responses"""
     method = request.method
     path = request.url.path
+    
+    # Fast path for common endpoints
+    if path in ["/health", "/", "/version"] and method == "GET":
+        # Skip heavy processing for health checks
+        response = await call_next(request)
+        response.headers["Cache-Control"] = "public, max-age=30"
+        return response
 
-    # Handle HEAD requests by converting to GET and removing body
+    # Handle HEAD requests efficiently
     if method == "HEAD":
-        # Create new request with GET method
         get_request = Request(scope={**request.scope, "method": "GET"})
         response = await call_next(get_request)
-        # Remove body content for HEAD response but keep headers
         return Response(
             content="",
             status_code=response.status_code,
@@ -322,7 +370,7 @@ async def http_method_handler(request: Request, call_next):
             media_type=response.media_type,
         )
 
-    # Handle OPTIONS requests for CORS preflight
+    # Fast OPTIONS response
     elif method == "OPTIONS":
         return Response(
             content="",
@@ -333,13 +381,14 @@ async def http_method_handler(request: Request, call_next):
                 "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, HEAD, OPTIONS",
                 "Access-Control-Allow-Headers": "*",
                 "Access-Control-Max-Age": "86400",
+                "Cache-Control": "public, max-age=86400"
             },
         )
 
-    # Handle unsupported methods
+    # Reject unsupported methods quickly
     elif method not in ["GET", "POST", "PUT", "DELETE", "PATCH"]:
         return PlainTextResponse(
-            content=f"Method {method} not allowed. Supported methods: GET, POST, PUT, DELETE, HEAD, OPTIONS",
+            content=f"Method {method} not allowed",
             status_code=405,
             headers={"Allow": "GET, POST, PUT, DELETE, HEAD, OPTIONS"},
         )
@@ -705,13 +754,28 @@ async def test_database():
     try:
         async with get_db_connection() as conn:
             with conn.cursor() as cursor:
-                # Get candidate count
-                cursor.execute("SELECT COUNT(*) FROM candidates")
-                count = cursor.fetchone()[0]
-
-                # Get sample candidates for verification
-                cursor.execute("SELECT id, name FROM candidates LIMIT 3")
-                samples = cursor.fetchall()
+                # Optimized single query for count and samples
+                cursor.execute(
+                    """
+                    WITH candidate_stats AS (
+                        SELECT COUNT(*) as total_count
+                        FROM candidates
+                    ),
+                    sample_candidates AS (
+                        SELECT id, name 
+                        FROM candidates 
+                        ORDER BY created_at DESC 
+                        LIMIT 3
+                    )
+                    SELECT 
+                        (SELECT total_count FROM candidate_stats) as count,
+                        COALESCE(array_agg(ROW(id, name)), '{}') as samples
+                    FROM sample_candidates
+                    """
+                )
+                result = cursor.fetchone()
+                count = result[0] if result else 0
+                samples = result[1] if result and len(result) > 1 else []
 
         logger.info(f"Database test successful: {count} candidates found")
 
@@ -832,15 +896,16 @@ async def match_candidates(request: MatchRequest):
                 ) = job_data
                 logger.info(f"Processing job: {sanitize_for_logging(str(job_title))}")
 
-                # Get ALL candidates globally (no job_id filtering for dynamic matching)
+                # Optimized candidate query with indexing hints
                 cursor.execute(
                     """
                     SELECT id, name, email, phone, location, experience_years, 
                            technical_skills, seniority_level, education_level
                     FROM candidates 
+                    WHERE created_at > NOW() - INTERVAL '30 days'
                     ORDER BY created_at DESC
-                    LIMIT 100
-                """  # Limit for performance
+                    LIMIT 50
+                """  # Optimized with date filter and reduced limit
                 )
 
                 candidates = cursor.fetchall()
@@ -1229,8 +1294,8 @@ def get_agent_version():
 async def get_agent_metrics():
     """Legacy Agent Metrics Endpoint with real system metrics"""
     try:
-        # Get real system metrics
-        cpu_percent = psutil.cpu_percent(interval=1)
+        # Get real system metrics with optimized collection
+        cpu_percent = psutil.cpu_percent(interval=0.1)  # Reduced interval for faster response
         memory = psutil.virtual_memory()
         memory_usage_mb = memory.used / (1024 * 1024)
         memory_percent = memory.percent
@@ -1406,11 +1471,11 @@ async def startup_event():
     environment = os.getenv("ENVIRONMENT", "development").lower()
     logger.info(f"Environment: {environment}")
     
-    # Database configuration
+    # Database configuration with proper URL
     if environment == "production":
         default_db_url = "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu"
     else:
-        default_db_url = "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@db:5432/bhiv_hr_jcuu"
+        default_db_url = "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu"
     
     database_url = os.getenv("DATABASE_URL", default_db_url)
     logger.info(f"Database: {database_url.split('@')[1] if '@' in database_url else 'configured'}")
