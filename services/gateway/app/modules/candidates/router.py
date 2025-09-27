@@ -194,13 +194,18 @@ async def delete_candidate(candidate_id: str):
     return {"message": f"Candidate {candidate_id} deleted successfully"}
 
 
+from pydantic import BaseModel
+
+class BulkCandidateRequest(BaseModel):
+    candidates: List[CandidateCreate]
+
 @router.post("/bulk")
 async def bulk_create_candidates(
-    candidates: List[CandidateCreate], background_tasks: BackgroundTasks
+    request: BulkCandidateRequest, background_tasks: BackgroundTasks
 ):
     """Create multiple candidates and trigger bulk workflow"""
     results = []
-    for candidate in candidates:
+    for candidate in request.candidates:
         candidate_id = f"cand_{hash(candidate.email) % 100000}"
         results.append({"id": candidate_id, "email": candidate.email})
 
