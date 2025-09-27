@@ -58,15 +58,22 @@ except ImportError as e:
         logger.info("Basic observability loaded")
     except ImportError as e:
         logger.warning(f"Basic observability unavailable: {e}")
-        class FallbackMetrics:
-            def collect_metrics(self) -> Dict[str, Any]:
-                return {}
-        
-        def fallback_setup(*args: Any, **kwargs: Any) -> Optional[Any]:
-            return None
-        
-        MetricsCollector = FallbackMetrics
-        setup_observability = fallback_setup
+        try:
+            from observability_simple import setup_simple_observability, MetricsCollector
+            setup_observability = setup_simple_observability
+            UNIFIED_OBSERVABILITY = False
+            logger.info("Simple observability loaded")
+        except ImportError as e2:
+            logger.error(f"No observability available: {e2}")
+            class FallbackMetrics:
+                def collect_metrics(self) -> Dict[str, Any]:
+                    return {}
+            
+            def fallback_setup(*args: Any, **kwargs: Any) -> Optional[Any]:
+                return None
+            
+            MetricsCollector = FallbackMetrics
+            setup_observability = fallback_setup
 
 # Import app modules with error handling
 try:
@@ -92,7 +99,12 @@ try:
     from app.modules.core import router as core_router
     from app.modules.jobs import router as jobs_router
     from app.modules.monitoring import router as monitoring_router
+<<<<<<< HEAD
     from app.modules.workflows import router as integration_router
+=======
+    from app.modules.workflows import router as workflows_router
+    from app.user_workflow import router as user_workflow_router
+>>>>>>> 26a6ef767662ee90b78d4d1d9c92efb9a7caba55
 except ImportError as e:
     logger.error(f"Module routers import failed: {e}")
     auth_router = APIRouter()
@@ -100,7 +112,12 @@ except ImportError as e:
     core_router = APIRouter()
     jobs_router = APIRouter()
     monitoring_router = APIRouter()
+<<<<<<< HEAD
     integration_router = APIRouter()
+=======
+    workflows_router = APIRouter()
+    user_workflow_router = APIRouter()
+>>>>>>> 26a6ef767662ee90b78d4d1d9c92efb9a7caba55
 
 # Initialize FastAPI application
 app = FastAPI(
@@ -173,7 +190,7 @@ except Exception as e:
     environment = 'production'
     db_manager = None
 
-# Setup observability with proper error handling
+# Setup observability with comprehensive error handling
 health_checker = None
 observability_manager = None
 async_manager = None
@@ -182,7 +199,7 @@ tracer = None
 
 try:
     if UNIFIED_OBSERVABILITY and setup_unified_observability:
-        result = setup_unified_observability(app, "BHIV HR Gateway", "3.2.0")
+        result = setup_unified_observability(app, "BHIV HR Gateway", "4.1.0")
         if isinstance(result, tuple):
             _, health_checker, alert_manager, tracer = result
         else:
@@ -191,17 +208,25 @@ try:
         async_manager = get_async_manager() if get_async_manager else None
         logger.info("Unified observability initialized")
     elif setup_observability:
-        health_checker = setup_observability(app, "BHIV HR Gateway", "3.2.0")
-        logger.info("Basic observability initialized")
+        health_checker = setup_observability(app, "BHIV HR Gateway", "4.1.0")
+        logger.info("Observability framework initialized")
+    else:
+        logger.warning("No observability framework available")
 except Exception as e:
     logger.error(f"Observability setup failed: {e}")
+    health_checker = None
 
-# Ensure metrics collector
-if not metrics_collector and MetricsCollector:
+# Initialize metrics collector with error handling
+if not metrics_collector:
     try:
-        metrics_collector = MetricsCollector()
+        if MetricsCollector:
+            metrics_collector = MetricsCollector()
+            logger.info("Metrics collector initialized")
+        else:
+            logger.warning("No metrics collector available")
     except Exception as e:
-        logger.error(f"Metrics collector failed: {e}")
+        logger.error(f"Metrics collector initialization failed: {e}")
+        metrics_collector = None
 
 # Enhanced database health check with async optimization
 async def check_database_health():
@@ -289,14 +314,19 @@ async def check_agent_health():
             "error": str(e)
         }
 
-# Register health checks with error handling
-try:
-    if health_checker and hasattr(health_checker, 'add_dependency'):
-        health_checker.add_dependency("database", check_database_health)
-        health_checker.add_dependency("ai_agent", check_agent_health)
-        logger.info("Health checks registered successfully")
-except Exception as e:
-    logger.error(f"Failed to register health checks: {e}")
+# Register health dependencies with comprehensive validation
+if health_checker:
+    try:
+        if hasattr(health_checker, 'add_dependency') and callable(getattr(health_checker, 'add_dependency')):
+            health_checker.add_dependency("database", check_database_health)
+            health_checker.add_dependency("ai_agent", check_agent_health)
+            logger.info("Health dependencies registered: database, ai_agent")
+        else:
+            logger.warning("Health checker does not support dependencies")
+    except Exception as e:
+        logger.error(f"Health dependency registration failed: {e}")
+else:
+    logger.warning("No health checker available for dependency registration")
 
 # CORS Configuration with error handling
 try:
@@ -315,31 +345,28 @@ except Exception as e:
     logger.error(f"CORS configuration failed: {e}")
 
 
-# Enhanced Middleware with Metrics (Observability middleware is automatically added)
 @app.middleware("http")
 async def process_middleware(request: Request, call_next):
-    """Enhanced request processing middleware with metrics collection"""
+    """Request processing middleware with metrics and headers"""
     start_time = time.time()
-    request_id = getattr(request.state, 'correlation_id', f"req_{uuid.uuid4().hex[:8]}")
-
-    # Add request context
+    request_id = f"req_{uuid.uuid4().hex[:8]}"
+    
     request.state.request_id = request_id
     request.state.start_time = start_time
-
-    # Process request with metrics collection
-    response = await metrics_middleware(request, call_next)
-
-    # Calculate processing time
+    
+    try:
+        response = await metrics_middleware(request, call_next)
+    except Exception as e:
+        logger.error(f"Middleware error: {e}")
+        response = await call_next(request)
+    
     process_time = time.time() - start_time
-
-    # Add response headers
+    
     response.headers["X-Process-Time"] = str(round(process_time, 4))
-    response.headers["X-Gateway-Version"] = "3.2.1-modular-observability"
+    response.headers["X-Gateway-Version"] = "4.1.0"
     response.headers["X-Request-ID"] = request_id
     response.headers["X-Environment"] = environment
-    response.headers["X-Total-Modules"] = "6"
-    response.headers["X-Observability"] = "enabled"
-
+    
     return response
 
 
@@ -351,6 +378,7 @@ async def health_probe():
 
 # Include routers with error handling
 try:
+    # app.include_router(user_workflow_router, prefix="", tags=["User Workflow"])  # Removed
     app.include_router(core_router, prefix="", tags=["Core"])
     app.include_router(candidates_router, prefix="", tags=["Candidates"])
     app.include_router(jobs_router, prefix="", tags=["Jobs"])
@@ -365,10 +393,9 @@ except Exception as e:
         return {"status": "ok", "service": "BHIV Gateway", "version": "3.2.0"}
 
 
-# Additional integration endpoints
 @app.get("/system/modules")
 async def get_system_modules():
-    """Get information about system modules"""
+    """System module information"""
     return {
         "modules": [
             {
@@ -409,9 +436,9 @@ async def get_system_modules():
             },
         ],
         "total_modules": 6,
-        "total_endpoints": "50+",
+        "total_endpoints": "73",
         "architecture": "modular",
-        "version": "3.2.0",
+        "version": "4.1.0"
     }
 
 
@@ -423,14 +450,14 @@ async def get_system_architecture():
             "type": "modular_microservices",
             "pattern": "api_gateway_with_modules",
             "modules": 6,
-            "total_endpoints": "180+",
+            "total_endpoints": "73",
             "testing_utilities": True,
             "integration_endpoints": True,
         },
         "technology_stack": {
             "framework": "FastAPI 0.104+",
-            "python": "3.11+",
-            "database": "PostgreSQL",
+            "python": "3.12.7",
+            "database": "PostgreSQL 17",
             "deployment": "Render Cloud",
             "monitoring": "Prometheus Compatible",
         },
@@ -452,18 +479,19 @@ async def get_system_architecture():
     }
 
 
-# Metrics endpoint is now handled by observability framework
-# Legacy endpoint for backward compatibility
 @app.get("/metrics/legacy")
 async def get_legacy_metrics():
-    """Legacy metrics endpoint for backward compatibility"""
-    return get_metrics_response()
+    """Legacy metrics endpoint"""
+    try:
+        return get_metrics_response()
+    except Exception as e:
+        logger.error(f"Legacy metrics error: {e}")
+        return {"error": "Metrics unavailable", "timestamp": datetime.now(timezone.utc).isoformat()}
 
 
-# Error Handlers
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    """Enhanced validation error handler"""
+    """Validation error handler"""
     return JSONResponse(
         status_code=422,
         content={
@@ -471,16 +499,14 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "message": "Request validation failed",
             "details": exc.errors(),
             "request_id": getattr(request.state, "request_id", "unknown"),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "module": "validation",
-            "version": "3.2.0",
-        },
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
     )
 
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
-    """Enhanced HTTP exception handler"""
+    """HTTP exception handler"""
     return JSONResponse(
         status_code=exc.status_code,
         content={
@@ -488,48 +514,41 @@ async def http_exception_handler(request: Request, exc: HTTPException):
             "message": exc.detail,
             "status_code": exc.status_code,
             "request_id": getattr(request.state, "request_id", "unknown"),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "module": "http_handler",
-            "version": "3.2.0",
-        },
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
     )
 
 
-# Enhanced Application Events
 @app.on_event("startup")
 async def startup_event():
-    """Application startup with comprehensive error handling"""
-    logger.info("=" * 60)
-    logger.info("BHIV HR Gateway - Starting")
-    logger.info("=" * 60)
+    """Application startup"""
+    logger.info("BHIV HR Gateway starting...")
     
-    # Initialize async processing if available
     if UNIFIED_OBSERVABILITY and async_manager and initialize_unified_async:
         try:
-            db_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu")
-            success = await initialize_unified_async(db_url)
-            logger.info(f"Async: {'✓' if success else '✗'}")
+            db_url = os.getenv("DATABASE_URL")
+            if db_url:
+                success = await initialize_unified_async(db_url)
+                logger.info(f"Async initialization: {'success' if success else 'failed'}")
         except Exception as e:
-            logger.error(f"Async init failed: {e}")
+            logger.error(f"Async initialization error: {e}")
     
-    logger.info(f"Version: 3.2.0")
+    logger.info(f"Version: 4.1.0")
     logger.info(f"Environment: {environment}")
     logger.info(f"Observability: {'Unified' if UNIFIED_OBSERVABILITY else 'Basic'}")
-    logger.info(f"Modules: 6 | Endpoints: 50+")
-    logger.info("=" * 60)
+    logger.info(f"Modules: 6 | Endpoints: 73")
     logger.info("Gateway ready")
-    logger.info("=" * 60)
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """Application shutdown with cleanup"""
+    """Application shutdown"""
     logger.info("Gateway shutting down...")
     
     if UNIFIED_OBSERVABILITY and shutdown_unified_async:
         try:
             await shutdown_unified_async()
-            logger.info("Async cleanup complete")
+            logger.info("Cleanup complete")
         except Exception as e:
             logger.error(f"Shutdown error: {e}")
     
@@ -538,15 +557,9 @@ async def shutdown_event():
 
 if __name__ == "__main__":
     import uvicorn
-
+    
     port = int(os.environ.get("PORT", 8000))
-    print("=" * 80)
-    print("BHIV HR Platform API Gateway - Modular Architecture")
-    print("=" * 80)
-    print(f"Version: 3.2.0")
-    print(f"Architecture: Modular")
-    print(f"Total Modules: 6")
-    print(f"Total Endpoints: 50+")
-    print(f"Starting server on port {port}")
-    print("=" * 80)
+    print("BHIV HR Platform Gateway v4.1.0")
+    print(f"Modules: 6 | Endpoints: 73 | Testing: Structured")
+    print(f"Starting on port {port}")
     uvicorn.run(app, host="0.0.0.0", port=port)

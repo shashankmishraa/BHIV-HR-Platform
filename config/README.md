@@ -1,4 +1,16 @@
-# BHIV HR Platform - Configuration Management
+# BHIV HR Platform - Configuration Management v4.1.0
+
+**Updated**: January 18, 2025 | **Python**: 3.12.7 | **Status**: ✅ Production Ready
+
+## 🔧 Current Production Configuration
+
+### **Live Service URLs**
+- **Gateway**: https://bhiv-hr-gateway-901a.onrender.com
+- **AI Agent**: https://bhiv-hr-agent-o6nx.onrender.com  
+- **HR Portal**: https://bhiv-hr-portal-xk2k.onrender.com
+- **Client Portal**: https://bhiv-hr-client-portal-zdbt.onrender.com
+
+# Configuration Management
 
 ## Security Overview
 

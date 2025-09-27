@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     port: int = Field(default=8000, env="PORT")
 
     # Database
-    database_url: str = Field(default="postgresql://bhiv_user:B7iZSA0S3y6QCopt0UTxmnEQsJmxtf9J@dpg-d373qrogjchc73bu9gug-a.oregon-postgres.render.com/bhiv_hr_nqzb", env="DATABASE_URL")
+    database_url: str = Field(default="postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu", env="DATABASE_URL")
 
     # Security
     api_key_secret: str = Field(default="test-api-key-fallback", env="API_KEY_SECRET")
@@ -33,13 +33,13 @@ class Settings(BaseSettings):
 
     # Service URLs
     agent_service_url: str = Field(
-        default="https://bhiv-hr-agent-m1me.onrender.com", env="AGENT_SERVICE_URL"
+        default="https://bhiv-hr-agent-o6nx.onrender.com", env="AGENT_SERVICE_URL"
     )
     portal_url: str = Field(
-        default="https://bhiv-hr-portal-cead.onrender.com", env="PORTAL_URL"
+        default="https://bhiv-hr-portal-xk2k.onrender.com", env="PORTAL_URL"
     )
     client_portal_url: str = Field(
-        default="https://bhiv-hr-client-portal-5g33.onrender.com",
+        default="https://bhiv-hr-client-portal-zdbt.onrender.com",
         env="CLIENT_PORTAL_URL",
     )
 

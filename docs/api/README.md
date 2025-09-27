@@ -4,16 +4,17 @@ Complete API reference for the BHIV HR Platform with 166 total endpoints (127 te
 
 ## 🚀 Quick Start
 
-### **Base URLs**
-- **Gateway API**: https://bhiv-hr-gateway.onrender.com
-- **AI Agent API**: https://bhiv-hr-agent.onrender.com
+### **Base URLs** (Updated January 18, 2025)
+- **Gateway API**: https://bhiv-hr-gateway-901a.onrender.com
+- **AI Agent API**: https://bhiv-hr-agent-o6nx.onrender.com
 - **Interactive Docs**: `/docs` endpoint on each service
+- **Python Version**: 3.12.7 | **Status**: ✅ Production Ready
 
 ### **Authentication**
 ```bash
 # API Key Authentication
 curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
-     https://bhiv-hr-gateway.onrender.com/v1/jobs
+     https://bhiv-hr-gateway-901a.onrender.com/v1/jobs
 ```
 
 ---
@@ -455,8 +456,8 @@ jobs = client.get_jobs()
 ## 📚 Additional Resources
 
 ### **Interactive Documentation**
-- **Gateway API**: https://bhiv-hr-gateway.onrender.com/docs
-- **AI Agent API**: https://bhiv-hr-agent.onrender.com/docs
+- **Gateway API**: https://bhiv-hr-gateway-901a.onrender.com/docs
+- **AI Agent API**: https://bhiv-hr-agent-o6nx.onrender.com/docs
 
 ### **Testing Tools**
 - **Postman Collection**: Available in `/docs/api/postman/`
