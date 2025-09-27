@@ -271,23 +271,25 @@ def show_job_posting():
             )
 
         # Salary fields (required)
-        st.subheader("💰 Salary Information (Required)")
+        st.subheader("💰 Salary Information (Required - Indian Rupees ₹)")
         sal_col1, sal_col2 = st.columns(2)
         with sal_col1:
             salary_min = st.number_input(
-                "Minimum Salary ($)",
+                "Minimum Salary (₹)",
                 min_value=0,
-                max_value=10000000,
-                value=60000,
-                step=5000,
+                max_value=100000000,
+                value=600000,
+                step=50000,
+                help="Enter amount in Indian Rupees (₹)"
             )
         with sal_col2:
             salary_max = st.number_input(
-                "Maximum Salary ($)",
-                min_value=0,
-                max_value=10000000,
-                value=100000,
-                step=5000,
+                "Maximum Salary (₹)",
+                min_value=1,
+                max_value=100000000,
+                value=1000000,
+                step=50000,
+                help="Enter amount in Indian Rupees (₹)"
             )
 
         job_description = st.text_area("Job Description", height=150)
@@ -302,7 +304,7 @@ def show_job_posting():
             st.subheader("📋 Job Preview")
             st.write(f"**{job_title}** - {department} | {location} | {employment_type}")
             st.write(f"**Experience:** {experience_level} Level")
-            salary_range = f"${salary_min:,} - ${salary_max:,}"
+            salary_range = f"₹{salary_min:,} - ₹{salary_max:,}"
             if salary_min and salary_max:
                 st.write(f"**Salary:** {salary_range}")
             st.write(f"**Description:** {job_description[:200]}...")

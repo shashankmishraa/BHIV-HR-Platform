@@ -43,23 +43,25 @@ def show_job_creation(
             client_id = st.number_input("Client ID", min_value=1, step=1, value=1)
 
         # Salary fields (required)
-        st.subheader("💰 Salary Information (Required)")
+        st.subheader("💰 Salary Information (Required - Indian Rupees ₹)")
         sal_col1, sal_col2 = st.columns(2)
         with sal_col1:
             salary_min = st.number_input(
-                "Minimum Salary ($)",
+                "Minimum Salary (₹)",
                 min_value=0,
-                max_value=10000000,
-                value=50000,
-                step=5000,
+                max_value=100000000,
+                value=500000,
+                step=50000,
+                help="Enter amount in Indian Rupees (₹)"
             )
         with sal_col2:
             salary_max = st.number_input(
-                "Maximum Salary ($)",
-                min_value=0,
-                max_value=10000000,
-                value=80000,
-                step=5000,
+                "Maximum Salary (₹)",
+                min_value=1,
+                max_value=100000000,
+                value=800000,
+                step=50000,
+                help="Enter amount in Indian Rupees (₹)"
             )
 
         description = st.text_area(
