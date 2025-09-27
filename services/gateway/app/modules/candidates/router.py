@@ -131,6 +131,10 @@ async def create_candidate(
     try:
         candidate_data = candidate.dict()
         
+        # Handle NaN/empty values gracefully
+        email = candidate_data.get('email', '') or None  # Allow NULL for empty email
+        phone = candidate_data.get('phone', '') or None  # Allow NULL for empty phone
+        
         # Insert into database
         async with db_manager.get_connection() as conn:
             cursor = conn.cursor()
@@ -141,8 +145,8 @@ async def create_candidate(
                 RETURNING id
             """, (
                 candidate_data.get('name'),
-                candidate_data.get('email'),
-                candidate_data.get('phone', ''),
+                email,
+                phone,
                 candidate_data.get('location', ''),
                 candidate_data.get('technical_skills', ''),
                 candidate_data.get('experience_years', 0),

@@ -151,8 +151,8 @@ async def create_job(job: JobCreate, background_tasks: BackgroundTasks):
             cursor = conn.cursor()
             cursor.execute("""
                 INSERT INTO jobs (title, department, location, experience_level, 
-                                requirements, description, client_id, employment_type, status)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                requirements, description, client_id, employment_type, status, salary_min, salary_max)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id
             """, (
                 validated_data.get('title'),
@@ -163,7 +163,9 @@ async def create_job(job: JobCreate, background_tasks: BackgroundTasks):
                 validated_data.get('description', ''),
                 validated_data.get('client_id', 1),
                 validated_data.get('employment_type', 'Full-time'),
-                validated_data.get('status', 'active')
+                validated_data.get('status', 'active'),
+                validated_data.get('salary_min', 50000),
+                validated_data.get('salary_max', 100000)
             ))
             
             job_id = cursor.fetchone()[0]
