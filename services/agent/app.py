@@ -141,6 +141,7 @@ except ImportError as e:
         
         # Tertiary: Use simple observability as last resort
         try:
+            sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
             from observability_simple import setup_simple_observability, MetricsCollector
             setup_observability = setup_simple_observability
             UNIFIED_OBSERVABILITY = False
@@ -1560,4 +1561,5 @@ async def shutdown_event():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=9000)
+    port = int(os.environ.get("PORT", 9000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

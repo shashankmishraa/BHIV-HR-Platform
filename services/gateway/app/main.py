@@ -58,15 +58,22 @@ except ImportError as e:
         logger.info("Basic observability loaded")
     except ImportError as e:
         logger.warning(f"Basic observability unavailable: {e}")
-        class FallbackMetrics:
-            def collect_metrics(self) -> Dict[str, Any]:
-                return {}
-        
-        def fallback_setup(*args: Any, **kwargs: Any) -> Optional[Any]:
-            return None
-        
-        MetricsCollector = FallbackMetrics
-        setup_observability = fallback_setup
+        try:
+            from observability_simple import setup_simple_observability, MetricsCollector
+            setup_observability = setup_simple_observability
+            UNIFIED_OBSERVABILITY = False
+            logger.info("Simple observability loaded")
+        except ImportError as e2:
+            logger.error(f"No observability available: {e2}")
+            class FallbackMetrics:
+                def collect_metrics(self) -> Dict[str, Any]:
+                    return {}
+            
+            def fallback_setup(*args: Any, **kwargs: Any) -> Optional[Any]:
+                return None
+            
+            MetricsCollector = FallbackMetrics
+            setup_observability = fallback_setup
 
 # Import app modules with error handling
 try:
@@ -93,6 +100,7 @@ try:
     from app.modules.jobs import router as jobs_router
     from app.modules.monitoring import router as monitoring_router
     from app.modules.workflows import router as workflows_router
+    from app.user_workflow import router as user_workflow_router
 except ImportError as e:
     logger.error(f"Module routers import failed: {e}")
     auth_router = APIRouter()
@@ -101,6 +109,7 @@ except ImportError as e:
     jobs_router = APIRouter()
     monitoring_router = APIRouter()
     workflows_router = APIRouter()
+    user_workflow_router = APIRouter()
 
 # Initialize FastAPI application
 app = FastAPI(
@@ -351,6 +360,7 @@ async def health_probe():
 
 # Include routers with error handling
 try:
+    app.include_router(user_workflow_router, prefix="", tags=["User Workflow"])
     app.include_router(core_router, prefix="", tags=["Core"])
     app.include_router(candidates_router, prefix="", tags=["Candidates"])
     app.include_router(jobs_router, prefix="", tags=["Jobs"])
@@ -543,8 +553,12 @@ if __name__ == "__main__":
     print("=" * 80)
     print("BHIV HR Platform API Gateway - Modular Architecture")
     print("=" * 80)
-    print(f"Version: 3.2.0")
-    print(f"Architecture: Modular")
+    print(f"Version: 4.1.0")
+    print(f"Python: 3.12.7")
+    print(f"Port: {port}")
+    print(f"Environment: {os.getenv('ENVIRONMENT', 'production')}")
+    print("=" * 80)
+    uvicorn.run(app, host="0.0.0.0", port=port)ecture: Modular")
     print(f"Total Modules: 6")
     print(f"Total Endpoints: 180+")
     print(f"Starting server on port {port}")
