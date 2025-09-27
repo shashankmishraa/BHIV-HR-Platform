@@ -15,3 +15,5 @@ def show_dashboard(api_base, headers):
         st.metric("Candidates", "0") 
     with col3:
         st.metric("Interviews", "0")
+    
+    return None
