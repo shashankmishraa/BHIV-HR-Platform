@@ -157,19 +157,6 @@ app = FastAPI(
     version="4.1.0",
     description="""
     Enterprise HR Platform with Modular Architecture & Comprehensive Observability
-    
-    ## Features
-    - 73+ REST API Endpoints
-    - Modular Architecture with 6 Core Modules
-    - Systematic Testing Framework
-    - Real-time Monitoring & Analytics
-    - Enterprise Security & Authentication
-    
-    ## Health Endpoints
-    - /health - Basic health check
-    - /health/detailed - Detailed system status
-    - /health/ready - Readiness probe
-    - /health/live - Liveness probe
     """,
     contact={
         "name": "BHIV HR Platform Team",
