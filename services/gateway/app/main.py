@@ -159,6 +159,14 @@ except ImportError as e:
     logger.warning(f"feedback router unavailable: {e}")
     routers['feedback'] = APIRouter()
 
+try:
+    from .modules.api import router as api_router  # type: ignore
+    routers['api'] = api_router
+    logger.info("api router loaded")
+except ImportError as e:
+    logger.warning(f"api router unavailable: {e}")
+    routers['api'] = APIRouter()
+
 # Import user workflow router with relative import
 try:
     from .user_workflow import router as user_workflow_router  # type: ignore
