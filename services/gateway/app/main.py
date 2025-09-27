@@ -99,12 +99,8 @@ try:
     from app.modules.core import router as core_router
     from app.modules.jobs import router as jobs_router
     from app.modules.monitoring import router as monitoring_router
-<<<<<<< HEAD
     from app.modules.workflows import router as integration_router
-=======
-    from app.modules.workflows import router as workflows_router
     from app.user_workflow import router as user_workflow_router
->>>>>>> 26a6ef767662ee90b78d4d1d9c92efb9a7caba55
 except ImportError as e:
     logger.error(f"Module routers import failed: {e}")
     auth_router = APIRouter()
@@ -112,12 +108,8 @@ except ImportError as e:
     core_router = APIRouter()
     jobs_router = APIRouter()
     monitoring_router = APIRouter()
-<<<<<<< HEAD
     integration_router = APIRouter()
-=======
-    workflows_router = APIRouter()
     user_workflow_router = APIRouter()
->>>>>>> 26a6ef767662ee90b78d4d1d9c92efb9a7caba55
 
 # Initialize FastAPI application
 app = FastAPI(
@@ -378,7 +370,7 @@ async def health_probe():
 
 # Include routers with error handling
 try:
-    # app.include_router(user_workflow_router, prefix="", tags=["User Workflow"])  # Removed
+    app.include_router(user_workflow_router, prefix="", tags=["User Workflow"])
     app.include_router(core_router, prefix="", tags=["Core"])
     app.include_router(candidates_router, prefix="", tags=["Candidates"])
     app.include_router(jobs_router, prefix="", tags=["Jobs"])
