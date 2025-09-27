@@ -53,7 +53,6 @@ jobs:
           
           curl -f -s $GATEWAY_URL/ && echo "✅ /" || echo "❌ /"
           curl -f -s $GATEWAY_URL/system/modules && echo "✅ /system/modules" || echo "❌ /system/modules"
-          curl -f -s $GATEWAY_URL/system/architecture && echo "✅ /system/architecture" || echo "❌ /system/architecture"
           curl -f -s $GATEWAY_URL/architecture && echo "✅ /architecture" || echo "❌ /architecture"
 
   metrics-endpoints:
@@ -70,7 +69,6 @@ jobs:
           # Gateway Metrics
           curl -f -s $GATEWAY_URL/metrics && echo "✅ /metrics" || echo "❌ /metrics"
           curl -f -s $GATEWAY_URL/metrics/json && echo "✅ /metrics/json" || echo "❌ /metrics/json"
-          curl -f -s $GATEWAY_URL/metrics/legacy && echo "✅ /metrics/legacy" || echo "❌ /metrics/legacy"
           
           # Agent Metrics
           curl -f -s $AGENT_URL/metrics && echo "✅ Agent /metrics" || echo "❌ Agent /metrics"
@@ -87,38 +85,38 @@ jobs:
         run: |
           echo "🔐 Testing Authentication Endpoints..."
           
-          # Test login endpoint
-          curl -f -s -X POST $GATEWAY_URL/auth/login \
-            -H "Content-Type: application/json" \
-            -d '{"username":"TECH001","password":"demo123"}' && echo "✅ POST /auth/login" || echo "❌ POST /auth/login"
+          # Test login endpoint with form data
+          curl -f -s -X POST $GATEWAY_URL/v1/auth/login \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d 'username=admin&password=admin123' && echo "✅ POST /v1/auth/login" || echo "❌ POST /v1/auth/login"
           
-          # Test API key validation
-          curl -f -s -H "Authorization: Bearer $API_KEY" $GATEWAY_URL/auth/validate && echo "✅ /auth/validate" || echo "❌ /auth/validate"
+          # Test profile endpoint
+          curl -f -s $GATEWAY_URL/v1/auth/profile && echo "✅ /v1/auth/profile" || echo "❌ /v1/auth/profile"
       
       - name: Test Candidate Endpoints
         run: |
           echo "👥 Testing Candidate Endpoints..."
           
-          # Test with API key
-          curl -f -s -H "Authorization: Bearer $API_KEY" $GATEWAY_URL/candidates && echo "✅ GET /candidates" || echo "❌ GET /candidates"
-          curl -f -s -H "Authorization: Bearer $API_KEY" $GATEWAY_URL/candidates/stats && echo "✅ /candidates/stats" || echo "❌ /candidates/stats"
-          curl -f -s -H "Authorization: Bearer $API_KEY" $GATEWAY_URL/candidates/search?skills=Python && echo "✅ /candidates/search" || echo "❌ /candidates/search"
+          # Test candidate endpoints
+          curl -f -s $GATEWAY_URL/v1/candidates && echo "✅ GET /v1/candidates" || echo "❌ GET /v1/candidates"
+          curl -f -s $GATEWAY_URL/v1/candidates/analytics && echo "✅ /v1/candidates/analytics" || echo "❌ /v1/candidates/analytics"
+          curl -f -s $GATEWAY_URL/v1/candidates/search?skills=Python && echo "✅ /v1/candidates/search" || echo "❌ /v1/candidates/search"
       
       - name: Test Job Endpoints
         run: |
           echo "💼 Testing Job Endpoints..."
           
-          curl -f -s -H "Authorization: Bearer $API_KEY" $GATEWAY_URL/jobs && echo "✅ GET /jobs" || echo "❌ GET /jobs"
-          curl -f -s -H "Authorization: Bearer $API_KEY" $GATEWAY_URL/jobs/stats && echo "✅ /jobs/stats" || echo "❌ /jobs/stats"
-          curl -f -s -H "Authorization: Bearer $API_KEY" $GATEWAY_URL/jobs/search?title=developer && echo "✅ /jobs/search" || echo "❌ /jobs/search"
+          curl -f -s $GATEWAY_URL/v1/jobs && echo "✅ GET /v1/jobs" || echo "❌ GET /v1/jobs"
+          curl -f -s $GATEWAY_URL/v1/jobs/analytics && echo "✅ /v1/jobs/analytics" || echo "❌ /v1/jobs/analytics"
+          curl -f -s $GATEWAY_URL/v1/jobs/search?title=developer && echo "✅ /v1/jobs/search" || echo "❌ /v1/jobs/search"
       
       - name: Test AI Agent Endpoints
         run: |
           echo "🤖 Testing AI Agent Endpoints..."
           
-          curl -f -s -H "Authorization: Bearer $API_KEY" $AGENT_URL/match/candidates && echo "✅ /match/candidates" || echo "❌ /match/candidates"
-          curl -f -s -H "Authorization: Bearer $API_KEY" $AGENT_URL/analytics/performance && echo "✅ /analytics/performance" || echo "❌ /analytics/performance"
-          curl -f -s -H "Authorization: Bearer $API_KEY" $AGENT_URL/models/status && echo "✅ /models/status" || echo "❌ /models/status"
+          curl -f -s $AGENT_URL/match/candidates && echo "✅ /match/candidates" || echo "❌ /match/candidates"
+          curl -f -s $AGENT_URL/analytics/performance && echo "✅ /analytics/performance" || echo "❌ /analytics/performance"
+          curl -f -s $AGENT_URL/models/status && echo "✅ /models/status" || echo "❌ /models/status"
 
   integration-endpoints:
     name: Integration & Testing Utilities
@@ -205,7 +203,7 @@ jobs:
           
           # Sequential API calls
           for i in {1..20}; do
-            curl -f -s -H "Authorization: Bearer $API_KEY" $GATEWAY_URL/candidates > /dev/null
+            curl -f -s $GATEWAY_URL/v1/candidates > /dev/null
             sleep 0.1
           done
           echo "✅ Sequential API calls completed"

@@ -231,7 +231,7 @@ jobs:
             echo "Testing $name..."
             
             for attempt in {1..5}; do
-              if curl -f -s --max-time 30 "$url/health/probe" > /dev/null; then
+              if curl -f -s --max-time 30 "$url/health" > /dev/null; then
                 echo "✅ $name: Healthy (attempt $attempt)"
                 break
               else
