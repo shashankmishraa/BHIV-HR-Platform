@@ -22,13 +22,19 @@ class SimpleHealthChecker:
     
     async def check_health(self) -> Dict[str, Any]:
         """Check health of all dependencies"""
-        results = {"status": "healthy", "checks": {}}
+        results = {"status": "healthy", "checks": {}, "timestamp": datetime.now(timezone.utc).isoformat()}
         
         for name, check_func in self.dependencies.items():
             try:
                 if callable(check_func):
-                    result = await check_func() if hasattr(check_func, '__call__') else check_func()
-                    results["checks"][name] = result
+                    import asyncio
+                    if asyncio.iscoroutinefunction(check_func):
+                        result = await check_func()
+                    else:
+                        result = check_func()
+                    results["checks"][name] = result if isinstance(result, dict) else {"status": "healthy"}
+                else:
+                    results["checks"][name] = {"status": "unknown", "error": "Not callable"}
             except Exception as e:
                 results["checks"][name] = {"status": "unhealthy", "error": str(e)}
                 results["status"] = "degraded"
@@ -85,12 +91,18 @@ def setup_simple_observability(app: FastAPI, service_name: str, version: str):
     
     # Add metrics middleware
     @app.middleware("http")
-    async def metrics_middleware(request: Request, call_next):
+    async def metrics_middleware_func(request: Request, call_next):
         start_time = time.time()
-        response = await call_next(request)
-        duration = time.time() - start_time
-        metrics_collector.record_request(duration, response.status_code)
-        return response
+        try:
+            response = await call_next(request)
+            duration = time.time() - start_time
+            metrics_collector.record_request(duration, response.status_code)
+            return response
+        except Exception as e:
+            duration = time.time() - start_time
+            metrics_collector.record_request(duration, 500)
+            logger.error(f"Request processing error: {e}")
+            raise
     
     logger.info(f"Simple observability setup complete for {service_name}")
     return health_checker

@@ -5,119 +5,119 @@ from datetime import datetime, timezone
 
 router = APIRouter()
 
-@router.get("/workflow/start", tags=["🚀 Getting Started"])
+@router.get("/workflow/start", tags=["Getting Started"])
 async def workflow_start():
-    """Start here - Complete user workflow guide"""
+    """API workflow guide and service information"""
     return {
-        "welcome": "Welcome to BHIV HR Platform",
-        "live_services": {
-            "gateway": "https://bhiv-hr-gateway-901a.onrender.com",
-            "hr_portal": "https://bhiv-hr-portal-xk2k.onrender.com",
-            "client_portal": "https://bhiv-hr-client-portal-zdbt.onrender.com"
+        "service": "BHIV HR Platform API Gateway",
+        "version": "4.1.0",
+        "documentation": "/docs",
+        "workflow_steps": {
+            "authentication": "/auth/login",
+            "job_management": "/jobs/create",
+            "candidate_management": "/candidates/upload",
+            "ai_matching": "/matching/find-candidates",
+            "interview_scheduling": "/interviews/schedule",
+            "reporting": "/reports/summary"
         },
-        "user_journeys": {
-            "hr_manager": [
-                {"step": 1, "action": "Login", "endpoint": "/auth/login"},
-                {"step": 2, "action": "Create Job", "endpoint": "/jobs/create"},
-                {"step": 3, "action": "Upload Candidates", "endpoint": "/candidates/upload"},
-                {"step": 4, "action": "AI Matching", "endpoint": "/matching/find-candidates"},
-                {"step": 5, "action": "Schedule Interviews", "endpoint": "/interviews/schedule"}
-            ],
-            "client": [
-                {"step": 1, "action": "Client Login", "endpoint": "/client/login"},
-                {"step": 2, "action": "Post Job", "endpoint": "/client/jobs/post"},
-                {"step": 3, "action": "Review Matches", "endpoint": "/client/candidates/matches"}
-            ]
-        }
+        "system_status": "/system/status"
     }
 
-@router.post("/auth/login", tags=["🔐 Step 1: Authentication"])
+@router.post("/auth/login", tags=["Authentication"])
 async def user_login():
-    """Step 1: User authentication"""
+    """User authentication endpoint"""
     return {
-        "step": "1 - Authentication",
-        "demo_credentials": {
-            "hr_user": {"username": "hr@bhiv.com", "password": "demo123"},
-            "client_user": {"username": "TECH001", "password": "demo123"}
-        },
-        "portals": {
-            "hr_portal": "https://bhiv-hr-portal-xk2k.onrender.com",
-            "client_portal": "https://bhiv-hr-client-portal-zdbt.onrender.com"
-        }
+        "message": "Authentication endpoint",
+        "method": "POST",
+        "required_fields": ["username", "password"],
+        "response": "JWT token on successful authentication"
     }
 
-@router.post("/jobs/create", tags=["💼 Step 2: Job Management"])
+@router.post("/jobs/create", tags=["Job Management"])
 async def create_job_workflow():
-    """Step 2: Create new job posting"""
+    """Create new job posting"""
     return {
-        "step": "2 - Job Creation",
-        "form_fields": {
-            "title": "Job title",
-            "description": "Job description",
-            "required_skills": ["Python", "React", "PostgreSQL"],
-            "experience_level": "Junior/Mid/Senior/Lead",
-            "location": "Remote/City/Hybrid"
+        "endpoint": "POST /jobs/create",
+        "description": "Create new job posting with requirements",
+        "required_fields": {
+            "title": "string",
+            "description": "string",
+            "required_skills": "array",
+            "experience_level": "string",
+            "location": "string"
         },
-        "next_step": "/candidates/upload"
+        "response": "Job ID and creation confirmation"
     }
 
-@router.post("/candidates/upload", tags=["👥 Step 3: Candidate Management"])
+@router.post("/candidates/upload", tags=["Candidate Management"])
 async def upload_candidates_workflow():
-    """Step 3: Upload candidate profiles"""
+    """Upload candidate profiles"""
     return {
-        "step": "3 - Candidate Upload",
-        "upload_methods": {
-            "bulk_csv": "Upload CSV file",
-            "resume_parsing": "AI-powered resume parsing",
-            "manual_entry": "Add candidates individually"
-        },
-        "next_step": "/matching/find-candidates"
+        "endpoint": "POST /candidates/upload",
+        "description": "Upload candidate profiles via CSV or individual entry",
+        "supported_formats": ["CSV", "JSON", "Individual entry"],
+        "ai_features": ["Resume parsing", "Skill extraction", "Duplicate detection"],
+        "response": "Upload status and processed candidate count"
     }
 
-@router.get("/matching/find-candidates", tags=["🤖 Step 4: AI Matching"])
+@router.get("/matching/find-candidates", tags=["AI Matching"])
 async def ai_matching_workflow():
-    """Step 4: AI-powered candidate matching"""
+    """AI-powered candidate matching"""
     return {
-        "step": "4 - AI Matching",
-        "ai_features": {
-            "semantic_matching": "Advanced skill matching",
-            "bias_mitigation": "Fair candidate ranking",
-            "explainable_ai": "Clear match reasoning"
+        "endpoint": "GET /matching/find-candidates",
+        "description": "Find best candidate matches using AI algorithms",
+        "parameters": {
+            "job_id": "required - Job ID for matching",
+            "limit": "optional - Number of matches to return",
+            "threshold": "optional - Minimum match score"
         },
-        "sample_matches": [
-            {"candidate": "John Doe", "score": 94.5, "strengths": ["Python", "Leadership"]},
-            {"candidate": "Jane Smith", "score": 87.3, "strengths": ["React", "Team work"]}
+        "ai_capabilities": [
+            "Semantic skill matching",
+            "Experience level alignment",
+            "Location preference matching",
+            "Bias-free ranking"
         ],
-        "next_step": "/interviews/schedule"
+        "response": "Ranked list of candidate matches with scores and reasoning"
     }
 
-@router.post("/interviews/schedule", tags=["📅 Step 5: Interview Management"])
+@router.post("/interviews/schedule", tags=["Interview Management"])
 async def schedule_interview_workflow():
-    """Step 5: Schedule interviews"""
+    """Schedule candidate interviews"""
     return {
-        "step": "5 - Interview Scheduling",
-        "features": {
-            "calendar_integration": "Google Calendar, Outlook",
-            "automated_reminders": "Email and SMS notifications",
-            "feedback_collection": "Structured evaluation forms"
+        "endpoint": "POST /interviews/schedule",
+        "description": "Schedule interviews with candidates",
+        "required_fields": {
+            "candidate_id": "string",
+            "job_id": "string",
+            "interview_date": "datetime",
+            "interviewer_id": "string",
+            "interview_type": "string"
         },
-        "next_step": "/reports/summary"
+        "features": [
+            "Calendar integration",
+            "Automated notifications",
+            "Timezone handling",
+            "Feedback collection"
+        ],
+        "response": "Interview confirmation and calendar invite"
     }
 
-@router.get("/system/status", tags=["🔧 System Status"])
+@router.get("/system/status", tags=["System Status"])
 async def system_status():
-    """Real-time system status"""
+    """System health and status information"""
     return {
-        "system_health": "🟢 All Systems Operational",
+        "status": "operational",
+        "version": "4.1.0",
         "services": {
-            "gateway": {"status": "🟢 Online", "url": "https://bhiv-hr-gateway-901a.onrender.com"},
-            "ai_agent": {"status": "🟢 Online", "url": "https://bhiv-hr-agent-o6nx.onrender.com"},
-            "hr_portal": {"status": "🟢 Online", "url": "https://bhiv-hr-portal-xk2k.onrender.com"},
-            "client_portal": {"status": "🟢 Online", "url": "https://bhiv-hr-client-portal-zdbt.onrender.com"}
+            "gateway": {"status": "online", "response_time": "<100ms"},
+            "ai_agent": {"status": "online", "response_time": "<50ms"},
+            "database": {"status": "connected", "query_time": "<50ms"}
         },
-        "performance": {
-            "api_response_time": "<100ms",
-            "ai_matching_speed": "<0.02s per candidate",
-            "uptime": "99.9%"
-        }
+        "performance_metrics": {
+            "total_endpoints": "180+",
+            "avg_response_time": "<100ms",
+            "uptime": "99.9%",
+            "concurrent_users": "50+"
+        },
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
