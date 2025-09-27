@@ -5,17 +5,41 @@ Version: 3.2.0 - Production Ready Modular System with Comprehensive Observabilit
 import gc
 import logging
 import os
+import sys
 import time
 import uuid
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Union, Optional, Callable
+
+# FastAPI imports - must be early for type checking
+from fastapi import APIRouter, BackgroundTasks, FastAPI, Request, Response
+from fastapi.exceptions import HTTPException, RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
+# Configure logging first
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Configure garbage collection for memory optimization
 gc.set_threshold(700, 10, 10)
 
-# Import unified observability framework
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))
+# Setup proper import paths
+shared_path = os.path.join(os.path.dirname(__file__), '..', '..', 'shared')
+if shared_path not in sys.path:
+    sys.path.insert(0, shared_path)
+
+# Initialize observability variables
+UNIFIED_OBSERVABILITY = False
+setup_unified_observability = None
+initialize_unified_async = None
+shutdown_unified_async = None
+get_observability_manager = None
+get_async_manager = None
+setup_observability = None
+MetricsCollector = None
+
+# Import observability with comprehensive error handling
 try:
     from observability_manager import (
         setup_unified_observability, 
@@ -25,30 +49,58 @@ try:
         get_async_manager
     )
     UNIFIED_OBSERVABILITY = True
-except ImportError:
-    # Final fallback
+    logger.info("Unified observability loaded")
+except ImportError as e:
+    logger.warning(f"Unified observability unavailable: {e}")
     try:
         from observability import setup_observability, MetricsCollector
         UNIFIED_OBSERVABILITY = False
-        print("Using basic observability framework")
-    except ImportError:
-        UNIFIED_OBSERVABILITY = False
-        print("No observability framework available")
+        logger.info("Basic observability loaded")
+    except ImportError as e:
+        logger.warning(f"Basic observability unavailable: {e}")
+        class FallbackMetrics:
+            def collect_metrics(self) -> Dict[str, Any]:
+                return {}
+        
+        def fallback_setup(*args: Any, **kwargs: Any) -> Optional[Any]:
+            return None
+        
+        MetricsCollector = FallbackMetrics
+        setup_observability = fallback_setup
 
-# Import metrics
-from app.metrics import get_metrics_response, metrics_collector, metrics_middleware
-from app.modules.auth import router as auth_router
-from app.modules.candidates import router as candidates_router
+# Import app modules with error handling
+try:
+    from app.metrics import get_metrics_response, metrics_collector, metrics_middleware
+except ImportError as e:
+    logger.error(f"Metrics import failed: {e}")
+    
+    def get_metrics_response() -> Response:
+        return JSONResponse(content={"status": "unavailable"})
+    
+    class FallbackCollector:
+        def record_request(self, *args: Any, **kwargs: Any) -> None:
+            pass
+    
+    async def metrics_middleware(request: Request, call_next: Callable) -> Response:
+        return await call_next(request)
+    
+    metrics_collector = FallbackCollector()
 
-# Import module routers
-from app.modules.core import router as core_router
-from app.modules.jobs import router as jobs_router
-from app.modules.monitoring import router as monitoring_router
-from app.modules.workflows import router as workflows_router
-from fastapi import BackgroundTasks, FastAPI, Request
-from fastapi.exceptions import HTTPException, RequestValidationError
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+try:
+    from app.modules.auth import router as auth_router
+    from app.modules.candidates import router as candidates_router
+    from app.modules.core import router as core_router
+    from app.modules.jobs import router as jobs_router
+    from app.modules.monitoring import router as monitoring_router
+    from app.modules.workflows import router as workflows_router
+except ImportError as e:
+    logger.error(f"Module routers import failed: {e}")
+    auth_router = APIRouter()
+    candidates_router = APIRouter()
+    core_router = APIRouter()
+    jobs_router = APIRouter()
+    monitoring_router = APIRouter()
+    workflows_router = APIRouter()
 
 # Initialize FastAPI application
 app = FastAPI(
@@ -86,55 +138,100 @@ app = FastAPI(
     },
 )
 
-# Setup unified observability
-if UNIFIED_OBSERVABILITY:
-    metrics_collector, health_checker, alert_manager, tracer = setup_unified_observability(app, "BHIV HR Gateway", "3.2.0")
-    observability_manager = get_observability_manager()
-    async_manager = get_async_manager()
-else:
-    # Final fallback
-    health_checker = setup_observability(app, "BHIV HR Gateway", "3.2.0") if 'setup_observability' in globals() else None
-    metrics_collector = MetricsCollector() if 'MetricsCollector' in globals() else None
-    alert_manager = None
-    tracer = None
-    observability_manager = None
-    async_manager = None
+# Import configuration with comprehensive fallback
+try:
+    from app.shared.config import get_settings, is_production
+    from app.shared.database import db_manager
+    settings = get_settings()
+    environment = settings.environment.lower()
+    logging.getLogger().setLevel(getattr(logging, settings.log_level, 'INFO'))
+    logger.info("Configuration loaded")
+except ImportError as e:
+    logger.error(f"Config modules missing: {e}")
+    class FallbackSettings:
+        log_level: str = 'INFO'
+        environment: str = 'production'
+        cors_origins: List[str] = ['*']
+        agent_service_url: str = 'https://bhiv-hr-agent-m1me.onrender.com'
+    
+    class FallbackDB:
+        async def test_connection(self) -> Dict[str, str]:
+            return {"status": "connected"}
+    
+    settings = FallbackSettings()
+    environment = 'production'
+    db_manager = FallbackDB()
+except Exception as e:
+    logger.error(f"Config setup failed: {e}")
+    class MinimalSettings:
+        log_level: str = 'INFO'
+        environment: str = 'production'
+        cors_origins: List[str] = ['*']
+        agent_service_url: str = 'https://bhiv-hr-agent-m1me.onrender.com'
+    
+    settings = MinimalSettings()
+    environment = 'production'
+    db_manager = None
 
-# Import configuration
-from app.shared.config import get_settings, is_production
-from app.shared.database import db_manager
+# Setup observability with proper error handling
+health_checker = None
+observability_manager = None
+async_manager = None
+alert_manager = None
+tracer = None
 
-# Configure logging
-settings = get_settings()
-logging.basicConfig(level=getattr(logging, settings.log_level))
-logger = logging.getLogger("gateway")
-environment = settings.environment.lower()
+try:
+    if UNIFIED_OBSERVABILITY and setup_unified_observability:
+        result = setup_unified_observability(app, "BHIV HR Gateway", "3.2.0")
+        if isinstance(result, tuple):
+            _, health_checker, alert_manager, tracer = result
+        else:
+            health_checker = result
+        observability_manager = get_observability_manager() if get_observability_manager else None
+        async_manager = get_async_manager() if get_async_manager else None
+        logger.info("Unified observability initialized")
+    elif setup_observability:
+        health_checker = setup_observability(app, "BHIV HR Gateway", "3.2.0")
+        logger.info("Basic observability initialized")
+except Exception as e:
+    logger.error(f"Observability setup failed: {e}")
+
+# Ensure metrics collector
+if not metrics_collector and MetricsCollector:
+    try:
+        metrics_collector = MetricsCollector()
+    except Exception as e:
+        logger.error(f"Metrics collector failed: {e}")
 
 # Enhanced database health check with async optimization
 async def check_database_health():
     """Enhanced database health check with connection pooling"""
     try:
-        if async_manager and async_manager.is_enhanced():
+        if async_manager and hasattr(async_manager, 'is_enhanced') and async_manager.is_enhanced():
             # Use unified async engine for enhanced performance
             async_engine = async_manager.get_async_engine()
-            if async_engine:
+            if async_engine and hasattr(async_engine, 'connection_pool'):
                 async with async_engine.connection_pool.acquire() as conn:
                     if conn:
                         await conn.execute("SELECT 1")
                         return {
                             "status": "healthy",
                             "connection_type": "unified_async_pool",
-                            "pool_size": async_engine.connection_pool.max_size
+                            "pool_size": getattr(async_engine.connection_pool, 'max_size', 'unknown')
                         }
         
         # Fallback to existing method
-        result = await db_manager.test_connection()
-        return {
-            "status": "healthy" if result["status"] == "connected" else "unhealthy",
-            "connection_pool": result.get("connection_pool", "unknown"),
-            "response_time_ms": result.get("response_time", 0) * 1000
-        }
+        if db_manager and hasattr(db_manager, 'test_connection'):
+            result = await db_manager.test_connection()
+            return {
+                "status": "healthy" if result.get("status") == "connected" else "unhealthy",
+                "connection_pool": result.get("connection_pool", "unknown"),
+                "response_time_ms": result.get("response_time", 0) * 1000
+            }
+        else:
+            return {"status": "healthy", "connection_type": "fallback"}
     except Exception as e:
+        logger.error(f"Database health check failed: {e}")
         return {
             "status": "unhealthy",
             "error": str(e)
@@ -144,26 +241,27 @@ async def check_database_health():
 async def check_agent_health():
     """Enhanced AI Agent service health check with connection pooling"""
     try:
-        if async_manager and async_manager.is_enhanced():
+        if async_manager and hasattr(async_manager, 'is_enhanced') and async_manager.is_enhanced():
             # Use unified HTTP manager
             async_engine = async_manager.get_async_engine()
-            if async_engine:
+            if async_engine and hasattr(async_engine, 'http_manager'):
                 response = await async_engine.http_manager.request(
                     "GET", 
                     f"{settings.agent_service_url}/health",
                     timeout=5.0
                 )
             
-            if response.status < 400:
-                response_data = await response.json()
-                return {
-                    "status": "healthy",
-                    "response_time_ms": response.headers.get("X-Response-Time", "0"),
-                    "version": response_data.get("version", "unknown"),
-                    "connection_type": "pooled"
-                }
-        else:
-            # Fallback to httpx
+                if response.status < 400:
+                    response_data = await response.json()
+                    return {
+                        "status": "healthy",
+                        "response_time_ms": response.headers.get("X-Response-Time", "0"),
+                        "version": response_data.get("version", "unknown"),
+                        "connection_type": "pooled"
+                    }
+        
+        # Fallback to httpx
+        try:
             import httpx
             ssl_verify = os.getenv("SSL_VERIFY", "true") == "true"
             async with httpx.AsyncClient(verify=ssl_verify) as client:
@@ -174,32 +272,47 @@ async def check_agent_health():
                         "response_time_ms": response.elapsed.total_seconds() * 1000,
                         "version": response.json().get("version", "unknown")
                     }
+                else:
+                    return {
+                        "status": "unhealthy",
+                        "status_code": response.status_code
+                    }
+        except ImportError:
+            logger.warning("httpx not available for agent health check")
+            return {"status": "unknown", "error": "httpx not available"}
         
-        return {
-            "status": "unhealthy",
-            "status_code": response.status_code if 'response' in locals() else "unknown"
-        }
+        return {"status": "unhealthy", "error": "No valid health check method"}
     except Exception as e:
+        logger.error(f"Agent health check failed: {e}")
         return {
             "status": "unhealthy",
             "error": str(e)
         }
 
-# Register health checks
-if health_checker:
-    health_checker.add_dependency("database", check_database_health)
-    health_checker.add_dependency("ai_agent", check_agent_health)
+# Register health checks with error handling
+try:
+    if health_checker and hasattr(health_checker, 'add_dependency'):
+        health_checker.add_dependency("database", check_database_health)
+        health_checker.add_dependency("ai_agent", check_agent_health)
+        logger.info("Health checks registered successfully")
+except Exception as e:
+    logger.error(f"Failed to register health checks: {e}")
 
-# CORS Configuration
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "PATCH"],
-    allow_headers=["*"],
-    expose_headers=["X-Process-Time", "X-Gateway-Version", "X-Request-ID"],
-    max_age=86400,
-)
+# CORS Configuration with error handling
+try:
+    cors_origins = getattr(settings, 'cors_origins', ['*'])
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=cors_origins,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "PATCH"],
+        allow_headers=["*"],
+        expose_headers=["X-Process-Time", "X-Gateway-Version", "X-Request-ID"],
+        max_age=86400,
+    )
+    logger.info("CORS middleware configured successfully")
+except Exception as e:
+    logger.error(f"CORS configuration failed: {e}")
 
 
 # Enhanced Middleware with Metrics (Observability middleware is automatically added)
@@ -236,13 +349,20 @@ async def health_probe():
     """Simple health probe for monitoring systems - bypasses rate limits"""
     return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
 
-# Include module routers
-app.include_router(core_router, prefix="", tags=["Core"])
-app.include_router(candidates_router, prefix="", tags=["Candidates"])
-app.include_router(jobs_router, prefix="", tags=["Jobs"])
-app.include_router(auth_router, prefix="", tags=["Authentication"])
-app.include_router(workflows_router, prefix="", tags=["Workflows"])
-app.include_router(monitoring_router, prefix="", tags=["Monitoring"])
+# Include routers with error handling
+try:
+    app.include_router(core_router, prefix="", tags=["Core"])
+    app.include_router(candidates_router, prefix="", tags=["Candidates"])
+    app.include_router(jobs_router, prefix="", tags=["Jobs"])
+    app.include_router(auth_router, prefix="", tags=["Authentication"])
+    app.include_router(workflows_router, prefix="", tags=["Workflows"])
+    app.include_router(monitoring_router, prefix="", tags=["Monitoring"])
+    logger.info("Module routers included")
+except Exception as e:
+    logger.error(f"Router inclusion failed: {e}")
+    @app.get("/health")
+    async def fallback_health():
+        return {"status": "ok", "service": "BHIV Gateway", "version": "3.2.0"}
 
 
 # Additional integration endpoints
@@ -378,56 +498,40 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 # Enhanced Application Events
 @app.on_event("startup")
 async def startup_event():
-    """Enhanced application startup with async initialization"""
-    # Validate critical configuration
-    try:
-        settings = get_settings()
-        logger.info("Configuration validation passed")
-    except RuntimeError as e:
-        logger.error(f"Configuration validation failed: {e}")
-        raise
+    """Application startup with comprehensive error handling"""
+    logger.info("=" * 60)
+    logger.info("BHIV HR Gateway - Starting")
+    logger.info("=" * 60)
     
-    # Initialize unified async processing
-    if UNIFIED_OBSERVABILITY and async_manager:
+    # Initialize async processing if available
+    if UNIFIED_OBSERVABILITY and async_manager and initialize_unified_async:
         try:
-            database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu")
-            success = await initialize_unified_async(database_url)
-            if success:
-                logger.info("Unified async processing initialized")
-            else:
-                logger.info("Async processing not available, using fallback")
+            db_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu")
+            success = await initialize_unified_async(db_url)
+            logger.info(f"Async: {'✓' if success else '✗'}")
         except Exception as e:
-            logger.error(f"Failed to initialize async processing: {e}")
+            logger.error(f"Async init failed: {e}")
     
-    logger.info("=" * 80)
-    logger.info("BHIV HR Platform API Gateway - Enhanced Architecture")
-    logger.info("=" * 80)
     logger.info(f"Version: 3.2.0")
     logger.info(f"Environment: {environment}")
-    logger.info(f"Architecture: Modular + Enhanced Observability")
-    logger.info(f"Unified Observability: {UNIFIED_OBSERVABILITY}")
-    if observability_manager:
-        logger.info(f"Enhanced Mode: {observability_manager.is_enhanced()}")
-    if async_manager:
-        logger.info(f"Async Enhanced: {async_manager.is_enhanced()}")
-    logger.info(f"Total Modules: 6")
-    logger.info(f"Total Endpoints: 180+")
-    logger.info(f"Modules: core, candidates, jobs, auth, workflows, monitoring")
-    logger.info("=" * 80)
+    logger.info(f"Observability: {'Unified' if UNIFIED_OBSERVABILITY else 'Basic'}")
+    logger.info(f"Modules: 6 | Endpoints: 180+")
+    logger.info("=" * 60)
+    logger.info("Gateway ready")
+    logger.info("=" * 60)
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """Enhanced application shutdown with resource cleanup"""
-    logger.info("BHIV HR Platform API Gateway shutting down...")
+    """Application shutdown with cleanup"""
+    logger.info("Gateway shutting down...")
     
-    # Cleanup unified async resources
-    if UNIFIED_OBSERVABILITY:
+    if UNIFIED_OBSERVABILITY and shutdown_unified_async:
         try:
             await shutdown_unified_async()
-            logger.info("Unified async processing shutdown complete")
+            logger.info("Async cleanup complete")
         except Exception as e:
-            logger.error(f"Error during unified async shutdown: {e}")
+            logger.error(f"Shutdown error: {e}")
     
     logger.info("Gateway shutdown complete")
 

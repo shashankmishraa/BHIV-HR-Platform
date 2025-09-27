@@ -54,6 +54,10 @@ class CircuitBreaker:
 def safe_json_parse(data): return {}
 def setup_production_logging(): pass
 
+# Configure logging first
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Enterprise observability framework with proper fallback chain
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
 
@@ -146,7 +150,6 @@ except ImportError as e:
 
 # Configure production logging
 setup_production_logging()
-logger = logging.getLogger(__name__)
 
 # Initialize production components
 db_manager = DatabaseManager()
@@ -158,17 +161,17 @@ circuit_breaker = CircuitBreaker(failure_threshold=3, timeout=30)
 async def check_database_health():
     """Enhanced database health check for AI Agent"""
     try:
-        if async_manager and async_manager.is_enhanced():
+        if async_manager and hasattr(async_manager, 'is_enhanced') and async_manager.is_enhanced():
             # Use unified async connection pool
             async_engine = async_manager.get_async_engine()
-            if async_engine:
+            if async_engine and hasattr(async_engine, 'connection_pool'):
                 async with async_engine.connection_pool.acquire() as conn:
                     if conn:
                         await conn.execute("SELECT 1")
                         return {
                             "status": "healthy",
                             "connection_type": "unified_async_pool",
-                            "pool_size": async_engine.connection_pool.max_size
+                            "pool_size": getattr(async_engine.connection_pool, 'max_size', 'unknown')
                         }
         
         # Fallback to existing connection method
@@ -181,6 +184,7 @@ async def check_database_health():
                 "connection_type": "pooled"
             }
     except Exception as e:
+        logger.error(f"Database health check failed: {e}")
         return {
             "status": "unhealthy",
             "error": str(e)
@@ -235,7 +239,10 @@ if UNIFIED_OBSERVABILITY and setup_unified_observability:
         observability_manager = get_observability_manager()
         async_manager = get_async_manager()
         
-        logger.info(f"Unified observability initialized - Enhanced: {observability_manager.is_enhanced()}")
+        if observability_manager and hasattr(observability_manager, 'is_enhanced'):
+            logger.info(f"Unified observability initialized - Enhanced: {observability_manager.is_enhanced()}")
+        else:
+            logger.info("Unified observability initialized")
         logger.info("Enterprise features: Distributed tracing, advanced metrics, alerting")
         
     except Exception as e:
@@ -279,15 +286,15 @@ if not UNIFIED_OBSERVABILITY and not OBSERVABILITY_ENABLED:
         }
 
 # Register health dependencies with proper error handling
-if health_checker and hasattr(health_checker, 'add_dependency'):
-    try:
+try:
+    if health_checker and hasattr(health_checker, 'add_dependency'):
         health_checker.add_dependency("database", check_database_health)
         health_checker.add_dependency("semantic_engine", check_semantic_engine_health)
         logger.info("Health dependencies registered successfully")
-    except Exception as e:
-        logger.error(f"Failed to register health dependencies: {e}")
-else:
-    logger.warning("Health checker not available - dependencies not registered")
+    else:
+        logger.warning("Health checker not available - dependencies not registered")
+except Exception as e:
+    logger.error(f"Failed to register health dependencies: {e}")
 
 # Mount static files for favicon and assets
 static_dir = os.path.join(os.path.dirname(__file__), "static")
@@ -1409,7 +1416,7 @@ async def startup_event():
     logger.info(f"Database: {database_url.split('@')[1] if '@' in database_url else 'configured'}")
     
     # Initialize unified async processing if available
-    if UNIFIED_OBSERVABILITY and async_manager and initialize_unified_async:
+    if UNIFIED_OBSERVABILITY and async_manager and 'initialize_unified_async' in globals():
         try:
             logger.info("Initializing unified async processing...")
             success = await initialize_unified_async(database_url)
@@ -1438,9 +1445,9 @@ async def startup_event():
     logger.info(f"  - Unified: {UNIFIED_OBSERVABILITY}")
     logger.info(f"  - Basic: {OBSERVABILITY_ENABLED}")
     
-    if observability_manager:
+    if observability_manager and hasattr(observability_manager, 'is_enhanced'):
         logger.info(f"  - Enhanced Mode: {observability_manager.is_enhanced()}")
-    if async_manager:
+    if async_manager and hasattr(async_manager, 'is_enhanced'):
         logger.info(f"  - Async Enhanced: {async_manager.is_enhanced()}")
     
     # Log semantic engine status
@@ -1458,7 +1465,7 @@ async def shutdown_event():
     logger.info("=" * 80)
     
     # Unified shutdown if available
-    if UNIFIED_OBSERVABILITY and shutdown_unified_async:
+    if UNIFIED_OBSERVABILITY and 'shutdown_unified_async' in globals():
         try:
             logger.info("Shutting down unified async processing...")
             await shutdown_unified_async()
