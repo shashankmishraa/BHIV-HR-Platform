@@ -24,14 +24,32 @@ class DatabaseManager:
     def init_pool(self, url: str):
         """Initialize database connection pool"""
         try:
+            if not url:
+                logger.warning("No database URL provided")
+                return
+                
+            # Clean and validate URL
+            if url.startswith('postgresql://'):
+                clean_url = url
+            elif 'postgresql://' in url:
+                # Extract clean URL from malformed string
+                start = url.find('postgresql://')
+                clean_url = url[start:]
+                # Remove any trailing garbage
+                if ' ' in clean_url:
+                    clean_url = clean_url.split(' ')[0]
+            else:
+                logger.error(f"Invalid database URL format: {url}")
+                return
+                
             if psycopg2 and pool:
-                self.connection_url = url
+                self.connection_url = clean_url
                 self.pool = pool.ThreadedConnectionPool(
                     minconn=1,
                     maxconn=20,
-                    dsn=url
+                    dsn=clean_url
                 )
-                logger.info("Database connection pool initialized")
+                logger.info(f"Database connection pool initialized with URL: {clean_url[:50]}...")
             else:
                 logger.warning("psycopg2 not available, using fallback")
         except Exception as e:
