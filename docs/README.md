@@ -1,6 +1,14 @@
-# BHIV HR Platform Documentation v3.2.1
+# BHIV HR Platform Documentation v4.1.0
 
-## 📁 Documentation Structure (Updated January 18, 2025 - Comprehensive Audit)
+**Updated**: January 18, 2025 | **Version**: v4.1.0 | **Python**: 3.12.7 | **Status**: ✅ Enterprise Ready
+
+## 🌐 Live Production Services
+- **Gateway**: https://bhiv-hr-gateway-901a.onrender.com/docs
+- **AI Agent**: https://bhiv-hr-agent-o6nx.onrender.com/docs
+- **HR Portal**: https://bhiv-hr-portal-xk2k.onrender.com
+- **Client Portal**: https://bhiv-hr-client-portal-zdbt.onrender.com
+
+## 📁 Documentation Structure (Comprehensive Audit Complete)
 
 ### **Core Documentation**
 - **[📋 README.md](../README.md)** - ✅ Main project overview with modular architecture
@@ -104,7 +112,8 @@
 - ✅ **Performance Data** - <100ms API response, <0.02s AI matching
 - ✅ **Production Ready** - Enterprise-grade documentation quality
 
-**Last Updated**: January 18, 2025 (Comprehensive Audit)  
-**Version**: v3.2.1 - Modular Architecture with Enhanced Validation  
-**Status**: ✅ All documentation current, accurate, and comprehensive  
-**Quality**: Enterprise-grade with complete coverage of all system components
+**Last Updated**: January 18, 2025 (Comprehensive Audit & Restructuring)  
+**Version**: v4.1.0 - Enterprise Architecture with Security Hardening  
+**Status**: ✅ All documentation synchronized with production systems  
+**Quality**: Enterprise-grade with 100% coverage and current service URLs  
+**Security**: Hardened configuration with vulnerability fixes applied
