@@ -44,4 +44,7 @@ psutil==5.9.8
 
 # Additional dependencies for agent
 aiofiles==23.2.1
-fastapi-cors==0.0.6
+
+# Development & Type Checking
+mypy==1.8.0
+types-requests==2.31.0.20240125
