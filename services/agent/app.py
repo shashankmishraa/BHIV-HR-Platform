@@ -41,14 +41,32 @@ class DatabaseManager:
     def init_pool(self, url):
         """Initialize database connection pool"""
         try:
+            if not url:
+                logger.warning("No database URL provided")
+                return
+                
+            # Clean and validate URL
+            if url.startswith('postgresql://'):
+                clean_url = url
+            elif 'postgresql://' in url:
+                # Extract clean URL from malformed string
+                start = url.find('postgresql://')
+                clean_url = url[start:]
+                # Remove any trailing garbage
+                if ' ' in clean_url:
+                    clean_url = clean_url.split(' ')[0]
+            else:
+                logger.error(f"Invalid database URL format: {url}")
+                return
+                
             if psycopg2 and pool:
-                self.connection_url = url
+                self.connection_url = clean_url
                 self.pool = pool.ThreadedConnectionPool(
                     minconn=1,
                     maxconn=20,
-                    dsn=url
+                    dsn=clean_url
                 )
-                logger.info("Database connection pool initialized successfully")
+                logger.info(f"Database connection pool initialized with URL: {clean_url[:50]}...")
             else:
                 logger.warning("psycopg2 not available, using fallback")
         except Exception as e:
@@ -141,8 +159,14 @@ except ImportError as e:
         
         # Tertiary: Use simple observability as last resort
         try:
-            sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
-            from observability_simple import setup_simple_observability, MetricsCollector
+            from observability_simple import setup_simple_observability
+            
+            class MetricsCollector:
+                def collect_metrics(self):
+                    return {}
+                def get_metrics(self):
+                    return {"status": "available"}
+            
             setup_observability = setup_simple_observability
             UNIFIED_OBSERVABILITY = False
             OBSERVABILITY_ENABLED = True
