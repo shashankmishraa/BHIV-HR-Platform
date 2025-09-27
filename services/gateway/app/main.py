@@ -31,6 +31,7 @@ if shared_path not in sys.path:
 
 # Import observability with fallback
 try:
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))
     from observability_simple import setup_simple_observability
     logger.info("Simple observability loaded")
 except ImportError as e:

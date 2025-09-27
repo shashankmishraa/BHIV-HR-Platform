@@ -5,6 +5,12 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter
 
+# Import workflow engine with fallback
+try:
+    from app.workflow_engine import workflow_engine
+except ImportError:
+    workflow_engine = None
+
 router = APIRouter(tags=["Core"])
 
 
