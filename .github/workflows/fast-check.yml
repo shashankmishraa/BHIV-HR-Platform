@@ -1,48 +1,54 @@
 name: Fast Health Check
 on:
-  push:
-    branches: [ main ]
   schedule:
     - cron: '*/30 * * * *'  # Every 30 minutes
   workflow_dispatch:
+
+env:
+  GATEWAY_URL: https://bhiv-hr-gateway-46pz.onrender.com
+  AGENT_URL: https://bhiv-hr-agent-m1me.onrender.com
+  PORTAL_URL: https://bhiv-hr-portal-cead.onrender.com
+  CLIENT_PORTAL_URL: https://bhiv-hr-client-portal-5g33.onrender.com
 
 jobs:
   health-check:
     name: Quick Health Verification
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 3
     steps:
-      - name: Test All Services
+      - name: Critical Services Health
         run: |
-          echo "🔍 Quick health check of all services..."
+          echo "🔍 Critical services health check..."
           
-          # Gateway
-          if curl -f -s https://bhiv-hr-gateway-46pz.onrender.com/health > /dev/null; then
+          # Gateway - Critical
+          if curl -f -s --max-time 10 $GATEWAY_URL/health/probe > /dev/null; then
             echo "✅ Gateway: Healthy"
           else
             echo "❌ Gateway: Unhealthy"
             exit 1
           fi
           
-          # AI Agent
-          if curl -f -s https://bhiv-hr-agent-m1me.onrender.com/health > /dev/null; then
+          # AI Agent - Critical
+          if curl -f -s --max-time 10 $AGENT_URL/health > /dev/null; then
             echo "✅ AI Agent: Healthy"
           else
             echo "❌ AI Agent: Unhealthy"
             exit 1
           fi
-          
-          # Portals (optional)
-          curl -f -s https://bhiv-hr-portal-cead.onrender.com/ > /dev/null && echo "✅ HR Portal: Accessible" || echo "⚠️ HR Portal: Check needed"
-          curl -f -s https://bhiv-hr-client-portal-5g33.onrender.com/ > /dev/null && echo "✅ Client Portal: Accessible" || echo "⚠️ Client Portal: Check needed"
-          
-          echo "🎉 Health check completed!"
       
-      - name: Notify Status
+      - name: Portal Accessibility
+        run: |
+          echo "🌐 Portal accessibility check..."
+          
+          # Portals - Non-critical
+          curl -f -s --max-time 8 $PORTAL_URL > /dev/null && echo "✅ HR Portal: Accessible" || echo "⚠️ HR Portal: Check needed"
+          curl -f -s --max-time 8 $CLIENT_PORTAL_URL > /dev/null && echo "✅ Client Portal: Accessible" || echo "⚠️ Client Portal: Check needed"
+      
+      - name: Status Summary
         if: always()
         run: |
           if [ "${{ job.status }}" == "success" ]; then
-            echo "✅ All services are healthy"
+            echo "::notice title=Health Check::✅ All critical services healthy"
           else
-            echo "❌ Some services need attention"
+            echo "::error title=Health Check::❌ Critical services need attention"
           fi

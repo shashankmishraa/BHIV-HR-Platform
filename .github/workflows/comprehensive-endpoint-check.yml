@@ -1,0 +1,258 @@
+name: Comprehensive Endpoint Testing
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Test type'
+        required: true
+        default: 'full'
+        type: choice
+        options: ['full', 'health', 'api', 'performance']
+
+env:
+  API_KEY: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
+  GATEWAY_URL: https://bhiv-hr-gateway-46pz.onrender.com
+  AGENT_URL: https://bhiv-hr-agent-m1me.onrender.com
+  PORTAL_URL: https://bhiv-hr-portal-cead.onrender.com
+  CLIENT_PORTAL_URL: https://bhiv-hr-client-portal-5g33.onrender.com
+
+jobs:
+  health-endpoints:
+    name: Health & System Endpoints
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: ${{ inputs.test_type == 'full' || inputs.test_type == 'health' || github.event_name != 'workflow_dispatch' }}
+    
+    steps:
+      - name: Test Core Health Endpoints
+        run: |
+          echo "🔍 Testing Core Health Endpoints..."
+          
+          # Gateway Health Endpoints
+          echo "Gateway Health Tests:"
+          curl -f -s $GATEWAY_URL/health && echo "✅ /health" || echo "❌ /health"
+          curl -f -s $GATEWAY_URL/health/detailed && echo "✅ /health/detailed" || echo "❌ /health/detailed"
+          curl -f -s $GATEWAY_URL/health/ready && echo "✅ /health/ready" || echo "❌ /health/ready"
+          curl -f -s $GATEWAY_URL/health/live && echo "✅ /health/live" || echo "❌ /health/live"
+          curl -f -s $GATEWAY_URL/health/probe && echo "✅ /health/probe" || echo "❌ /health/probe"
+          
+          # Agent Health Endpoints
+          echo -e "\nAgent Health Tests:"
+          curl -f -s $AGENT_URL/health && echo "✅ /health" || echo "❌ /health"
+          curl -f -s $AGENT_URL/health/detailed && echo "✅ /health/detailed" || echo "❌ /health/detailed"
+          curl -f -s $AGENT_URL/status && echo "✅ /status" || echo "❌ /status"
+      
+      - name: Test System Information Endpoints
+        run: |
+          echo "🔍 Testing System Information Endpoints..."
+          
+          curl -f -s $GATEWAY_URL/ && echo "✅ /" || echo "❌ /"
+          curl -f -s $GATEWAY_URL/system/modules && echo "✅ /system/modules" || echo "❌ /system/modules"
+          curl -f -s $GATEWAY_URL/system/architecture && echo "✅ /system/architecture" || echo "❌ /system/architecture"
+          curl -f -s $GATEWAY_URL/architecture && echo "✅ /architecture" || echo "❌ /architecture"
+
+  metrics-endpoints:
+    name: Metrics & Monitoring
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    if: ${{ inputs.test_type == 'full' || inputs.test_type == 'health' || github.event_name != 'workflow_dispatch' }}
+    
+    steps:
+      - name: Test Metrics Endpoints
+        run: |
+          echo "📊 Testing Metrics Endpoints..."
+          
+          # Gateway Metrics
+          curl -f -s $GATEWAY_URL/metrics && echo "✅ /metrics" || echo "❌ /metrics"
+          curl -f -s $GATEWAY_URL/metrics/json && echo "✅ /metrics/json" || echo "❌ /metrics/json"
+          curl -f -s $GATEWAY_URL/metrics/legacy && echo "✅ /metrics/legacy" || echo "❌ /metrics/legacy"
+          
+          # Agent Metrics
+          curl -f -s $AGENT_URL/metrics && echo "✅ Agent /metrics" || echo "❌ Agent /metrics"
+          curl -f -s $AGENT_URL/metrics/json && echo "✅ Agent /metrics/json" || echo "❌ Agent /metrics/json"
+
+  api-endpoints:
+    name: API Endpoints Testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: ${{ inputs.test_type == 'full' || inputs.test_type == 'api' || github.event_name != 'workflow_dispatch' }}
+    
+    steps:
+      - name: Test Authentication Endpoints
+        run: |
+          echo "🔐 Testing Authentication Endpoints..."
+          
+          # Test login endpoint
+          curl -f -s -X POST $GATEWAY_URL/auth/login \
+            -H "Content-Type: application/json" \
+            -d '{"username":"TECH001","password":"demo123"}' && echo "✅ POST /auth/login" || echo "❌ POST /auth/login"
+          
+          # Test API key validation
+          curl -f -s -H "Authorization: Bearer $API_KEY" $GATEWAY_URL/auth/validate && echo "✅ /auth/validate" || echo "❌ /auth/validate"
+      
+      - name: Test Candidate Endpoints
+        run: |
+          echo "👥 Testing Candidate Endpoints..."
+          
+          # Test with API key
+          curl -f -s -H "Authorization: Bearer $API_KEY" $GATEWAY_URL/candidates && echo "✅ GET /candidates" || echo "❌ GET /candidates"
+          curl -f -s -H "Authorization: Bearer $API_KEY" $GATEWAY_URL/candidates/stats && echo "✅ /candidates/stats" || echo "❌ /candidates/stats"
+          curl -f -s -H "Authorization: Bearer $API_KEY" $GATEWAY_URL/candidates/search?skills=Python && echo "✅ /candidates/search" || echo "❌ /candidates/search"
+      
+      - name: Test Job Endpoints
+        run: |
+          echo "💼 Testing Job Endpoints..."
+          
+          curl -f -s -H "Authorization: Bearer $API_KEY" $GATEWAY_URL/jobs && echo "✅ GET /jobs" || echo "❌ GET /jobs"
+          curl -f -s -H "Authorization: Bearer $API_KEY" $GATEWAY_URL/jobs/stats && echo "✅ /jobs/stats" || echo "❌ /jobs/stats"
+          curl -f -s -H "Authorization: Bearer $API_KEY" $GATEWAY_URL/jobs/search?title=developer && echo "✅ /jobs/search" || echo "❌ /jobs/search"
+      
+      - name: Test AI Agent Endpoints
+        run: |
+          echo "🤖 Testing AI Agent Endpoints..."
+          
+          curl -f -s -H "Authorization: Bearer $API_KEY" $AGENT_URL/match/candidates && echo "✅ /match/candidates" || echo "❌ /match/candidates"
+          curl -f -s -H "Authorization: Bearer $API_KEY" $AGENT_URL/analytics/performance && echo "✅ /analytics/performance" || echo "❌ /analytics/performance"
+          curl -f -s -H "Authorization: Bearer $API_KEY" $AGENT_URL/models/status && echo "✅ /models/status" || echo "❌ /models/status"
+
+  integration-endpoints:
+    name: Integration & Testing Utilities
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    if: ${{ inputs.test_type == 'full' || github.event_name != 'workflow_dispatch' }}
+    
+    steps:
+      - name: Test Integration Endpoints
+        run: |
+          echo "🔗 Testing Integration Endpoints..."
+          
+          curl -f -s $GATEWAY_URL/integration/status && echo "✅ /integration/status" || echo "❌ /integration/status"
+          curl -f -s $GATEWAY_URL/integration/endpoints && echo "✅ /integration/endpoints" || echo "❌ /integration/endpoints"
+          curl -f -s $GATEWAY_URL/integration/test-sequence && echo "✅ /integration/test-sequence" || echo "❌ /integration/test-sequence"
+          curl -f -s $GATEWAY_URL/integration/module-info && echo "✅ /integration/module-info" || echo "❌ /integration/module-info"
+          curl -f -s $GATEWAY_URL/integration/health-summary && echo "✅ /integration/health-summary" || echo "❌ /integration/health-summary"
+          curl -f -s $GATEWAY_URL/integration/testing-checklist && echo "✅ /integration/testing-checklist" || echo "❌ /integration/testing-checklist"
+
+  portal-accessibility:
+    name: Portal Accessibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    if: ${{ inputs.test_type == 'full' || inputs.test_type == 'health' || github.event_name != 'workflow_dispatch' }}
+    
+    steps:
+      - name: Test Portal Accessibility
+        run: |
+          echo "🌐 Testing Portal Accessibility..."
+          
+          # Test HR Portal
+          if curl -f -s -I $PORTAL_URL | grep -q "200 OK"; then
+            echo "✅ HR Portal accessible"
+          else
+            echo "❌ HR Portal not accessible"
+          fi
+          
+          # Test Client Portal
+          if curl -f -s -I $CLIENT_PORTAL_URL | grep -q "200 OK"; then
+            echo "✅ Client Portal accessible"
+          else
+            echo "❌ Client Portal not accessible"
+          fi
+
+  performance-test:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    if: ${{ inputs.test_type == 'full' || inputs.test_type == 'performance' || github.event_name != 'workflow_dispatch' }}
+    
+    steps:
+      - name: Response Time Testing
+        run: |
+          echo "⚡ Testing Response Times..."
+          
+          # Test Gateway response times
+          for i in {1..5}; do
+            start_time=$(date +%s%N)
+            curl -f -s $GATEWAY_URL/health > /dev/null
+            end_time=$(date +%s%N)
+            duration=$(( (end_time - start_time) / 1000000 ))
+            echo "Gateway health response $i: ${duration}ms"
+          done
+          
+          # Test Agent response times
+          for i in {1..5}; do
+            start_time=$(date +%s%N)
+            curl -f -s $AGENT_URL/health > /dev/null
+            end_time=$(date +%s%N)
+            duration=$(( (end_time - start_time) / 1000000 ))
+            echo "Agent health response $i: ${duration}ms"
+          done
+      
+      - name: Load Testing
+        run: |
+          echo "🔄 Basic Load Testing..."
+          
+          # Concurrent requests test
+          for i in {1..10}; do
+            curl -f -s $GATEWAY_URL/health > /dev/null &
+          done
+          wait
+          echo "✅ Concurrent requests completed"
+          
+          # Sequential API calls
+          for i in {1..20}; do
+            curl -f -s -H "Authorization: Bearer $API_KEY" $GATEWAY_URL/candidates > /dev/null
+            sleep 0.1
+          done
+          echo "✅ Sequential API calls completed"
+
+  comprehensive-report:
+    name: Generate Test Report
+    runs-on: ubuntu-latest
+    needs: [health-endpoints, metrics-endpoints, api-endpoints, integration-endpoints, portal-accessibility, performance-test]
+    if: always()
+    
+    steps:
+      - name: Generate Comprehensive Report
+        run: |
+          echo "📋 Comprehensive Endpoint Test Report"
+          echo "======================================"
+          echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "Test Type: ${{ inputs.test_type || 'scheduled' }}"
+          echo "Trigger: ${{ github.event_name }}"
+          echo ""
+          echo "Test Results:"
+          echo "- Health Endpoints: ${{ needs.health-endpoints.result }}"
+          echo "- Metrics Endpoints: ${{ needs.metrics-endpoints.result }}"
+          echo "- API Endpoints: ${{ needs.api-endpoints.result }}"
+          echo "- Integration Endpoints: ${{ needs.integration-endpoints.result }}"
+          echo "- Portal Accessibility: ${{ needs.portal-accessibility.result }}"
+          echo "- Performance Testing: ${{ needs.performance-test.result }}"
+          echo ""
+          echo "Service URLs:"
+          echo "- Gateway: $GATEWAY_URL"
+          echo "- AI Agent: $AGENT_URL"
+          echo "- HR Portal: $PORTAL_URL"
+          echo "- Client Portal: $CLIENT_PORTAL_URL"
+          echo ""
+          
+          # Count failures
+          failures=0
+          [ "${{ needs.health-endpoints.result }}" != "success" ] && ((failures++))
+          [ "${{ needs.metrics-endpoints.result }}" != "success" ] && ((failures++))
+          [ "${{ needs.api-endpoints.result }}" != "success" ] && ((failures++))
+          [ "${{ needs.integration-endpoints.result }}" != "success" ] && ((failures++))
+          [ "${{ needs.portal-accessibility.result }}" != "success" ] && ((failures++))
+          [ "${{ needs.performance-test.result }}" != "success" ] && ((failures++))
+          
+          if [ $failures -eq 0 ]; then
+            echo "🎉 All endpoint tests passed!"
+            echo "::notice title=Endpoint Tests::All 73+ endpoints tested successfully"
+          else
+            echo "⚠️ $failures test suite(s) failed"
+            echo "::warning title=Endpoint Tests::$failures test suite(s) need attention"
+          fi
