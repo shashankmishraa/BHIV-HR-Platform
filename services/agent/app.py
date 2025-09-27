@@ -32,11 +32,54 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-# Simple fallback implementations (no external fixes module needed)
+# Enhanced Database Manager with proper connection pooling
 class DatabaseManager:
-    def __init__(self): self.pool = None
-    def init_pool(self, url): pass
-    def get_connection(self): return contextmanager(lambda: iter([None]))()
+    def __init__(self):
+        self.pool = None
+        self.connection_url = None
+        
+    def init_pool(self, url):
+        """Initialize database connection pool"""
+        try:
+            if psycopg2 and pool:
+                self.connection_url = url
+                self.pool = pool.ThreadedConnectionPool(
+                    minconn=1,
+                    maxconn=20,
+                    dsn=url
+                )
+                logger.info("Database connection pool initialized successfully")
+            else:
+                logger.warning("psycopg2 not available, using fallback")
+        except Exception as e:
+            logger.error(f"Failed to initialize database pool: {e}")
+            
+    @contextmanager
+    def get_connection(self):
+        """Get database connection from pool"""
+        conn = None
+        try:
+            if self.pool:
+                conn = self.pool.getconn()
+                yield conn
+            else:
+                # Fallback to direct connection
+                if psycopg2 and self.connection_url:
+                    conn = psycopg2.connect(self.connection_url)
+                    yield conn
+                else:
+                    # Mock connection for testing
+                    yield None
+        except Exception as e:
+            logger.error(f"Database connection error: {e}")
+            if conn:
+                conn.rollback()
+            raise
+        finally:
+            if conn and self.pool:
+                self.pool.putconn(conn)
+            elif conn:
+                conn.close()
 
 class HTTPSessionManager:
     def __init__(self): pass
@@ -1406,11 +1449,11 @@ async def startup_event():
     environment = os.getenv("ENVIRONMENT", "development").lower()
     logger.info(f"Environment: {environment}")
     
-    # Database configuration
+    # Database configuration with proper URL
     if environment == "production":
         default_db_url = "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu"
     else:
-        default_db_url = "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@db:5432/bhiv_hr_jcuu"
+        default_db_url = "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu"
     
     database_url = os.getenv("DATABASE_URL", default_db_url)
     logger.info(f"Database: {database_url.split('@')[1] if '@' in database_url else 'configured'}")
