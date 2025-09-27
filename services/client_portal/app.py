@@ -3,7 +3,6 @@ from datetime import datetime
 
 import requests
 import streamlit as st
-from components.dashboard import show_dashboard
 
 # Environment-aware service URLs
 environment = os.getenv("ENVIRONMENT", "development").lower()
@@ -206,9 +205,6 @@ from auth_service import ClientAuthService
 
 # Initialize enterprise authentication service
 auth_service = ClientAuthService()
-
-# Dashboard function available for import
-__all__ = ['show_dashboard']
 
 
 def authenticate_client(client_id, password):
