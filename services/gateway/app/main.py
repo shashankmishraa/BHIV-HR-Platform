@@ -24,29 +24,26 @@ logger = logging.getLogger(__name__)
 # Configure garbage collection
 gc.set_threshold(700, 10, 10)
 
-# Setup import paths
+# Setup import paths for deployment compatibility
 shared_path = os.path.join(os.path.dirname(__file__), '..', '..', 'shared')
 if shared_path not in sys.path:
     sys.path.insert(0, shared_path)
 
-# Import observability with multiple fallbacks
+# Import observability with fallback
 try:
-    # Try local observability first
-    from app.observability_simple import setup_simple_observability
+    from .observability_simple import setup_simple_observability  # type: ignore
     logger.info("Local observability loaded")
 except ImportError:
     try:
-        # Try shared observability
-        shared_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'shared')
-        shared_dir = os.path.abspath(shared_dir)
-        if shared_dir not in sys.path:
-            sys.path.insert(0, shared_dir)
-        
-        from observability_simple import setup_simple_observability
+        # Add shared path for deployment
+        shared_path = os.path.join(os.path.dirname(__file__), '..', '..', 'shared')
+        if shared_path not in sys.path:
+            sys.path.insert(0, shared_path)
+        from observability_simple import setup_simple_observability  # type: ignore
         logger.info("Shared observability loaded")
     except ImportError as e:
         logger.warning(f"Observability unavailable: {e}")
-        def setup_simple_observability(*args, **kwargs) -> None:
+        def setup_simple_observability(*args: Any, **kwargs: Any) -> None:
             logger.info("Using minimal observability fallback")
             return None
 
@@ -60,11 +57,11 @@ class MetricsCollector:
 
 # Import metrics with fallback
 try:
-    from app.metrics import metrics_collector, metrics_middleware
+    from .metrics import metrics_collector, metrics_middleware  # type: ignore
     logger.info("Metrics module loaded")
 except ImportError as e:
     logger.warning(f"Metrics unavailable: {e}")
-    async def metrics_middleware(request: Request, call_next) -> Response:
+    async def metrics_middleware(request: Request, call_next: Callable) -> Response:
         return await call_next(request)
     metrics_collector = MetricsCollector()
 
@@ -77,10 +74,10 @@ def get_metrics_response() -> Dict[str, Any]:
         logger.error(f"Error getting metrics: {e}")
         return {"status": "error", "message": "Failed to retrieve metrics"}
 
-# Import config with fallback
+# Import config with relative imports
 try:
-    from app.shared.config import get_settings
-    from app.shared.database import db_manager
+    from .shared.config import get_settings  # type: ignore
+    from .shared.database import db_manager  # type: ignore
     settings = get_settings()
     environment = settings.environment.lower()
     logger.info("Configuration loaded")
@@ -105,9 +102,9 @@ except ImportError as e:
 # Import module routers with fallbacks
 routers = {}
 
-# Safe router imports without exec/eval
+# Module router imports with relative imports
 try:
-    from app.modules.core import router as core_router
+    from .modules.core import router as core_router  # type: ignore
     routers['core'] = core_router
     logger.info("core router loaded")
 except ImportError as e:
@@ -115,7 +112,7 @@ except ImportError as e:
     routers['core'] = APIRouter()
 
 try:
-    from app.modules.auth import router as auth_router
+    from .modules.auth import router as auth_router  # type: ignore
     routers['auth'] = auth_router
     logger.info("auth router loaded")
 except ImportError as e:
@@ -123,7 +120,7 @@ except ImportError as e:
     routers['auth'] = APIRouter()
 
 try:
-    from app.modules.candidates import router as candidates_router
+    from .modules.candidates import router as candidates_router  # type: ignore
     routers['candidates'] = candidates_router
     logger.info("candidates router loaded")
 except ImportError as e:
@@ -131,7 +128,7 @@ except ImportError as e:
     routers['candidates'] = APIRouter()
 
 try:
-    from app.modules.jobs import router as jobs_router
+    from .modules.jobs import router as jobs_router  # type: ignore
     routers['jobs'] = jobs_router
     logger.info("jobs router loaded")
 except ImportError as e:
@@ -139,16 +136,16 @@ except ImportError as e:
     routers['jobs'] = APIRouter()
 
 try:
-    from app.modules.monitoring import router as monitoring_router
+    from .modules.monitoring import router as monitoring_router  # type: ignore
     routers['monitoring'] = monitoring_router
     logger.info("monitoring router loaded")
 except ImportError as e:
     logger.warning(f"monitoring router unavailable: {e}")
     routers['monitoring'] = APIRouter()
 
-# Import user workflow router
+# Import user workflow router with relative import
 try:
-    from app.user_workflow import router as user_workflow_router
+    from .user_workflow import router as user_workflow_router  # type: ignore
     logger.info("User workflow router loaded")
 except ImportError as e:
     logger.warning(f"User workflow router unavailable: {e}")

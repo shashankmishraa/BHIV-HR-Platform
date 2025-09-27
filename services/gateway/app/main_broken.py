@@ -264,27 +264,6 @@ async def check_database_health():
             "status": "unhealthy",
             "error": str(e)
         }
-                            "status": "healthy",
-                            "connection_type": "unified_async_pool",
-                            "pool_size": getattr(async_engine.connection_pool, 'max_size', 'unknown')
-                        }
-        
-        # Fallback to existing method
-        if db_manager and hasattr(db_manager, 'test_connection'):
-            result = await db_manager.test_connection()
-            return {
-                "status": "healthy" if result.get("status") == "connected" else "unhealthy",
-                "connection_pool": result.get("connection_pool", "unknown"),
-                "response_time_ms": result.get("response_time", 0) * 1000
-            }
-        else:
-            return {"status": "healthy", "connection_type": "fallback"}
-    except Exception as e:
-        logger.error(f"Database health check failed: {e}")
-        return {
-            "status": "unhealthy",
-            "error": str(e)
-        }
 
 # Enhanced AI Agent health check with async HTTP management
 async def check_agent_health():
