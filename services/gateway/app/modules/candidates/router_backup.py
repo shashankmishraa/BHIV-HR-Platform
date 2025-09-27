@@ -1,5 +1,6 @@
 """Candidates workflow router"""
 
+import hashlib
 import secrets
 from datetime import datetime, timezone
 from typing import List, Optional
@@ -41,8 +42,6 @@ async def list_candidates(
     
     try:
         with db_manager.get_connection() as conn:
-            if conn is None:
-                raise HTTPException(status_code=500, detail="Database connection unavailable")
             cursor = conn.cursor()
             
             # Build dynamic query with filters
@@ -82,28 +81,25 @@ async def list_candidates(
             cursor.execute(data_query, params + [per_page, offset])
             
             rows = cursor.fetchall()
-            if not rows:
-                total = 0
-                candidates = []
-            else:
-                total = rows[0][11]
-                candidates = []
-                for row in rows:
-                    candidates.append({
-                        "id": row[0],
-                        "name": row[1],
-                        "email": row[2],
-                        "phone": row[3],
-                        "location": row[4],
-                        "experience_years": row[5],
-                        "technical_skills": row[6],
-                        "seniority_level": row[7],
-                        "education_level": row[8],
-                        "status": row[9],
-                        "created_at": row[10].isoformat() if row[10] else None
-                    })
+            total = rows[0][11] if rows else 0
             
-            pages = (total + per_page - 1) // per_page if total > 0 else 0
+            candidates = []
+            for row in rows:
+                candidates.append({
+                    "id": row[0],
+                    "name": row[1],
+                    "email": row[2],
+                    "phone": row[3],
+                    "location": row[4],
+                    "experience_years": row[5],
+                    "technical_skills": row[6],
+                    "seniority_level": row[7],
+                    "education_level": row[8],
+                    "status": row[9],
+                    "created_at": row[10].isoformat() if row[10] else None
+                })
+            
+            pages = (total + per_page - 1) // per_page
             
             return {
                 "candidates": candidates,
@@ -130,11 +126,11 @@ async def create_candidate(
     from app.shared.database import db_manager
     
     try:
+        # Map model fields to database fields
         skills_str = ', '.join(candidate.skills) if candidate.skills else ''
         
+        # Insert into database
         with db_manager.get_connection() as conn:
-            if conn is None:
-                raise HTTPException(status_code=500, detail="Database connection unavailable")
             cursor = conn.cursor()
             try:
                 cursor.execute("""
@@ -155,8 +151,6 @@ async def create_candidate(
                 ))
                 
                 row = cursor.fetchone()
-                if row is None:
-                    raise HTTPException(status_code=500, detail="Failed to create candidate")
                 candidate_id, created_at = row[0], row[1]
                 conn.commit()
             except Exception:
@@ -187,8 +181,6 @@ async def get_candidate(candidate_id: int = Path(..., gt=0)):
     
     try:
         with db_manager.get_connection() as conn:
-            if conn is None:
-                raise HTTPException(status_code=500, detail="Database connection unavailable")
             cursor = conn.cursor()
             cursor.execute("""
                 SELECT id, name, email, phone, location, experience_years,
@@ -198,7 +190,7 @@ async def get_candidate(candidate_id: int = Path(..., gt=0)):
             """, (candidate_id,))
             
             row = cursor.fetchone()
-            if row is None:
+            if not row:
                 raise HTTPException(status_code=404, detail=f"Candidate {candidate_id} not found")
             
             return CandidateResponse(
@@ -222,13 +214,15 @@ async def get_candidate(candidate_id: int = Path(..., gt=0)):
 
 
 @router.put("/{candidate_id}", response_model=CandidateResponse)
-async def update_candidate(
-    candidate: CandidateUpdate,
-    candidate_id: int = Path(..., gt=0),
-):
+async def update_candidate(candidate_id: int = Path(..., gt=0), candidate: CandidateUpdate = None):
+    """Update candidate information"""
     from app.shared.database import db_manager
     
+    if candidate is None:
+        raise HTTPException(status_code=400, detail="Request body is required")
+    
     try:
+        # Build dynamic update query using field mapping
         field_mapping = {
             'name': 'name',
             'email': 'email', 
@@ -261,10 +255,9 @@ async def update_candidate(
         params.append(candidate_id)
         
         with db_manager.get_connection() as conn:
-            if conn is None:
-                raise HTTPException(status_code=500, detail="Database connection unavailable")
             cursor = conn.cursor()
             try:
+                # Update candidate
                 update_query = f"""
                     UPDATE candidates 
                     SET {', '.join(update_fields)}
@@ -276,7 +269,7 @@ async def update_candidate(
                 cursor.execute(update_query, params)
                 
                 row = cursor.fetchone()
-                if row is None:
+                if not row:
                     raise HTTPException(status_code=404, detail=f"Candidate {candidate_id} not found")
                 
                 conn.commit()
@@ -311,10 +304,9 @@ async def delete_candidate(candidate_id: int = Path(..., gt=0)):
     
     try:
         with db_manager.get_connection() as conn:
-            if conn is None:
-                raise HTTPException(status_code=500, detail="Database connection unavailable")
             cursor = conn.cursor()
             try:
+                # Soft delete with existence check in single query
                 cursor.execute("""
                     UPDATE candidates 
                     SET status = 'deleted', updated_at = NOW() 
@@ -322,7 +314,7 @@ async def delete_candidate(candidate_id: int = Path(..., gt=0)):
                     RETURNING id
                 """, (candidate_id,))
                 
-                if cursor.fetchone() is None:
+                if not cursor.fetchone():
                     raise HTTPException(status_code=404, detail=f"Candidate {candidate_id} not found or already deleted")
                 
                 conn.commit()
@@ -349,8 +341,6 @@ async def bulk_create_candidates(
     
     try:
         with db_manager.get_connection() as conn:
-            if conn is None:
-                raise HTTPException(status_code=500, detail="Database connection unavailable")
             cursor = conn.cursor()
             
             for i, candidate in enumerate(request.candidates):
@@ -374,18 +364,14 @@ async def bulk_create_candidates(
                         'active'
                     ))
                     
-                    row = cursor.fetchone()
-                    if row is not None:
-                        candidate_id = row[0]
-                        results.append({"id": candidate_id, "email": candidate.email})
+                    candidate_id = cursor.fetchone()[0]
+                    results.append({"id": candidate_id, "email": candidate.email})
                     
                 except Exception as e:
                     errors.append({"index": i, "email": candidate.email, "error": str(e)})
             
             if results:
                 conn.commit()
-            else:
-                conn.rollback()
             
         return {
             "created": len(results), 
@@ -394,6 +380,8 @@ async def bulk_create_candidates(
             "total_processed": len(request.candidates)
         }
     except Exception as e:
+        if conn:
+            conn.rollback()
         raise HTTPException(status_code=500, detail=f"Bulk creation failed: {str(e)}")
 
 
@@ -404,10 +392,9 @@ async def get_candidate_stats():
     
     try:
         with db_manager.get_connection() as conn:
-            if conn is None:
-                raise HTTPException(status_code=500, detail="Database connection unavailable")
             cursor = conn.cursor()
             
+            # Single optimized query using CTEs
             cursor.execute("""
                 WITH stats AS (
                     SELECT 
@@ -447,9 +434,6 @@ async def get_candidate_stats():
             """)
             
             row = cursor.fetchone()
-            if row is None:
-                raise HTTPException(status_code=500, detail="Failed to retrieve statistics")
-            
             total_candidates, active_candidates, by_experience, by_location = row
             
             return {
@@ -473,12 +457,11 @@ async def add_candidate_note(candidate_id: int = Path(..., gt=0), note: str = Fo
     
     try:
         with db_manager.get_connection() as conn:
-            if conn is None:
-                raise HTTPException(status_code=500, detail="Database connection unavailable")
             cursor = conn.cursor()
             
+            # Verify candidate exists
             cursor.execute("SELECT id FROM candidates WHERE id = %s", (candidate_id,))
-            if cursor.fetchone() is None:
+            if not cursor.fetchone():
                 raise HTTPException(status_code=404, detail=f"Candidate {candidate_id} not found")
             
             note_id = f"note_{secrets.token_hex(4)}"
@@ -511,19 +494,11 @@ async def get_candidate_interviews(candidate_id: int = Path(..., gt=0)):
 @router.post("/{candidate_id}/resume")
 async def upload_candidate_resume(candidate_id: int = Path(..., gt=0), file: UploadFile = File(...)):
     """Upload candidate resume file"""
-    from app.shared.database import db_manager
-    
     # Validate file size (10MB max)
     max_size = 10 * 1024 * 1024  # 10MB
     if file.size is None:
-        # Try to read content to determine size
-        content = await file.read()
-        file_size = len(content)
-        await file.seek(0)  # Reset file pointer
-    else:
-        file_size = file.size
-    
-    if file_size > max_size:
+        raise HTTPException(status_code=400, detail="File size cannot be determined")
+    if file.size > max_size:
         raise HTTPException(status_code=413, detail="File size exceeds 10MB limit")
     
     # Validate file type
@@ -531,13 +506,12 @@ async def upload_candidate_resume(candidate_id: int = Path(..., gt=0), file: Upl
         raise HTTPException(status_code=400, detail="Only PDF and Word documents are allowed")
     
     # Verify candidate exists
+    from app.shared.database import db_manager
     try:
         with db_manager.get_connection() as conn:
-            if conn is None:
-                raise HTTPException(status_code=500, detail="Database connection unavailable")
             cursor = conn.cursor()
             cursor.execute("SELECT id FROM candidates WHERE id = %s", (candidate_id,))
-            if cursor.fetchone() is None:
+            if not cursor.fetchone():
                 raise HTTPException(status_code=404, detail=f"Candidate {candidate_id} not found")
     except HTTPException:
         raise
@@ -548,7 +522,7 @@ async def upload_candidate_resume(candidate_id: int = Path(..., gt=0), file: Upl
         "candidate_id": candidate_id,
         "filename": file.filename,
         "content_type": file.content_type,
-        "size_bytes": file_size,
+        "size_bytes": file.size,
         "message": "Resume uploaded successfully",
     }
 
