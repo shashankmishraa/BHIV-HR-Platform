@@ -29,20 +29,7 @@ except ImportError:
         def validate_job_data(data):
             return data
 
-try:
-    from app.workflow_engine import workflow_engine
-except ImportError:
-    class MockWorkflowEngine:
-        def create_workflow(self, name, data):
-            return f"workflow_{hash(str(data)) % 10000}"
-        def start_workflow(self, workflow_id):
-            return True
-        def get_workflow(self, workflow_id):
-            return None
-    workflow_engine = MockWorkflowEngine()
-
-def create_job_posting_workflow(data):
-    return workflow_engine.create_workflow("job_posting", data)
+# Workflow functionality removed - using direct job operations
 
 router = APIRouter(prefix="/v1/jobs", tags=["Jobs"])
 
@@ -155,18 +142,14 @@ async def create_job(job: JobCreate, background_tasks: BackgroundTasks):
         # Generate job ID
         job_id = f"job_{hash(job.title + job.department) % 100000}"
 
-        # Create and trigger job posting workflow
-        workflow_id = create_job_posting_workflow({**validated_data, "job_id": job_id})
-        workflow_engine.start_workflow(workflow_id)
-        background_tasks.add_task(monitor_workflow_completion, workflow_id)
+        # Direct job creation without workflow
 
         return {
             "job_id": job_id,
             "id": job_id,  # For backward compatibility
             "message": "Job created successfully with enhanced validation",
             "status": "active",
-            "workflow_triggered": True,
-            "workflow_id": workflow_id,
+            "workflow_triggered": False,
             "created_at": datetime.now().isoformat(),
             "validation_applied": True,
             **validated_data,
@@ -366,14 +349,14 @@ async def get_job_analytics():
 @router.post("/{job_id}/match-candidates")
 async def match_candidates_to_job(job_id: str, background_tasks: BackgroundTasks):
     """Find matching candidates for job and trigger matching workflow"""
-    background_tasks.add_task(trigger_matching_workflow, job_id, "candidates")
+    background_tasks.add_task(trigger_direct_matching, job_id, "candidates")
 
     return {
         "job_id": job_id,
         "matches": [],
         "total_matches": 0,
         "algorithm": "semantic_v3.2",
-        "workflow_triggered": True,
+        "workflow_triggered": False,
     }
 
 
@@ -388,39 +371,10 @@ async def get_job_candidate_match_score(job_id: str, candidate_id: str):
     }
 
 
-# Workflow integration functions
-async def monitor_workflow_completion(workflow_id: str):
-    """Monitor workflow completion and handle results"""
-    import asyncio
-
-    # Wait for workflow completion
-    max_wait = 300  # 5 minutes timeout
-    wait_time = 0
-
-    while wait_time < max_wait:
-        workflow = workflow_engine.get_workflow(workflow_id)
-        if workflow and workflow.status.value in ["completed", "failed", "cancelled"]:
-            # Handle workflow completion
-            if workflow.status.value == "completed":
-                print(f"Job workflow {workflow_id} completed successfully")
-            else:
-                print(
-                    f"Job workflow {workflow_id} failed with status: {workflow.status.value}"
-                )
-            break
-
-        await asyncio.sleep(5)
-        wait_time += 5
-
-
-async def trigger_matching_workflow(job_id: str, match_type: str):
-    """Trigger AI matching workflow"""
-    # Create matching workflow
-    workflow_id = workflow_engine.create_workflow(
-        "ai_matching", {"job_id": job_id, "match_type": match_type}
-    )
-    workflow_engine.start_workflow(workflow_id)
-    return workflow_id
+# Direct matching functions without workflow
+async def trigger_direct_matching(job_id: str, match_type: str):
+    """Trigger direct AI matching without workflow"""
+    return f"match_{hash(job_id + match_type) % 10000}"
 
 
 @router.post("/{job_id}/match")

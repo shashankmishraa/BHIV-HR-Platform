@@ -6,13 +6,13 @@ from .candidates import router as candidates_router
 from .core import router as core_router
 from .jobs import router as jobs_router
 from .monitoring import router as monitoring_router
-from .workflows import router as workflows_router
+# workflows module removed
 
 __all__ = [
     "core_router",
     "candidates_router",
     "jobs_router",
     "auth_router",
-    "workflows_router",
+    # "workflows_router", # removed
     "monitoring_router",
 ]

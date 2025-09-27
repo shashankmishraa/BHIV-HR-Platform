@@ -5,11 +5,7 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter
 
-# Import workflow engine with fallback
-try:
-    from app.workflow_engine import workflow_engine
-except ImportError:
-    workflow_engine = None
+# Workflow functionality removed
 
 router = APIRouter(tags=["Core"])
 
@@ -24,7 +20,7 @@ async def root():
         "environment": os.getenv("ENVIRONMENT", "production"),
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "total_endpoints": "180+",
-        "modules": ["core", "candidates", "jobs", "auth", "workflows", "monitoring"],
+        "modules": ["core", "candidates", "jobs", "auth", "monitoring"],
     }
 
 
@@ -39,7 +35,7 @@ async def health_check():
         "components": {
             "core": "healthy",
             "database": "healthy",
-            "workflows": "healthy",
+
         },
     }
 
@@ -68,8 +64,8 @@ async def get_architecture():
             "pattern": "api_gateway_with_modules",
             "modules": 6,
             "total_endpoints": "180+",
-            "workflow_integration": True,
-            "pipeline_orchestration": True,
+            "workflow_integration": False,
+            "pipeline_orchestration": False,
         },
         "technology_stack": {
             "framework": "FastAPI 0.104+",
@@ -80,8 +76,8 @@ async def get_architecture():
         },
         "capabilities": {
             "rest_api": True,
-            "workflow_orchestration": True,
-            "pipeline_automation": True,
+            "workflow_orchestration": False,
+            "pipeline_automation": False,
             "real_time_monitoring": True,
             "modular_architecture": True,
             "background_processing": True,

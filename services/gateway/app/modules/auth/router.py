@@ -67,14 +67,13 @@ async def register(user: UserCreate, background_tasks: BackgroundTasks):
     """Register new user and trigger onboarding workflow"""
     user_id = f"user_{secrets.token_hex(4)}"
 
-    # Trigger user onboarding workflow
-    background_tasks.add_task(trigger_user_onboarding_workflow, user_id, user.dict())
+    # Direct user creation without workflow
 
     return {
         "user_id": user_id,
         "username": user.username,
         "message": "User registered successfully",
-        "workflow_triggered": True,
+        "workflow_triggered": False,
     }
 
 
@@ -93,13 +92,12 @@ async def forgot_password(background_tasks: BackgroundTasks, email: str = Form(.
     """Initiate password reset workflow"""
     reset_token = secrets.token_hex(16)
 
-    # Trigger password reset workflow
-    background_tasks.add_task(trigger_password_reset_workflow, email, reset_token)
+    # Direct password reset without workflow
 
     return {
         "message": "Password reset email sent",
         "email": email,
-        "workflow_triggered": True,
+        "workflow_triggered": False,
     }
 
 
@@ -139,12 +137,9 @@ async def resend_verification(
     """Resend email verification"""
     verification_token = secrets.token_hex(16)
 
-    # Trigger email verification workflow
-    background_tasks.add_task(
-        trigger_email_verification_workflow, email, verification_token
-    )
+    # Direct email verification without workflow
 
-    return {"message": "Verification email sent", "workflow_triggered": True}
+    return {"message": "Verification email sent", "workflow_triggered": False}
 
 
 @router.get("/sessions")
@@ -200,23 +195,8 @@ async def validate_token(token: str = Form(...)):
     }
 
 
-# Workflow trigger functions
-async def trigger_user_onboarding_workflow(user_id: str, user_data: dict):
-    """Trigger user onboarding workflow"""
-    # User onboarding workflow implementation would go here
-    pass
-
-
-async def trigger_password_reset_workflow(email: str, reset_token: str):
-    """Trigger password reset workflow"""
-    # Password reset workflow implementation would go here
-    pass
-
-
-async def trigger_email_verification_workflow(email: str, verification_token: str):
-    """Trigger email verification workflow"""
-    # Email verification workflow implementation would go here
-    pass
+# Direct functions without workflow
+# All workflow functionality removed
 
 
 @router.get("/me")

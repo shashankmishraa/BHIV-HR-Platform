@@ -7,21 +7,7 @@ from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel, Field, field_validator, validator
 
 
-class WorkflowStatus(str, Enum):
-    PENDING = "pending"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    CANCELLED = "cancelled"
-
-
-class WorkflowType(str, Enum):
-    CANDIDATE_ONBOARDING = "candidate_onboarding"
-    JOB_POSTING = "job_posting"
-    INTERVIEW_PROCESS = "interview_process"
-    HIRING_PIPELINE = "hiring_pipeline"
-    BULK_OPERATIONS = "bulk_operations"
-    SECURITY_AUDIT = "security_audit"
+# Workflow enums removed - functionality simplified
 
 
 class CandidateCreate(BaseModel):
@@ -185,19 +171,7 @@ class UserCreate(BaseModel):
     role: str = Field(default="user")
 
 
-class WorkflowStep(BaseModel):
-    step_id: str
-    name: str
-    status: WorkflowStatus = WorkflowStatus.PENDING
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    error_message: Optional[str] = None
-    output: Optional[Dict[str, Any]] = None
-
-
-class WorkflowCreate(BaseModel):
-    workflow_type: WorkflowType
-    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
+# Workflow models removed - functionality simplified
 
 
 class APIResponse(BaseModel):

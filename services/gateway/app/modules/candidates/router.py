@@ -129,13 +129,12 @@ async def create_candidate(
     candidate_data = candidate.dict()
     candidate_id = f"cand_{hash(candidate.email) % 100000}"
 
-    # Trigger candidate onboarding workflow
-    background_tasks.add_task(trigger_candidate_workflow, candidate_id, candidate_data)
+    # Direct candidate creation without workflow
 
     return {
         "id": candidate_id,
         "message": "Candidate created successfully",
-        "workflow_triggered": True,
+        "workflow_triggered": False,
         "created_at": datetime.now().isoformat(),
         **candidate_data,
     }
@@ -205,10 +204,9 @@ async def bulk_create_candidates(
         candidate_id = f"cand_{hash(candidate.email) % 100000}"
         results.append({"id": candidate_id, "email": candidate.email})
 
-    # Trigger bulk processing workflow
-    background_tasks.add_task(trigger_bulk_workflow, results)
+    # Direct bulk processing without workflow
 
-    return {"created": len(results), "candidates": results, "workflow_triggered": True}
+    return {"created": len(results), "candidates": results, "workflow_triggered": False}
 
 
 @router.get("/{candidate_id}/applications")
@@ -315,17 +313,8 @@ async def add_candidate_note(candidate_id: str, note: str = Form(...)):
     }
 
 
-# Workflow trigger functions
-async def trigger_candidate_workflow(candidate_id: str, candidate_data: dict):
-    """Trigger candidate onboarding workflow"""
-    # Workflow implementation would go here
-    pass
-
-
-async def trigger_bulk_workflow(candidates: list):
-    """Trigger bulk processing workflow"""
-    # Bulk workflow implementation would go here
-    pass
+# Direct functions without workflow
+# All workflow functionality removed
 
 
 @router.post("/{candidate_id}/match")

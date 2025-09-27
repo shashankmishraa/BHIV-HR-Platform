@@ -29,15 +29,26 @@ shared_path = os.path.join(os.path.dirname(__file__), '..', '..', 'shared')
 if shared_path not in sys.path:
     sys.path.insert(0, shared_path)
 
-# Import observability with fallback
+# Import observability with multiple fallbacks
 try:
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))
-    from observability_simple import setup_simple_observability
-    logger.info("Simple observability loaded")
-except ImportError as e:
-    logger.warning(f"Observability unavailable: {e}")
-    def setup_simple_observability(*args, **kwargs) -> None:
-        return None
+    # Try local observability first
+    from app.observability_simple import setup_simple_observability
+    logger.info("Local observability loaded")
+except ImportError:
+    try:
+        # Try shared observability
+        shared_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'shared')
+        shared_dir = os.path.abspath(shared_dir)
+        if shared_dir not in sys.path:
+            sys.path.insert(0, shared_dir)
+        
+        from observability_simple import setup_simple_observability
+        logger.info("Shared observability loaded")
+    except ImportError as e:
+        logger.warning(f"Observability unavailable: {e}")
+        def setup_simple_observability(*args, **kwargs) -> None:
+            logger.info("Using minimal observability fallback")
+            return None
 
 # Define consistent MetricsCollector interface
 class MetricsCollector:
@@ -134,14 +145,6 @@ try:
 except ImportError as e:
     logger.warning(f"monitoring router unavailable: {e}")
     routers['monitoring'] = APIRouter()
-
-try:
-    from app.modules.workflows import router as workflows_router
-    routers['workflows'] = workflows_router
-    logger.info("workflows router loaded")
-except ImportError as e:
-    logger.warning(f"workflows router unavailable: {e}")
-    routers['workflows'] = APIRouter()
 
 # Import user workflow router
 try:
@@ -251,8 +254,8 @@ async def root():
         "documentation": "/docs",
         "health": "/health",
         "metrics": "/metrics",
-        "total_endpoints": 73,
-        "modules": ["core", "candidates", "jobs", "auth", "workflows", "monitoring"]
+        "total_endpoints": 68,
+        "modules": ["core", "candidates", "jobs", "auth", "monitoring"]
     }
 
 @app.get("/health")
@@ -326,11 +329,10 @@ async def get_system_modules():
             {"name": "candidates", "description": "Candidate management", "endpoints": 12, "status": "active"},
             {"name": "jobs", "description": "Job management", "endpoints": 10, "status": "active"},
             {"name": "auth", "description": "Authentication", "endpoints": 17, "status": "active"},
-            {"name": "integration", "description": "System integration", "endpoints": 5, "status": "active"},
             {"name": "monitoring", "description": "System monitoring", "endpoints": 25, "status": "active"},
         ],
-        "total_modules": 6,
-        "total_endpoints": "73",
+        "total_modules": 5,
+        "total_endpoints": "68",
         "architecture": "modular",
         "version": "4.1.0"
     }
@@ -371,7 +373,7 @@ async def startup_event():
     logger.info("BHIV HR Gateway starting...")
     logger.info(f"Version: 4.1.0")
     logger.info(f"Environment: {environment}")
-    logger.info(f"Modules: 6 | Endpoints: 73")
+    logger.info(f"Modules: 5 | Endpoints: 68")
     logger.info("Gateway ready")
 
 @app.on_event("shutdown")
@@ -385,6 +387,6 @@ if __name__ == "__main__":
     
     port = int(os.environ.get("PORT", 8000))
     print("BHIV HR Platform Gateway v4.1.0")
-    print(f"Modules: 6 | Endpoints: 73")
+    print(f"Modules: 5 | Endpoints: 68")
     print(f"Starting on port {port}")
     uvicorn.run(app, host="0.0.0.0", port=port)
