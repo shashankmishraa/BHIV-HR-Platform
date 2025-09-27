@@ -143,7 +143,7 @@ app = FastAPI(
     """,
     contact={
         "name": "BHIV HR Platform Team",
-        "url": "https://bhiv-hr-gateway-901a.onrender.com",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com",
     },
 )
 

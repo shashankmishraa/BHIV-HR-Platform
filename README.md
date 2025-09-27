@@ -5,10 +5,10 @@
 ## 🌐 Live Production Platform
 
 ### **✅ Currently Deployed on Render**
-- **API Gateway**: https://bhiv-hr-gateway-901a.onrender.com/docs ✅
-- **AI Matching Engine**: https://bhiv-hr-agent-o6nx.onrender.com/docs ✅
-- **HR Portal**: https://bhiv-hr-portal-xk2k.onrender.com/ ✅
-- **Client Portal**: https://bhiv-hr-client-portal-zdbt.onrender.com/ ✅
+- **API Gateway**: https://bhiv-hr-gateway-46pz.onrender.com/docs ✅
+- **AI Matching Engine**: https://bhiv-hr-agent-m1me.onrender.com/docs ✅
+- **HR Portal**: https://bhiv-hr-portal-cead.onrender.com/ ✅
+- **Client Portal**: https://bhiv-hr-client-portal-5g33.onrender.com/ ✅
 - **Status**: 🟢 **ALL SERVICES LIVE & OPERATIONAL** | **Cost**: $0/month (Free tier)
 - **Last Updated**: January 2025 | **Version**: v4.0.0 | **Architecture**: Enterprise-Grade
 
@@ -20,7 +20,7 @@ Password: demo123
 
 # API Testing
 API Key: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
-curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" https://bhiv-hr-gateway-901a.onrender.com/health
+curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" https://bhiv-hr-gateway-46pz.onrender.com/health
 ```
 
 ## 🏗️ System Architecture v4.0.0
@@ -129,8 +129,8 @@ curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr
      https://bhiv-hr-gateway-46pz.onrender.com/health
 
 # Health Monitoring
-curl https://bhiv-hr-gateway-901a.onrender.com/health/detailed
-curl https://bhiv-hr-agent-o6nx.onrender.com/metrics
+curl https://bhiv-hr-gateway-46pz.onrender.com/health/detailed
+curl https://bhiv-hr-agent-m1me.onrender.com/metrics
 ```
 
 ### **💻 Development Setup**
@@ -210,6 +210,8 @@ ENVIRONMENT=production
 PYTHON_VERSION=3.12.7
 GATEWAY_URL=https://bhiv-hr-gateway-46pz.onrender.com
 AGENT_SERVICE_URL=https://bhiv-hr-agent-m1me.onrender.com
+PORTAL_URL=https://bhiv-hr-portal-cead.onrender.com
+CLIENT_PORTAL_URL=https://bhiv-hr-client-portal-5g33.onrender.com
 
 # Security (Managed via GitHub Secrets)
 JWT_SECRET={{ secrets.JWT_SECRET }}
@@ -235,7 +237,7 @@ python tests/test_security.py            # Security features
 python tests/test_observability.py       # Monitoring system
 
 # Performance Testing
-curl https://bhiv-hr-gateway-901a.onrender.com/metrics
+curl https://bhiv-hr-gateway-46pz.onrender.com/metrics
 python scripts/comprehensive_service_verification.py
 ```
 
@@ -245,9 +247,9 @@ python scripts/comprehensive_service_verification.py
 # GitHub Actions → Fast Health Check workflow
 
 # Manual Health Verification
-curl https://bhiv-hr-gateway-901a.onrender.com/health/detailed
-curl https://bhiv-hr-agent-o6nx.onrender.com/health/ready
-curl https://bhiv-hr-portal-xk2k.onrender.com/  # Portal accessibility
+curl https://bhiv-hr-gateway-46pz.onrender.com/health/detailed
+curl https://bhiv-hr-agent-m1me.onrender.com/health/ready
+curl https://bhiv-hr-portal-cead.onrender.com/  # Portal accessibility
 
 # Comprehensive Service Verification
 python scripts/comprehensive_service_verification.py
@@ -268,16 +270,16 @@ python scripts/comprehensive_service_verification.py
 ### **Observability Dashboard**
 ```bash
 # Prometheus Metrics
-curl https://bhiv-hr-gateway-901a.onrender.com/metrics
+curl https://bhiv-hr-gateway-46pz.onrender.com/metrics
 
 # JSON Metrics (Human Readable)
-curl https://bhiv-hr-gateway-901a.onrender.com/metrics/json
+curl https://bhiv-hr-gateway-46pz.onrender.com/metrics/json
 
 # Health Status
-curl https://bhiv-hr-gateway-901a.onrender.com/health/detailed
+curl https://bhiv-hr-gateway-46pz.onrender.com/health/detailed
 
 # System Diagnostics
-curl https://bhiv-hr-agent-o6nx.onrender.com/status
+curl https://bhiv-hr-agent-m1me.onrender.com/status
 ```
 
 ## 📚 Documentation
@@ -345,9 +347,9 @@ curl https://bhiv-hr-agent-o6nx.onrender.com/status
 ## 🚀 Getting Started (Choose Your Path)
 
 ### **🌐 For Users (Recommended)**
-1. **Visit Live Platform**: https://bhiv-hr-gateway-901a.onrender.com/docs
-2. **Access HR Portal**: https://bhiv-hr-portal-xk2k.onrender.com/
-3. **Login to Client Portal**: https://bhiv-hr-client-portal-zdbt.onrender.com/ (TECH001/demo123)
+1. **Visit Live Platform**: https://bhiv-hr-gateway-46pz.onrender.com/docs
+2. **Access HR Portal**: https://bhiv-hr-portal-cead.onrender.com/
+3. **Login to Client Portal**: https://bhiv-hr-client-portal-5g33.onrender.com/ (TECH001/demo123)
 4. **Test API**: Use Bearer token from demo access section
 
 ### **💻 For Developers**
@@ -371,10 +373,10 @@ curl https://bhiv-hr-agent-o6nx.onrender.com/status
 ## 📞 Support & Resources
 
 ### **Live Platform Access**
-- **🔗 API Gateway**: https://bhiv-hr-gateway-901a.onrender.com/docs
-- **🔗 AI Matching**: https://bhiv-hr-agent-o6nx.onrender.com/docs
-- **🔗 HR Dashboard**: https://bhiv-hr-portal-xk2k.onrender.com/
-- **🔗 Client Portal**: https://bhiv-hr-client-portal-zdbt.onrender.com/
+- **🔗 API Gateway**: https://bhiv-hr-gateway-46pz.onrender.com/docs
+- **🔗 AI Matching**: https://bhiv-hr-agent-m1me.onrender.com/docs
+- **🔗 HR Dashboard**: https://bhiv-hr-portal-cead.onrender.com/
+- **🔗 Client Portal**: https://bhiv-hr-client-portal-5g33.onrender.com/
 
 ### **Development Resources**
 - **GitHub Repository**: https://github.com/shashankmishraa/BHIV-HR-Platform

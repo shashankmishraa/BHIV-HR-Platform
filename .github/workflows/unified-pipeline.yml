@@ -221,7 +221,7 @@ jobs:
           
           declare -A services=(
             ["Gateway"]="https://bhiv-hr-gateway-46pz.onrender.com"
-            ["AI-Agent"]="https://bhiv-hr-agent-o6nx.onrender.com"
+            ["AI-Agent"]="https://bhiv-hr-agent-m1me.onrender.com"
           )
           
           failed_services=()
@@ -266,7 +266,7 @@ jobs:
           
           services = {
               'Gateway': 'https://bhiv-hr-gateway-46pz.onrender.com',
-              'AI Agent': 'https://bhiv-hr-agent-o6nx.onrender.com'
+              'AI Agent': 'https://bhiv-hr-agent-m1me.onrender.com'
           }
           
           endpoints = ['/health', '/health/detailed', '/metrics']
@@ -329,7 +329,7 @@ jobs:
             echo "Monitoring round $round/6"
             
             gateway_status=$(curl -f -s -w "%{http_code}" https://bhiv-hr-gateway-46pz.onrender.com/health -o /dev/null || echo "000")
-            agent_status=$(curl -f -s -w "%{http_code}" https://bhiv-hr-agent-o6nx.onrender.com/health -o /dev/null || echo "000")
+            agent_status=$(curl -f -s -w "%{http_code}" https://bhiv-hr-agent-m1me.onrender.com/health -o /dev/null || echo "000")
             
             if [ "$gateway_status" = "200" ]; then
               echo "✅ Gateway: OK"
@@ -380,9 +380,9 @@ jobs:
           ## 🔗 Production Services
           
           - **API Gateway:** https://bhiv-hr-gateway-46pz.onrender.com
-          - **AI Matching:** https://bhiv-hr-agent-o6nx.onrender.com
-          - **HR Portal:** https://bhiv-hr-portal-xk2k.onrender.com
-          - **Client Portal:** https://bhiv-hr-client-portal-zdbt.onrender.com
+          - **AI Matching:** https://bhiv-hr-agent-m1me.onrender.com
+          - **HR Portal:** https://bhiv-hr-portal-cead.onrender.com
+          - **Client Portal:** https://bhiv-hr-client-portal-5g33.onrender.com
           
           ## 📈 System Status
           
