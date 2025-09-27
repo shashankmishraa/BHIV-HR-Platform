@@ -125,19 +125,43 @@ async def list_candidates(
 async def create_candidate(
     candidate: CandidateCreate, background_tasks: BackgroundTasks
 ):
-    """Create new candidate and trigger onboarding workflow"""
-    candidate_data = candidate.dict()
-    candidate_id = f"cand_{hash(candidate.email) % 100000}"
+    """Create new candidate with database persistence"""
+    from app.shared.database import db_manager
+    
+    try:
+        candidate_data = candidate.dict()
+        
+        # Insert into database
+        async with db_manager.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO candidates (name, email, phone, location, technical_skills,
+                                      experience_years, seniority_level, education_level, status)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
+            """, (
+                candidate_data.get('name'),
+                candidate_data.get('email'),
+                candidate_data.get('phone', ''),
+                candidate_data.get('location', ''),
+                candidate_data.get('technical_skills', ''),
+                candidate_data.get('experience_years', 0),
+                candidate_data.get('seniority_level', 'Junior'),
+                candidate_data.get('education_level', 'Bachelor\'s'),
+                candidate_data.get('status', 'active')
+            ))
+            
+            candidate_id = cursor.fetchone()[0]
+            conn.commit()
 
-    # Direct candidate creation without workflow
-
-    return {
-        "id": candidate_id,
-        "message": "Candidate created successfully",
-        "workflow_triggered": False,
-        "created_at": datetime.now().isoformat(),
-        **candidate_data,
-    }
+        return {
+            "id": candidate_id,
+            "message": "Candidate created successfully and saved to database",
+            "created_at": datetime.now().isoformat(),
+            **candidate_data,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{candidate_id}", response_model=CandidateResponse)

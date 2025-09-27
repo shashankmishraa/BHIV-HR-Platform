@@ -17,9 +17,14 @@ except ImportError:
         title: str
         department: str
         location: str = "Remote"
-        experience_level: str = "Mid"
+        experience_level: str = "Mid-level"
         requirements: str = ""
         description: str = ""
+        salary_min: int = 50000
+        salary_max: int = 100000
+        client_id: int = 1
+        employment_type: str = "Full-time"
+        status: str = "active"
 
 try:
     from app.shared.validation import ValidationUtils
@@ -133,25 +138,43 @@ async def list_jobs(
 
 @router.post("")
 async def create_job(job: JobCreate, background_tasks: BackgroundTasks):
-    """Create new job posting with enhanced validation and trigger job workflow"""
+    """Create new job posting with database persistence"""
+    from app.shared.database import db_manager
+    
     try:
         # Validate and normalize job data
         job_data = job.model_dump()
         validated_data = ValidationUtils.validate_job_data(job_data)
 
-        # Generate job ID
-        job_id = f"job_{hash(job.title + job.department) % 100000}"
-
-        # Direct job creation without workflow
+        # Insert into database
+        async with db_manager.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO jobs (title, department, location, experience_level, 
+                                requirements, description, client_id, employment_type, status)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
+            """, (
+                validated_data.get('title'),
+                validated_data.get('department'),
+                validated_data.get('location', 'Remote'),
+                validated_data.get('experience_level', 'Mid-level'),
+                validated_data.get('requirements', ''),
+                validated_data.get('description', ''),
+                validated_data.get('client_id', 1),
+                validated_data.get('employment_type', 'Full-time'),
+                validated_data.get('status', 'active')
+            ))
+            
+            job_id = cursor.fetchone()[0]
+            conn.commit()
 
         return {
             "job_id": job_id,
-            "id": job_id,  # For backward compatibility
-            "message": "Job created successfully with enhanced validation",
+            "id": job_id,
+            "message": "Job created successfully and saved to database",
             "status": "active",
-            "workflow_triggered": False,
             "created_at": datetime.now().isoformat(),
-            "validation_applied": True,
             **validated_data,
         }
     except ValidationError as e:

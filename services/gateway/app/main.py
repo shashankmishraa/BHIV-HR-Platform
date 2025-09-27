@@ -143,6 +143,22 @@ except ImportError as e:
     logger.warning(f"monitoring router unavailable: {e}")
     routers['monitoring'] = APIRouter()
 
+try:
+    from .modules.interviews import router as interviews_router  # type: ignore
+    routers['interviews'] = interviews_router
+    logger.info("interviews router loaded")
+except ImportError as e:
+    logger.warning(f"interviews router unavailable: {e}")
+    routers['interviews'] = APIRouter()
+
+try:
+    from .modules.feedback import router as feedback_router  # type: ignore
+    routers['feedback'] = feedback_router
+    logger.info("feedback router loaded")
+except ImportError as e:
+    logger.warning(f"feedback router unavailable: {e}")
+    routers['feedback'] = APIRouter()
+
 # Import user workflow router with relative import
 try:
     from .user_workflow import router as user_workflow_router  # type: ignore
@@ -238,8 +254,8 @@ async def root():
         "documentation": "/docs",
         "health": "/health",
         "metrics": "/metrics",
-        "total_endpoints": 68,
-        "modules": ["core", "candidates", "jobs", "auth", "monitoring"]
+        "total_endpoints": 78,
+        "modules": ["core", "candidates", "jobs", "auth", "monitoring", "interviews", "feedback"]
     }
 
 @app.get("/health")
@@ -300,8 +316,8 @@ async def get_metrics_json():
         "version": "4.1.0",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "status": "operational",
-        "endpoints": 73,
-        "modules": 6
+        "endpoints": 83,
+        "modules": 8
     }
 
 @app.get("/system/modules")
