@@ -45,10 +45,10 @@ class JobCreate(BaseModel):
         pattern=r"^(Entry-level|Entry|Mid-level|Mid|Senior-level|Senior|Lead-level|Lead|Executive-level|Executive)$",
     )
     salary_min: int = Field(
-        ..., ge=0, le=10000000, description="Minimum salary (required)"
+        0, ge=0, le=100000000, description="Minimum salary in ₹ (Indian Rupees)"
     )
     salary_max: int = Field(
-        ..., ge=0, le=10000000, description="Maximum salary (required)"
+        ..., ge=1, le=100000000, description="Maximum salary in ₹ (Indian Rupees)"
     )
     job_type: str = Field(default="Full-time")
     company_id: str = Field(default="default")
@@ -112,8 +112,8 @@ class JobUpdate(BaseModel):
         None,
         pattern=r"^(Entry-level|Entry|Mid-level|Mid|Senior-level|Senior|Lead-level|Lead|Executive-level|Executive)$",
     )
-    salary_min: Optional[int] = Field(None, ge=0, le=10000000)
-    salary_max: Optional[int] = Field(None, ge=0, le=10000000)
+    salary_min: Optional[int] = Field(None, ge=0, le=100000000, description="Minimum salary in ₹")
+    salary_max: Optional[int] = Field(None, ge=1, le=100000000, description="Maximum salary in ₹")
     job_type: Optional[str] = None
 
     @field_validator("requirements")
