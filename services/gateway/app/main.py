@@ -92,7 +92,7 @@ try:
     from app.modules.core import router as core_router
     from app.modules.jobs import router as jobs_router
     from app.modules.monitoring import router as monitoring_router
-    from app.modules.workflows import router as workflows_router
+    from app.modules.workflows import router as integration_router
 except ImportError as e:
     logger.error(f"Module routers import failed: {e}")
     auth_router = APIRouter()
@@ -100,7 +100,7 @@ except ImportError as e:
     core_router = APIRouter()
     jobs_router = APIRouter()
     monitoring_router = APIRouter()
-    workflows_router = APIRouter()
+    integration_router = APIRouter()
 
 # Initialize FastAPI application
 app = FastAPI(
@@ -110,10 +110,10 @@ app = FastAPI(
     Enterprise HR Platform with Modular Workflow Architecture & Comprehensive Observability
     
     ## Features
-    - 180+ REST API Endpoints
+    - 50+ REST API Endpoints
     - Modular Architecture with 6 Core Modules
-    - Workflow Orchestration System
-    - Pipeline Automation Engine
+    - Systematic Testing Framework
+    - Integration Utilities
     - Real-time Monitoring & Analytics
     - Enterprise Security & Authentication
     - Comprehensive Observability (Health Checks, Metrics, Logging)
@@ -123,7 +123,7 @@ app = FastAPI(
     - **Candidates**: Candidate management with workflow integration
     - **Jobs**: Job posting and management with AI matching
     - **Auth**: Authentication and security workflows
-    - **Workflows**: Workflow orchestration and pipeline management
+    - **Integration**: System integration and testing utilities
     - **Monitoring**: System health and performance analytics
     
     ## Observability
@@ -355,7 +355,7 @@ try:
     app.include_router(candidates_router, prefix="", tags=["Candidates"])
     app.include_router(jobs_router, prefix="", tags=["Jobs"])
     app.include_router(auth_router, prefix="", tags=["Authentication"])
-    app.include_router(workflows_router, prefix="", tags=["Workflows"])
+    app.include_router(integration_router, prefix="", tags=["Integration"])
     app.include_router(monitoring_router, prefix="", tags=["Monitoring"])
     logger.info("Module routers included")
 except Exception as e:
@@ -396,9 +396,9 @@ async def get_system_modules():
                 "status": "active",
             },
             {
-                "name": "workflows",
-                "description": "Workflow orchestration and pipeline management",
-                "endpoints": 15,
+                "name": "integration",
+                "description": "System integration and testing utilities",
+                "endpoints": 5,
                 "status": "active",
             },
             {
@@ -409,7 +409,7 @@ async def get_system_modules():
             },
         ],
         "total_modules": 6,
-        "total_endpoints": "180+",
+        "total_endpoints": "50+",
         "architecture": "modular",
         "version": "3.2.0",
     }
@@ -424,8 +424,8 @@ async def get_system_architecture():
             "pattern": "api_gateway_with_modules",
             "modules": 6,
             "total_endpoints": "180+",
-            "workflow_integration": True,
-            "pipeline_orchestration": True,
+            "testing_utilities": True,
+            "integration_endpoints": True,
         },
         "technology_stack": {
             "framework": "FastAPI 0.104+",
@@ -436,8 +436,8 @@ async def get_system_architecture():
         },
         "capabilities": {
             "rest_api": True,
-            "workflow_orchestration": True,
-            "pipeline_automation": True,
+            "systematic_testing": True,
+            "endpoint_organization": True,
             "real_time_monitoring": True,
             "modular_architecture": True,
             "background_processing": True,
@@ -515,7 +515,7 @@ async def startup_event():
     logger.info(f"Version: 3.2.0")
     logger.info(f"Environment: {environment}")
     logger.info(f"Observability: {'Unified' if UNIFIED_OBSERVABILITY else 'Basic'}")
-    logger.info(f"Modules: 6 | Endpoints: 180+")
+    logger.info(f"Modules: 6 | Endpoints: 50+")
     logger.info("=" * 60)
     logger.info("Gateway ready")
     logger.info("=" * 60)
@@ -546,7 +546,7 @@ if __name__ == "__main__":
     print(f"Version: 3.2.0")
     print(f"Architecture: Modular")
     print(f"Total Modules: 6")
-    print(f"Total Endpoints: 180+")
+    print(f"Total Endpoints: 50+")
     print(f"Starting server on port {port}")
     print("=" * 80)
     uvicorn.run(app, host="0.0.0.0", port=port)
