@@ -429,8 +429,8 @@ async def get_system_architecture():
         },
         "technology_stack": {
             "framework": "FastAPI 0.104+",
-            "python": "3.11+",
-            "database": "PostgreSQL",
+            "python": "3.12.7",
+            "database": "PostgreSQL 17",
             "deployment": "Render Cloud",
             "monitoring": "Prometheus Compatible",
         },

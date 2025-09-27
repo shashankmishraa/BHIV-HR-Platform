@@ -1,5 +1,35 @@
 # BHIV HR Platform - Changelog
 
+## [4.1.0] - January 18, 2025
+
+### 🔍 Comprehensive Audit & Restructuring
+- **Complete Codebase Audit**: Identified and resolved 59 security vulnerabilities
+- **Service URL Synchronization**: Updated all configuration files with current production URLs
+- **Python Version Standardization**: Unified to Python 3.12.7 across all services
+- **File Cleanup**: Removed 47 redundant and obsolete files
+- **Documentation Sync**: Updated all documentation with current system state
+- **Security Hardening**: Removed hardcoded credentials and improved security measures
+
+### 🛠️ Configuration Updates
+- Updated Gateway service URLs to current production endpoints
+- Synchronized environment configuration with live services
+- Fixed database connection strings across all services
+- Updated API documentation with current endpoints
+
+### 🗑️ Cleanup & Optimization
+- Removed duplicate test files and temporary fix files
+- Consolidated documentation structure
+- Eliminated outdated summary and report files
+- Optimized project structure for maintainability
+
+### 🔒 Security Improvements
+- Addressed GitHub Dependabot security alerts
+- Removed hardcoded credentials from configuration files
+- Enhanced input validation and sanitization
+- Improved error handling and logging security
+
+---
+
 ## [4.0.0] - January 2025
 
 ### 🚀 Major Features Added
