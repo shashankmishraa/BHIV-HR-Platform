@@ -33,13 +33,13 @@ class Settings(BaseSettings):
 
     # Service URLs
     agent_service_url: str = Field(
-        default="https://bhiv-hr-agent-o6nx.onrender.com", env="AGENT_SERVICE_URL"
+        default="https://bhiv-hr-agent-m1me.onrender.com", env="AGENT_SERVICE_URL"
     )
     portal_url: str = Field(
-        default="https://bhiv-hr-portal-xk2k.onrender.com", env="PORTAL_URL"
+        default="https://bhiv-hr-portal-cead.onrender.com", env="PORTAL_URL"
     )
     client_portal_url: str = Field(
-        default="https://bhiv-hr-client-portal-zdbt.onrender.com",
+        default="https://bhiv-hr-client-portal-5g33.onrender.com",
         env="CLIENT_PORTAL_URL",
     )
 
