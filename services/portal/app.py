@@ -62,7 +62,11 @@ menu = st.sidebar.selectbox("Select HR Task", [
 
 
 # Real-time refresh button
+if 'refresh_all_data_sidebar' not in st.session_state:
+    st.session_state.refresh_all_data_sidebar = False
+
 if st.sidebar.button("🔄 Refresh All Data"):
+    st.session_state.refresh_all_data_sidebar = True
     st.rerun()
 
 # API Connection Status
