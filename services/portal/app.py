@@ -8,8 +8,8 @@ st.set_page_config(page_title="BHIV HR Platform v2.0", page_icon="🎯", layout=
 
 import os
 
-API_BASE = os.getenv("GATEWAY_URL", "http://gateway:8000")
-API_KEY = os.getenv("API_KEY_SECRET", "myverysecureapikey123")
+API_BASE = os.getenv("GATEWAY_URL", "https://bhiv-hr-gateway-46pz.onrender.com")
+API_KEY = os.getenv("API_KEY_SECRET", "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o")
 headers = {"Authorization": f"Bearer {API_KEY}"}
 
 # Header
@@ -619,7 +619,8 @@ elif menu == "📈 Dashboard Overview":
         if st.button("📥 Export Job-Specific Report", use_container_width=True):
             try:
                 # Get AI match data and assessments for specific job
-                ai_response = httpx.post(f"http://agent:9000/match", json={"job_id": job_id_export}, timeout=15.0)
+                agent_url = os.getenv("AGENT_SERVICE_URL", "https://bhiv-hr-agent-m1me.onrender.com")
+                ai_response = httpx.post(f"{agent_url}/match", json={"job_id": job_id_export}, timeout=15.0)
                 interviews_response = httpx.get(f"{API_BASE}/v1/interviews", headers=headers, timeout=10.0)
                 
                 candidates = []
@@ -755,7 +756,8 @@ elif menu == "🎯 Step 4: AI Shortlist & Matching":
         with st.spinner("🔄 Advanced AI is analyzing candidates using semantic matching..."):
             try:
                 # Call AI Agent directly for enhanced matching
-                response = httpx.post(f"http://agent:9000/match", 
+                agent_url = os.getenv("AGENT_SERVICE_URL", "https://bhiv-hr-agent-m1me.onrender.com")
+                response = httpx.post(f"{agent_url}/match", 
                                     json={"job_id": job_id}, 
                                     timeout=15.0)
                 if response.status_code == 200:
@@ -1228,7 +1230,8 @@ elif menu == "🏆 Step 7: Export Assessment Reports":
         if st.button("📥 Export Shortlist with Assessments", use_container_width=True):
             try:
                 # Get AI shortlist data
-                ai_response = httpx.post(f"http://agent:9000/match", json={"job_id": job_id_shortlist}, timeout=15.0)
+                agent_url = os.getenv("AGENT_SERVICE_URL", "https://bhiv-hr-agent-m1me.onrender.com")
+                ai_response = httpx.post(f"{agent_url}/match", json={"job_id": job_id_shortlist}, timeout=15.0)
                 interviews_response = httpx.get(f"{API_BASE}/v1/interviews", headers=headers, timeout=10.0)
                 
                 candidates = []
@@ -1494,7 +1497,8 @@ with footer_col1:
 with footer_col2:
     st.markdown("**🤖 AI Status**")
     try:
-        ai_response = httpx.get(f"http://agent:9000/health", timeout=3.0)
+        agent_url = os.getenv("AGENT_SERVICE_URL", "https://bhiv-hr-agent-m1me.onrender.com")
+        ai_response = httpx.get(f"{agent_url}/health", timeout=3.0)
         if ai_response.status_code == 200:
             st.caption("✅ Talah AI: Online")
         else:

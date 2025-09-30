@@ -198,11 +198,11 @@ class PasswordChange(BaseModel):
     new_password: str
 
 def get_db_engine():
-    database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:bhiv_pass@db:5432/bhiv_hr")
+    database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu")
     return create_engine(database_url, pool_pre_ping=True, pool_recycle=3600)
 
 def validate_api_key(api_key: str) -> bool:
-    expected_key = os.getenv("API_KEY_SECRET", "myverysecureapikey123")
+    expected_key = os.getenv("API_KEY_SECRET", "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o")
     return api_key == expected_key
 
 def get_api_key(credentials: HTTPAuthorizationCredentials = Security(security)):

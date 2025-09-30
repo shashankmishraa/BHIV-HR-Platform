@@ -12,10 +12,10 @@
 ### **🔗 Live Service URLs**
 | Service | URL | Status | Purpose |
 |---------|-----|--------|---------|
-| **API Gateway** | https://bhiv-hr-gateway.onrender.com | 🟢 Live | REST API Backend |
-| **HR Portal** | https://bhiv-hr-portal.onrender.com | 🟢 Live | HR Dashboard |
-| **Client Portal** | https://bhiv-hr-client-portal.onrender.com | 🟢 Live | Client Interface |
-| **AI Agent** | https://bhiv-hr-agent.onrender.com | 🟢 Live | AI Matching Engine |
+| **API Gateway** | https://bhiv-hr-gateway-46pz.onrender.com | 🟢 Live | REST API Backend |
+| **HR Portal** | https://bhiv-hr-portal-cead.onrender.com | 🟢 Live | HR Dashboard |
+| **Client Portal** | https://bhiv-hr-client-portal-5g33.onrender.com | 🟢 Live | Client Interface |
+| **AI Agent** | https://bhiv-hr-agent-m1me.onrender.com | 🟢 Live | AI Matching Engine |
 
 ### **🔑 Demo Access Credentials**
 ```bash
@@ -24,7 +24,7 @@ Username: TECH001
 Password: demo123
 
 # API Testing
-API Key: myverysecureapikey123
+API Key: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
 ```
 
 ## 💻 Local Development Status
@@ -164,7 +164,7 @@ curl http://localhost:8000/health
 ## 📞 Support & Resources
 
 ### **Quick Access**
-- **Live API Docs**: https://bhiv-hr-gateway.onrender.com/docs
+- **Live API Docs**: https://bhiv-hr-gateway-46pz.onrender.com/docs
 - **GitHub Repository**: https://github.com/shashankmishraa/BHIV-HR-Platform
 - **Local Portal**: http://localhost:8501
 
@@ -176,7 +176,7 @@ curl http://localhost:8501
 curl http://localhost:9000/health
 
 # Test API functionality
-curl -H "Authorization: Bearer myverysecureapikey123" \
+curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
      http://localhost:8000/v1/jobs
 ```
 

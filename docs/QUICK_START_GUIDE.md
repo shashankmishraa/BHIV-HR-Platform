@@ -13,10 +13,10 @@ Run the complete platform on your local machine.
 ## 🌐 Live Platform Access
 
 ### **🔗 Service URLs**
-- **HR Portal**: https://bhiv-hr-portal.onrender.com/ ✅
-- **Client Portal**: https://bhiv-hr-client-portal.onrender.com/ ✅
-- **API Gateway**: https://bhiv-hr-gateway.onrender.com/docs ✅
-- **AI Agent**: https://bhiv-hr-agent.onrender.com/docs ✅
+- **HR Portal**: https://bhiv-hr-portal-cead.onrender.com/ ✅
+- **Client Portal**: https://bhiv-hr-client-portal-5g33.onrender.com/ ✅
+- **API Gateway**: https://bhiv-hr-gateway-46pz.onrender.com/docs ✅
+- **AI Agent**: https://bhiv-hr-agent-m1me.onrender.com/docs ✅
 
 ### **🔑 Demo Credentials**
 ```bash
@@ -25,17 +25,17 @@ Username: TECH001
 Password: demo123
 
 # API Testing
-API Key: myverysecureapikey123
+API Key: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
 ```
 
 ### **⚡ Quick Test**
 ```bash
 # Test API health
-curl https://bhiv-hr-gateway.onrender.com/health
+curl https://bhiv-hr-gateway-46pz.onrender.com/health
 
 # Test authenticated endpoint
-curl -H "Authorization: Bearer myverysecureapikey123" \
-     https://bhiv-hr-gateway.onrender.com/v1/jobs
+curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
+     https://bhiv-hr-gateway-46pz.onrender.com/v1/jobs
 ```
 
 ---
@@ -157,7 +157,7 @@ python tools/database_sync_manager.py
 ```bash
 # Test bulk candidate upload
 curl -X POST "http://localhost:8000/v1/candidates/bulk" \
-     -H "Authorization: Bearer myverysecureapikey123" \
+     -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
      -H "Content-Type: application/json" \
      -d '{"candidates": [{"name": "Test User", "email": "test@example.com"}]}'
 
@@ -235,7 +235,7 @@ docker exec bhivhraiplatform-db-1 psql -U bhiv_user -d bhiv_hr -c "SELECT COUNT(
 - **User Guide**: `docs/USER_GUIDE.md`
 
 ### **🔗 Quick Links**
-- **Live API Docs**: https://bhiv-hr-gateway.onrender.com/docs
+- **Live API Docs**: https://bhiv-hr-gateway-46pz.onrender.com/docs
 - **GitHub Repository**: https://github.com/shashankmishraa/BHIV-HR-Platform
 - **Batch Upload Guide**: `batch_upload_verification_guide.md`
 
@@ -247,7 +247,7 @@ curl http://localhost:8501 > /dev/null && echo "Portal OK"
 curl http://localhost:9000/health && echo " - Agent OK"
 
 # Test complete workflow
-curl -H "Authorization: Bearer myverysecureapikey123" \
+curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
      http://localhost:8000/v1/jobs && echo " - Jobs API OK"
 ```
 

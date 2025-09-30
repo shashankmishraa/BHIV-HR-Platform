@@ -88,13 +88,18 @@ class MatchResponse(BaseModel):
 def get_db_connection():
     """Get database connection"""
     try:
-        conn = psycopg2.connect(
-            host=os.getenv("DB_HOST", "db"),
-            database=os.getenv("DB_NAME", "bhiv_hr"),
-            user=os.getenv("DB_USER", "bhiv_user"),
-            password=os.getenv("DB_PASSWORD", "bhiv_pass"),
-            port=os.getenv("DB_PORT", "5432")
-        )
+        # Use DATABASE_URL if available, otherwise construct from individual components
+        database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu")
+        if database_url:
+            conn = psycopg2.connect(database_url)
+        else:
+            conn = psycopg2.connect(
+                host=os.getenv("DB_HOST", "dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com"),
+                database=os.getenv("DB_NAME", "bhiv_hr_jcuu"),
+                user=os.getenv("DB_USER", "bhiv_user"),
+                password=os.getenv("DB_PASSWORD", "3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2"),
+                port=os.getenv("DB_PORT", "5432")
+            )
         return conn
     except Exception as e:
         logger.error(f"Database connection failed: {e}")

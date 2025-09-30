@@ -8,10 +8,10 @@
 **Cost**: $0/month (Free tier)  
 
 **Live Services**:
-- **API Gateway**: https://bhiv-hr-gateway.onrender.com/docs
-- **AI Matching Engine**: https://bhiv-hr-agent.onrender.com/docs
-- **HR Portal**: https://bhiv-hr-portal.onrender.com/
-- **Client Portal**: https://bhiv-hr-client-portal.onrender.com/
+- **API Gateway**: https://bhiv-hr-gateway-46pz.onrender.com/docs
+- **AI Matching Engine**: https://bhiv-hr-agent-m1me.onrender.com/docs
+- **HR Portal**: https://bhiv-hr-portal-cead.onrender.com/
+- **Client Portal**: https://bhiv-hr-client-portal-5g33.onrender.com/
 
 **Platform Resources**:
 ```
@@ -27,14 +27,14 @@
 
 ### HR Portal Access
 ```
-URL: https://bhiv-hr-portal.onrender.com/
+URL: https://bhiv-hr-portal-cead.onrender.com/
 Authentication: Direct access (no login required)
 Features: Full HR dashboard access
 ```
 
 ### Client Portal Access
 ```
-URL: https://bhiv-hr-client-portal.onrender.com/
+URL: https://bhiv-hr-client-portal-5g33.onrender.com/
 
 Demo Accounts:
 ├── TECH001 / demo123 (Technology Company)
@@ -44,10 +44,10 @@ Demo Accounts:
 
 ### API Access
 ```
-Base URL: https://bhiv-hr-gateway.onrender.com
-API Key: myverysecureapikey123
-Documentation: https://bhiv-hr-gateway.onrender.com/docs
-Health Check: https://bhiv-hr-gateway.onrender.com/health
+Base URL: https://bhiv-hr-gateway-46pz.onrender.com
+API Key: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
+Documentation: https://bhiv-hr-gateway-46pz.onrender.com/docs
+Health Check: https://bhiv-hr-gateway-46pz.onrender.com/health
 ```
 
 ## 📊 Live Demo Features
@@ -68,7 +68,7 @@ Health Check: https://bhiv-hr-gateway.onrender.com/health
 ## 🔍 Interactive API Explorer
 
 ### Swagger UI
-**URL**: https://bhiv-hr-gateway.onrender.com/docs
+**URL**: https://bhiv-hr-gateway-46pz.onrender.com/docs
 **Features**:
 - 46 interactive endpoints
 - Real-time API testing
@@ -79,17 +79,17 @@ Health Check: https://bhiv-hr-gateway.onrender.com/health
 ### Quick API Tests
 ```bash
 # Health Check
-curl https://bhiv-hr-gateway.onrender.com/health
+curl https://bhiv-hr-gateway-46pz.onrender.com/health
 
 # API Root
-curl https://bhiv-hr-gateway.onrender.com/
+curl https://bhiv-hr-gateway-46pz.onrender.com/
 
 # Authenticated Endpoint
-curl -H "Authorization: Bearer myverysecureapikey123" \
-     https://bhiv-hr-gateway.onrender.com/v1/jobs
+curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
+     https://bhiv-hr-gateway-46pz.onrender.com/v1/jobs
 
 # AI Agent Health
-curl https://bhiv-hr-agent.onrender.com/health
+curl https://bhiv-hr-agent-m1me.onrender.com/health
 ```
 
 ## 🧪 Testing Environment
@@ -110,17 +110,17 @@ curl https://bhiv-hr-agent.onrender.com/health
 ### Health Endpoints
 ```bash
 # Gateway Health
-curl https://bhiv-hr-gateway.onrender.com/health
+curl https://bhiv-hr-gateway-46pz.onrender.com/health
 
 # AI Agent Health  
-curl https://bhiv-hr-agent.onrender.com/health
+curl https://bhiv-hr-agent-m1me.onrender.com/health
 
 # System Metrics
-curl https://bhiv-hr-gateway.onrender.com/metrics
+curl https://bhiv-hr-gateway-46pz.onrender.com/metrics
 
 # Database Test
-curl -H "Authorization: Bearer myverysecureapikey123" \
-     https://bhiv-hr-gateway.onrender.com/test-candidates
+curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
+     https://bhiv-hr-gateway-46pz.onrender.com/test-candidates
 ```
 
 ### Monitoring Features
@@ -145,35 +145,35 @@ curl -H "Authorization: Bearer myverysecureapikey123" \
 ### Security Testing Endpoints
 ```bash
 # Rate Limit Status
-curl -H "Authorization: Bearer myverysecureapikey123" \
-     https://bhiv-hr-gateway.onrender.com/v1/security/rate-limit-status
+curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
+     https://bhiv-hr-gateway-46pz.onrender.com/v1/security/rate-limit-status
 
 # Security Headers Test
-curl -H "Authorization: Bearer myverysecureapikey123" \
-     https://bhiv-hr-gateway.onrender.com/v1/security/security-headers-test
+curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
+     https://bhiv-hr-gateway-46pz.onrender.com/v1/security/security-headers-test
 
 # 2FA Demo Setup
-curl -H "Authorization: Bearer myverysecureapikey123" \
-     https://bhiv-hr-gateway.onrender.com/v1/2fa/demo-setup
+curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
+     https://bhiv-hr-gateway-46pz.onrender.com/v1/2fa/demo-setup
 ```
 
 ## 🎯 Demo Scenarios
 
 ### Scenario 1: HR Recruiter Workflow
-1. **Access**: Visit https://bhiv-hr-portal.onrender.com/
+1. **Access**: Visit https://bhiv-hr-portal-cead.onrender.com/
 2. **Dashboard**: Explore HR interface
-3. **API**: Test endpoints via https://bhiv-hr-gateway.onrender.com/docs
-4. **AI**: Test matching via https://bhiv-hr-agent.onrender.com/docs
+3. **API**: Test endpoints via https://bhiv-hr-gateway-46pz.onrender.com/docs
+4. **AI**: Test matching via https://bhiv-hr-agent-m1me.onrender.com/docs
 
 ### Scenario 2: Client Company Workflow  
-1. **Login**: Visit https://bhiv-hr-client-portal.onrender.com/
+1. **Login**: Visit https://bhiv-hr-client-portal-5g33.onrender.com/
 2. **Credentials**: Use TECH001 / demo123
 3. **Interface**: Explore client dashboard
 4. **Features**: Test job posting and candidate review
 
 ### Scenario 3: API Integration
-1. **Documentation**: Visit https://bhiv-hr-gateway.onrender.com/docs
-2. **Authentication**: Use Bearer token: myverysecureapikey123
+1. **Documentation**: Visit https://bhiv-hr-gateway-46pz.onrender.com/docs
+2. **Authentication**: Use Bearer token: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
 3. **Testing**: Try different endpoints
 4. **Monitoring**: Check health and metrics endpoints
 
@@ -211,10 +211,10 @@ curl -H "Authorization: Bearer myverysecureapikey123" \
 
 **For immediate access to live demos:**
 
-1. **API Documentation**: https://bhiv-hr-gateway.onrender.com/docs
-2. **HR Portal**: https://bhiv-hr-portal.onrender.com/
-3. **Client Portal**: https://bhiv-hr-client-portal.onrender.com/ (TECH001/demo123)
-4. **AI Matching**: https://bhiv-hr-agent.onrender.com/docs
+1. **API Documentation**: https://bhiv-hr-gateway-46pz.onrender.com/docs
+2. **HR Portal**: https://bhiv-hr-portal-cead.onrender.com/
+3. **Client Portal**: https://bhiv-hr-client-portal-5g33.onrender.com/ (TECH001/demo123)
+4. **AI Matching**: https://bhiv-hr-agent-m1me.onrender.com/docs
 
 **Demo Features**:
 - ✅ **46 API Endpoints**: Complete REST API with monitoring

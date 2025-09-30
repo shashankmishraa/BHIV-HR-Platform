@@ -4,8 +4,8 @@ from datetime import datetime
 
 # Configuration
 import os
-API_BASE_URL = os.getenv("GATEWAY_URL", "http://gateway:8000")
-API_KEY = os.getenv("API_KEY_SECRET", "myverysecureapikey123")
+API_BASE_URL = os.getenv("GATEWAY_URL", "https://bhiv-hr-gateway-46pz.onrender.com")
+API_KEY = os.getenv("API_KEY_SECRET", "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o")
 
 headers = {
     "Authorization": f"Bearer {API_KEY}",
@@ -275,8 +275,9 @@ def show_candidate_review():
                         st.info(f"Connecting to AI agent for job {job_id}...")
                         try:
                             # Call AI agent service directly
+                            agent_url = os.getenv("AGENT_SERVICE_URL", "https://bhiv-hr-agent-m1me.onrender.com")
                             agent_response = requests.post(
-                                "http://localhost:9000/match", 
+                                f"{agent_url}/match", 
                                 json={"job_id": job_id}, 
                                 timeout=15
                             )
@@ -418,8 +419,9 @@ def show_match_results():
                         with st.spinner("🤖 AI is dynamically analyzing candidates..."):
                             try:
                                 # Call AI agent directly for dynamic matching
+                                agent_url = os.getenv("AGENT_SERVICE_URL", "https://bhiv-hr-agent-m1me.onrender.com")
                                 response = requests.post(
-                                    "http://localhost:9000/match", 
+                                    f"{agent_url}/match", 
                                     json={"job_id": job_id}, 
                                     timeout=20
                                 )
