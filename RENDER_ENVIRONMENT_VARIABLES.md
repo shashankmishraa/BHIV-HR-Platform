@@ -33,6 +33,7 @@ PYTHON_VERSION=3.12.7
 GATEWAY_URL=https://bhiv-hr-gateway-46pz.onrender.com
 API_KEY_SECRET=prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
 JWT_SECRET=prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA
+AGENT_SERVICE_URL=https://bhiv-hr-agent-m1me.onrender.com
 ENVIRONMENT=production
 LOG_LEVEL=INFO
 PYTHON_VERSION=3.12.7
@@ -45,6 +46,7 @@ API_KEY_SECRET=prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
 JWT_SECRET=prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA
 DATABASE_URL=postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu
 DEFAULT_CLIENT_PASSWORD=SecurePass2024!
+AGENT_SERVICE_URL=https://bhiv-hr-agent-m1me.onrender.com
 ENVIRONMENT=production
 LOG_LEVEL=INFO
 PYTHON_VERSION=3.12.7
@@ -63,6 +65,12 @@ PYTHON_VERSION=3.12.7
 - **Purpose**: Default client account password
 - **Value**: `SecurePass2024!`
 - **Impact**: Client registration will fail without this
+
+### **AGENT_SERVICE_URL** (NEW - CRITICAL)
+- **Required by**: HR Portal, Client Portal
+- **Purpose**: Direct connection to AI Agent for candidate matching
+- **Value**: `https://bhiv-hr-agent-m1me.onrender.com`
+- **Impact**: AI matching will fail without this - portals will use fallback only
 
 ### **DATABASE_URL** (UPDATED)
 - **Required by**: Client Portal (newly added)
@@ -108,8 +116,8 @@ The security fixes removed all hardcoded fallback values. Services will now:
 After adding environment variables:
 - [ ] Gateway service has 7 environment variables
 - [ ] Agent service has 7 environment variables  
-- [ ] HR Portal has 6 environment variables
-- [ ] Client Portal has 8 environment variables
+- [ ] HR Portal has 7 environment variables (added AGENT_SERVICE_URL)
+- [ ] Client Portal has 9 environment variables (added AGENT_SERVICE_URL)
 - [ ] All services redeploy successfully
 - [ ] Health checks pass for all services
 - [ ] Authentication works in Client Portal

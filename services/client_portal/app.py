@@ -85,7 +85,13 @@ def main():
     # Real-time notifications
     st.sidebar.markdown("---")
     st.sidebar.subheader("🔔 Live Updates")
+    
+    # Initialize refresh state
+    if 'refresh_data_sidebar' not in st.session_state:
+        st.session_state.refresh_data_sidebar = False
+    
     if st.sidebar.button("🔄 Refresh Data"):
+        st.session_state.refresh_data_sidebar = True
         st.rerun()
     
     if page == "📝 Job Posting":
@@ -447,7 +453,12 @@ def show_match_results():
                     job_titles_sorted = sorted(job_titles, key=lambda x: int(x.split('ID: ')[1].split(')')[0]))
                     selected_job = st.selectbox("Select Job for AI Matching", job_titles_sorted)
                     
+                    # Initialize AI match state
+                    if 'ai_match_clicked' not in st.session_state:
+                        st.session_state.ai_match_clicked = False
+                    
                     if st.button("🤖 Get AI Matches", use_container_width=True):
+                        st.session_state.ai_match_clicked = True
                         job_id = job_map[selected_job]
                         
                         with st.spinner("🤖 AI is dynamically analyzing candidates..."):

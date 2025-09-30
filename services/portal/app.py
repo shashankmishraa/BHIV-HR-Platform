@@ -178,14 +178,19 @@ elif menu == "🔍 Step 3: Search & Filter Candidates":
         status_filter = st.multiselect("Candidate Status", ["Applied", "Screened", "Interviewed", "Offered", "Hired"], default=["Applied"])
         sort_by = st.selectbox("Sort By", ["AI Score (High to Low)", "Experience (High to Low)", "Values Score (High to Low)", "Name (A-Z)"])
     
+    # Initialize search state
+    if 'search_clicked' not in st.session_state:
+        st.session_state.search_clicked = False
+    
     # Search button
-    search_clicked = st.button("🔍 Search Candidates", use_container_width=True)
+    if st.button("🔍 Search Candidates", use_container_width=True):
+        st.session_state.search_clicked = True
     
     # Show default message when page loads
-    if not search_clicked:
+    if not st.session_state.search_clicked:
         st.info("👆 Enter search criteria and click 'Search Candidates' to find candidates")
     
-    if search_clicked:
+    if st.session_state.search_clicked:
         # Check if any meaningful search criteria is provided
         has_criteria = (
             search_query.strip() or 
@@ -747,12 +752,22 @@ elif menu == "🎯 Step 4: AI Shortlist & Matching":
         job_id = st.number_input("Enter Job ID", min_value=1, step=1, value=1)
     
     with col2:
-        get_shortlist = st.button("🤖 Generate AI Shortlist", use_container_width=True)
+        # Initialize shortlist state
+        if 'get_shortlist' not in st.session_state:
+            st.session_state.get_shortlist = False
+        
+        if st.button("🤖 Generate AI Shortlist", use_container_width=True):
+            st.session_state.get_shortlist = True
     
     with col3:
-        refresh_data = st.button("🔄 Refresh Data", use_container_width=True)
+        # Initialize refresh state
+        if 'refresh_data' not in st.session_state:
+            st.session_state.refresh_data = False
+        
+        if st.button("🔄 Refresh Data", use_container_width=True):
+            st.session_state.refresh_data = True
     
-    if get_shortlist or refresh_data:
+    if st.session_state.get_shortlist or st.session_state.refresh_data:
         with st.spinner("🔄 Advanced AI is analyzing candidates using semantic matching..."):
             try:
                 # Call AI Agent directly for enhanced matching
