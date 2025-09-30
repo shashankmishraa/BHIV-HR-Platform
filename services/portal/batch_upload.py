@@ -5,6 +5,45 @@ import zipfile
 import tempfile
 import httpx
 import json
+import logging
+from werkzeug.utils import secure_filename
+import hashlib
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Security configuration
+ALLOWED_EXTENSIONS = {'.pdf', '.docx', '.doc', '.txt'}
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+MAX_FILES_PER_BATCH = 50
+
+def validate_file(uploaded_file):
+    """Validate uploaded file for security and size"""
+    if not uploaded_file:
+        return False
+    
+    # Check file size
+    if uploaded_file.size > MAX_FILE_SIZE:
+        return False
+    
+    # Check file extension
+    file_ext = Path(uploaded_file.name).suffix.lower()
+    if file_ext not in ALLOWED_EXTENSIONS:
+        return False
+    
+    return True
+
+def is_safe_path(path):
+    """Check if path is safe (no path traversal)"""
+    # Normalize path and check for traversal attempts
+    normalized = os.path.normpath(path)
+    
+    # Check for path traversal patterns
+    if '..' in normalized or normalized.startswith('/') or ':' in normalized:
+        return False
+    
+    return True
 
 def show_batch_upload():
     """Batch resume upload interface"""
@@ -53,10 +92,31 @@ def process_uploaded_files(uploaded_files):
         for i, uploaded_file in enumerate(uploaded_files):
             status_text.text(f"Processing {uploaded_file.name}...")
             
-            # Save file to resume folder
-            resume_path = resume_folder / uploaded_file.name
-            with open(resume_path, "wb") as f:
-                f.write(uploaded_file.getbuffer())
+            # Validate and secure file handling
+            if not validate_file(uploaded_file):
+                st.error(f"❌ Invalid file: {uploaded_file.name}")
+                continue
+            
+            # Secure filename and save
+            secure_name = secure_filename(uploaded_file.name)
+            if not secure_name:
+                secure_name = f"resume_{i}_{hashlib.md5(uploaded_file.name.encode()).hexdigest()[:8]}.pdf"
+            
+            resume_path = resume_folder / secure_name
+            
+            # Ensure path is within resume folder (prevent path traversal)
+            if not str(resume_path.resolve()).startswith(str(resume_folder.resolve())):
+                st.error(f"❌ Invalid file path: {uploaded_file.name}")
+                continue
+            
+            try:
+                with open(resume_path, "wb") as f:
+                    f.write(uploaded_file.getbuffer())
+                logger.info(f"Saved file: {secure_name}")
+            except Exception as e:
+                logger.error(f"Failed to save file {secure_name}: {e}")
+                st.error(f"❌ Failed to save: {uploaded_file.name}")
+                continue
             
             progress_bar.progress((i + 1) / len(uploaded_files))
         
@@ -75,9 +135,18 @@ def process_zip_file(zip_file):
     """Process ZIP file containing resumes"""
     try:
         with tempfile.TemporaryDirectory() as temp_dir:
-            # Extract ZIP
+            # Secure ZIP extraction
             with zipfile.ZipFile(zip_file, 'r') as zip_ref:
-                zip_ref.extractall(temp_dir)
+                # Validate ZIP contents before extraction
+                for member in zip_ref.namelist():
+                    if not is_safe_path(member):
+                        st.error(f"❌ Unsafe path in ZIP: {member}")
+                        return
+                
+                # Safe extraction
+                for member in zip_ref.namelist():
+                    if member.lower().endswith(tuple(ALLOWED_EXTENSIONS)):
+                        zip_ref.extract(member, temp_dir)
             
             # Find resume files
             resume_files = []

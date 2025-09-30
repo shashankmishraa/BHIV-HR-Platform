@@ -27,8 +27,9 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD:-bhiv_pass}@db:5432/bhiv_hr
-      API_KEY_SECRET: ${API_KEY_SECRET:-myverysecureapikey123}
+      DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD}@db:5432/bhiv_hr
+      API_KEY_SECRET: ${API_KEY_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
     volumes:
       - ./services/gateway/logs:/app/logs
     depends_on:
@@ -48,7 +49,9 @@ services:
     ports:
       - "9000:9000"
     environment:
-      DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD:-bhiv_pass}@db:5432/bhiv_hr
+      DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD}@db:5432/bhiv_hr
+      API_KEY_SECRET: ${API_KEY_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
     depends_on:
       db:
         condition: service_healthy
@@ -67,17 +70,18 @@ services:
       - "8501:8501"
     environment:
       GATEWAY_URL: http://gateway:8000
-      API_KEY_SECRET: ${API_KEY_SECRET:-myverysecureapikey123}
+      API_KEY_SECRET: ${API_KEY_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
     depends_on:
       gateway:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
-      interval: 30s
-      timeout: 10s
+      interval: 600s
+      timeout: 30s
       retries: 3
-      start_period: 60s
+      start_period: 120s
     deploy:
       resources:
         limits:
@@ -91,18 +95,19 @@ services:
       - "8502:8502"
     environment:
       GATEWAY_URL: http://gateway:8000
-      API_KEY_SECRET: ${API_KEY_SECRET:-myverysecureapikey123}
-      DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD:-bhiv_pass}@db:5432/bhiv_hr
+      API_KEY_SECRET: ${API_KEY_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD}@db:5432/bhiv_hr
     depends_on:
       gateway:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8502/_stcore/health"]
-      interval: 30s
-      timeout: 10s
+      interval: 600s
+      timeout: 30s
       retries: 3
-      start_period: 60s
+      start_period: 120s
     deploy:
       resources:
         limits:

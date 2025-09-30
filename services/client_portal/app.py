@@ -1,16 +1,44 @@
 import streamlit as st
 import requests
 from datetime import datetime
-
-# Configuration
+import logging
 import os
-API_BASE_URL = os.getenv("GATEWAY_URL", "https://bhiv-hr-gateway-46pz.onrender.com")
-API_KEY = os.getenv("API_KEY_SECRET", "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o")
+from contextlib import contextmanager
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Configuration with secure environment variables
+API_BASE_URL = os.getenv("GATEWAY_URL")
+API_KEY = os.getenv("API_KEY_SECRET")
+
+if not API_BASE_URL or not API_KEY:
+    logger.error("Missing required environment variables")
+    st.error("❌ Configuration Error: Missing environment variables")
+    st.stop()
 
 headers = {
     "Authorization": f"Bearer {API_KEY}",
     "Content-Type": "application/json"
 }
+
+# Session management for HTTP requests
+@contextmanager
+def http_session():
+    """Context manager for HTTP sessions to prevent resource leaks"""
+    session = requests.Session()
+    session.headers.update(headers)
+    try:
+        yield session
+    finally:
+        session.close()
+
+# Cache client hash calculation
+@st.cache_data
+def get_client_hash(client_id):
+    """Cache client ID hash to avoid repeated calculations"""
+    return hash(client_id) % 1000
 
 def main():
     st.set_page_config(
@@ -32,15 +60,21 @@ def main():
     
     # Show real-time job count
     try:
-        jobs_response = requests.get(f"{API_BASE_URL}/v1/jobs", headers=headers, timeout=5)
+        with http_session() as session:
+            jobs_response = session.get(f"{API_BASE_URL}/v1/jobs", timeout=10)
         if jobs_response.status_code == 200:
             jobs_data = jobs_response.json()
             jobs = jobs_data.get('jobs', [])
-            client_jobs = [j for j in jobs if str(j.get('client_id', 0)) == str(hash(st.session_state.get('client_id', 'TECH001')) % 1000)]
+            client_hash = get_client_hash(st.session_state.get('client_id', 'TECH001'))
+            client_jobs = [j for j in jobs if str(j.get('client_id', 0)) == str(client_hash)]
             st.sidebar.success(f"📊 Your Jobs: {len(client_jobs)}")
         else:
             st.sidebar.info("📊 Jobs: Loading...")
-    except:
+    except requests.RequestException as e:
+        logger.error(f"Failed to fetch jobs: {e}")
+        st.sidebar.warning("📊 Jobs: Connection Error")
+    except Exception as e:
+        logger.error(f"Unexpected error fetching jobs: {e}")
         st.sidebar.info("📊 Jobs: Offline")
     
     page = st.sidebar.selectbox(

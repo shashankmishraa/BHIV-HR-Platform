@@ -20,8 +20,12 @@ class ClientAuthService:
     """Production-grade client authentication service"""
     
     def __init__(self):
-        self.database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu")
-        self.jwt_secret = os.getenv("JWT_SECRET", "bhiv_hr_platform_jwt_secret_key_2024")
+        self.database_url = os.getenv("DATABASE_URL")
+        self.jwt_secret = os.getenv("JWT_SECRET")
+        
+        if not self.database_url or not self.jwt_secret:
+            logger.error("Missing required environment variables: DATABASE_URL, JWT_SECRET")
+            raise ValueError("Missing required environment variables")
         self.jwt_algorithm = "HS256"
         self.token_expiry_hours = 24
         self.engine = create_engine(self.database_url, pool_pre_ping=True, pool_recycle=300)
@@ -77,13 +81,13 @@ class ClientAuthService:
                 'client_id': 'TECH001',
                 'company_name': 'TechCorp Solutions',
                 'email': 'admin@techcorp.com',
-                'password': 'google123'
+                'password': os.getenv('DEFAULT_CLIENT_PASSWORD', 'TempPass123!')
             },
             {
                 'client_id': 'STARTUP01',
                 'company_name': 'InnovateLab',
                 'email': 'hello@innovatelab.com',
-                'password': 'startup123'
+                'password': os.getenv('DEFAULT_CLIENT_PASSWORD', 'TempPass123!')
             }
         ]
         
