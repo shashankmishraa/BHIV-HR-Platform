@@ -72,6 +72,17 @@ services:
       gateway:
         condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
     # Production URL: https://bhiv-hr-portal-cead.onrender.com
 
   client_portal:
@@ -81,10 +92,22 @@ services:
     environment:
       GATEWAY_URL: http://gateway:8000
       API_KEY_SECRET: ${API_KEY_SECRET:-myverysecureapikey123}
+      DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD:-bhiv_pass}@db:5432/bhiv_hr
     depends_on:
       gateway:
         condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8502/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
     # Production URL: https://bhiv-hr-client-portal-5g33.onrender.com
 
 volumes:

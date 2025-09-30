@@ -9,4 +9,4 @@ COPY . .
 
 EXPOSE 8502
 
-CMD ["sh", "-c", "streamlit run app.py --server.port ${PORT:-8502} --server.address 0.0.0.0"]
+CMD ["sh", "-c", "streamlit run app.py --server.port ${PORT:-8502} --server.address 0.0.0.0 --server.headless true --server.enableCORS false --server.enableXsrfProtection false"]
