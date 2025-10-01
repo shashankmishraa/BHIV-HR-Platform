@@ -86,24 +86,24 @@ class MatchResponse(BaseModel):
     status: str
 
 def get_db_connection():
-    """Get database connection"""
-    try:
-        # Use DATABASE_URL if available, otherwise construct from individual components
-        database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu")
-        if database_url:
-            conn = psycopg2.connect(database_url)
-        else:
+    """Get database connection with retry logic"""
+    import time
+    database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu")
+    
+    for attempt in range(3):
+        try:
             conn = psycopg2.connect(
-                host=os.getenv("DB_HOST", "dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com"),
-                database=os.getenv("DB_NAME", "bhiv_hr_jcuu"),
-                user=os.getenv("DB_USER", "bhiv_user"),
-                password=os.getenv("DB_PASSWORD", "3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2"),
-                port=os.getenv("DB_PORT", "5432")
+                database_url,
+                connect_timeout=10,
+                application_name="bhiv_agent"
             )
-        return conn
-    except Exception as e:
-        logger.error(f"Database connection failed: {e}")
-        return None
+            conn.autocommit = True
+            return conn
+        except Exception as e:
+            logger.error(f"Connection attempt {attempt + 1} failed: {e}")
+            if attempt < 2:
+                time.sleep(1)
+    return None
 
 def calculate_skills_match(job_requirements: str, candidate_skills: str) -> tuple:
     """Enhanced skills matching with dynamic keyword extraction"""
@@ -247,33 +247,50 @@ def health_check():
 
 @app.get("/test-db", tags=["System Diagnostics"], summary="Database Connectivity Test")
 def test_database():
+    conn = None
     try:
         conn = get_db_connection()
         if not conn:
-            return {"error": "Connection failed"}
-        cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM candidates")
-        count = cursor.fetchone()[0]
-        cursor.execute("SELECT id, name FROM candidates LIMIT 3")
-        samples = cursor.fetchall()
-        conn.close()
-        return {"candidates_count": count, "samples": samples}
+            return {"status": "failed", "error": "Connection failed"}
+        
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM candidates")
+            count = cursor.fetchone()[0]
+            cursor.execute("SELECT id, name FROM candidates LIMIT 3")
+            samples = cursor.fetchall()
+        
+        return {
+            "status": "success",
+            "candidates_count": count, 
+            "samples": [{'id': s[0], 'name': s[1]} for s in samples]
+        }
     except Exception as e:
-        return {"error": str(e)}
+        logger.error(f"Database test failed: {e}")
+        return {"status": "failed", "error": str(e)}
+    finally:
+        if conn:
+            conn.close()
 
 @app.post("/match", response_model=MatchResponse, tags=["AI Matching Engine"], summary="AI-Powered Candidate Matching")
 async def match_candidates(request: MatchRequest):
     """Dynamic AI-powered candidate matching based on job requirements"""
     start_time = datetime.now()
     logger.info(f"Starting dynamic match for job_id: {request.job_id}")
+    conn = None
     
     try:
         conn = get_db_connection()
         if not conn:
             logger.error("Database connection failed")
-            raise HTTPException(status_code=500, detail="Database connection failed")
+            return MatchResponse(
+                job_id=request.job_id,
+                top_candidates=[],
+                total_candidates=0,
+                processing_time=0.0,
+                algorithm_version="2.0.0-fallback",
+                status="database_error"
+            )
         
-        cursor = conn.cursor()
         logger.info("Database connection successful")
         
         # Get job details with enhanced requirements parsing
@@ -484,8 +501,6 @@ async def match_candidates(request: MatchRequest):
         
         processing_time = (datetime.now() - start_time).total_seconds()
         
-        conn.close()
-        
         logger.info(f"Dynamic matching completed: {len(top_candidates)} top candidates found")
         
         return MatchResponse(
@@ -499,30 +514,40 @@ async def match_candidates(request: MatchRequest):
         
     except Exception as e:
         logger.error(f"Dynamic matching error: {e}")
-        raise HTTPException(status_code=500, detail=f"Dynamic matching failed: {str(e)}")
+        return MatchResponse(
+            job_id=request.job_id,
+            top_candidates=[],
+            total_candidates=0,
+            processing_time=(datetime.now() - start_time).total_seconds(),
+            algorithm_version="2.0.0-fallback",
+            status="error"
+        )
+    finally:
+        if conn:
+            conn.close()
 
 @app.get("/analyze/{candidate_id}", tags=["Candidate Analysis"], summary="Detailed Candidate Analysis")
 async def analyze_candidate(candidate_id: int):
     """Detailed candidate analysis"""
+    conn = None
     try:
         conn = get_db_connection()
         if not conn:
             raise HTTPException(status_code=500, detail="Database connection failed")
         
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT name, email, technical_skills, experience_years, 
-                   seniority_level, education_level, location
-            FROM candidates WHERE id = %s
-        """, (candidate_id,))
-        
-        candidate = cursor.fetchone()
-        if not candidate:
-            raise HTTPException(status_code=404, detail="Candidate not found")
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT name, email, technical_skills, experience_years, 
+                       seniority_level, education_level, location
+                FROM candidates WHERE id = %s
+            """, (candidate_id,))
+            
+            candidate = cursor.fetchone()
+            if not candidate:
+                raise HTTPException(status_code=404, detail="Candidate not found")
         
         name, email, skills, exp_years, seniority, education, location = candidate
         
-        # Analyze skills
         skill_categories = {
             'Programming': ['python', 'java', 'javascript', 'c++', 'go'],
             'Web Development': ['react', 'node', 'html', 'css', 'django'],
@@ -539,8 +564,6 @@ async def analyze_candidate(candidate_id: int):
             if found_skills:
                 categorized_skills[category] = found_skills
         
-        conn.close()
-        
         return {
             "candidate_id": candidate_id,
             "name": name,
@@ -554,9 +577,14 @@ async def analyze_candidate(candidate_id: int):
             "analysis_timestamp": datetime.now().isoformat()
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Analysis error: {e}")
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+    finally:
+        if conn:
+            conn.close()
 
 if __name__ == "__main__":
     import uvicorn

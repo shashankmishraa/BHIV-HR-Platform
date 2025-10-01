@@ -1,0 +1,86 @@
+{
+  "timestamp": "2025-10-01T14:32:32.670437",
+  "total_tested": 6,
+  "passed": 0,
+  "failed": 6,
+  "endpoint_results": [
+    {
+      "service": "gateway",
+      "method": "GET",
+      "path": "/test-candidates",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/test-candidates",
+      "success": false,
+      "status_code": null,
+      "response_time": null,
+      "error": "HTTPSConnectionPool(host='bhiv-hr-gateway-46pz.onrender.com', port=443): Read timed out. (read timeout=30)",
+      "response_data": null
+    },
+    {
+      "service": "gateway",
+      "method": "GET",
+      "path": "/v1/jobs",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/jobs",
+      "success": false,
+      "status_code": null,
+      "response_time": null,
+      "error": "HTTPSConnectionPool(host='bhiv-hr-gateway-46pz.onrender.com', port=443): Read timed out. (read timeout=30)",
+      "response_data": null
+    },
+    {
+      "service": "gateway",
+      "method": "POST",
+      "path": "/v1/jobs",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/jobs",
+      "success": false,
+      "status_code": null,
+      "response_time": null,
+      "error": "HTTPSConnectionPool(host='bhiv-hr-gateway-46pz.onrender.com', port=443): Read timed out. (read timeout=30)",
+      "response_data": null
+    },
+    {
+      "service": "gateway",
+      "method": "POST",
+      "path": "/v1/candidates/bulk",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/candidates/bulk",
+      "success": false,
+      "status_code": 500,
+      "response_time": 1.8368282318115234,
+      "error": null,
+      "response_data": {
+        "detail": "Bulk upload failed: (psycopg2.OperationalError) connection to server at \"dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com\" (35.227.164.209), port 5432 failed: FATAL:  password authentication failed for user \"bhiv_user\"\nconnection to server at \"dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com\" (35.227.164.209), port 5432 failed: FATAL:  SSL/TLS required\n\n(Background on this error at: https://sqlalche.me/e/20/e3q8)"
+      }
+    },
+    {
+      "service": "agent",
+      "method": "GET",
+      "path": "/analyze/1",
+      "url": "https://bhiv-hr-agent-m1me.onrender.com/analyze/1",
+      "success": false,
+      "status_code": 500,
+      "response_time": 23.119651556015015,
+      "error": null,
+      "response_data": {
+        "detail": "Analysis failed: 500: Database connection failed"
+      }
+    },
+    {
+      "service": "agent",
+      "method": "POST",
+      "path": "/match",
+      "url": "https://bhiv-hr-agent-m1me.onrender.com/match",
+      "success": false,
+      "status_code": 500,
+      "response_time": 0.5250401496887207,
+      "error": null,
+      "response_data": {
+        "detail": "Dynamic matching failed: 500: Database connection failed"
+      }
+    }
+  ],
+  "summary": {
+    "success_rate": 0.0,
+    "endpoints_fixed": 0,
+    "endpoints_still_failing": 6,
+    "overall_status": "NEEDS_WORK"
+  }
+}

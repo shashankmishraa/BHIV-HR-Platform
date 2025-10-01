@@ -199,7 +199,14 @@ class PasswordChange(BaseModel):
 
 def get_db_engine():
     database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu")
-    return create_engine(database_url, pool_pre_ping=True, pool_recycle=3600)
+    return create_engine(
+        database_url, 
+        pool_pre_ping=True, 
+        pool_recycle=3600,
+        connect_args={"connect_timeout": 10, "application_name": "bhiv_gateway"},
+        pool_timeout=20,
+        max_overflow=0
+    )
 
 def validate_api_key(api_key: str) -> bool:
     expected_key = os.getenv("API_KEY_SECRET", "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o")
@@ -257,7 +264,11 @@ async def test_candidates_db(api_key: str = Depends(get_api_key)):
                 "test_timestamp": datetime.now(timezone.utc).isoformat()
             }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database connectivity test failed: {str(e)}")
+        return {
+            "database_status": "failed",
+            "error": str(e),
+            "test_timestamp": datetime.now(timezone.utc).isoformat()
+        }
 
 # Job Management (2 endpoints)
 @app.post("/v1/jobs", tags=["Job Management"])
@@ -265,7 +276,7 @@ async def create_job(job: JobCreate, api_key: str = Depends(get_api_key)):
     """Create New Job Posting"""
     try:
         engine = get_db_engine()
-        with engine.connect() as connection:
+        with engine.begin() as connection:
             query = text("""
                 INSERT INTO jobs (title, department, location, experience_level, requirements, description, status, created_at)
                 VALUES (:title, :department, :location, :experience_level, :requirements, :description, 'active', NOW())
@@ -279,7 +290,6 @@ async def create_job(job: JobCreate, api_key: str = Depends(get_api_key)):
                 "requirements": job.requirements,
                 "description": job.description
             })
-            connection.commit()
             job_id = result.fetchone()[0]
             
             return {
@@ -288,7 +298,11 @@ async def create_job(job: JobCreate, api_key: str = Depends(get_api_key)):
                 "created_at": datetime.now(timezone.utc).isoformat()
             }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Job creation failed: {str(e)}")
+        return {
+            "message": "Job creation failed",
+            "error": str(e),
+            "status": "failed"
+        }
 
 @app.get("/v1/jobs", tags=["Job Management"])
 async def list_jobs(api_key: str = Depends(get_api_key)):
@@ -298,7 +312,7 @@ async def list_jobs(api_key: str = Depends(get_api_key)):
         with engine.connect() as connection:
             query = text("""
                 SELECT id, title, department, location, experience_level, requirements, description, created_at 
-                FROM jobs WHERE status = 'active' ORDER BY created_at DESC
+                FROM jobs WHERE status = 'active' ORDER BY created_at DESC LIMIT 100
             """)
             result = connection.execute(query)
             jobs = [{
@@ -313,7 +327,7 @@ async def list_jobs(api_key: str = Depends(get_api_key)):
             } for row in result]
         return {"jobs": jobs, "count": len(jobs)}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch jobs: {str(e)}")
+        return {"jobs": [], "count": 0, "error": str(e)}
 
 # Candidate Management (3 endpoints)
 @app.get("/v1/candidates/job/{job_id}", tags=["Candidate Management"])
@@ -409,28 +423,32 @@ async def bulk_upload_candidates(candidates: CandidateBulk, api_key: str = Depen
         inserted_count = 0
         errors = []
         
-        with engine.connect() as connection:
+        with engine.begin() as connection:
             for i, candidate in enumerate(candidates.candidates):
                 try:
-                    # Handle email uniqueness by checking first
                     email = candidate.get("email", "")
-                    if email:
-                        check_query = text("SELECT COUNT(*) FROM candidates WHERE email = :email")
-                        result = connection.execute(check_query, {"email": email})
-                        if result.fetchone()[0] > 0:
-                            errors.append(f"Candidate {i+1}: Email {email} already exists")
-                            continue
+                    if not email:
+                        errors.append(f"Candidate {i+1}: Email is required")
+                        continue
+                        
+                    # Check email uniqueness
+                    check_query = text("SELECT COUNT(*) FROM candidates WHERE email = :email")
+                    result = connection.execute(check_query, {"email": email})
+                    if result.fetchone()[0] > 0:
+                        errors.append(f"Candidate {i+1}: Email {email} already exists")
+                        continue
                     
+                    # Insert with proper error handling
                     query = text("""
-                        INSERT INTO candidates (name, email, phone, location, experience_years, technical_skills, seniority_level, education_level, resume_path, status)
-                        VALUES (:name, :email, :phone, :location, :experience_years, :technical_skills, :seniority_level, :education_level, :resume_path, :status)
+                        INSERT INTO candidates (name, email, phone, location, experience_years, technical_skills, seniority_level, education_level, resume_path, status, created_at)
+                        VALUES (:name, :email, :phone, :location, :experience_years, :technical_skills, :seniority_level, :education_level, :resume_path, :status, NOW())
                     """)
                     connection.execute(query, {
-                        "name": candidate.get("name", ""),
+                        "name": candidate.get("name", "Unknown"),
                         "email": email,
                         "phone": candidate.get("phone", ""),
                         "location": candidate.get("location", ""),
-                        "experience_years": int(candidate.get("experience_years", 0)) if candidate.get("experience_years") else 0,
+                        "experience_years": max(0, int(candidate.get("experience_years", 0)) if str(candidate.get("experience_years", 0)).isdigit() else 0),
                         "technical_skills": candidate.get("technical_skills", ""),
                         "seniority_level": candidate.get("designation", candidate.get("seniority_level", "")),
                         "education_level": candidate.get("education_level", ""),
@@ -439,20 +457,25 @@ async def bulk_upload_candidates(candidates: CandidateBulk, api_key: str = Depen
                     })
                     inserted_count += 1
                 except Exception as e:
-                    errors.append(f"Candidate {i+1}: {str(e)}")
+                    errors.append(f"Candidate {i+1}: {str(e)[:100]}")
                     continue
-            connection.commit()
         
         return {
             "message": "Bulk upload completed",
             "candidates_received": len(candidates.candidates),
             "candidates_inserted": inserted_count,
-            "errors": errors[:5] if errors else [],  # Show first 5 errors
+            "errors": errors[:5] if errors else [],
             "total_errors": len(errors),
             "status": "success" if inserted_count > 0 else "failed"
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Bulk upload failed: {str(e)}")
+        return {
+            "message": "Bulk upload failed",
+            "error": str(e),
+            "candidates_received": len(candidates.candidates) if candidates else 0,
+            "candidates_inserted": 0,
+            "status": "failed"
+        }
 
 # AI Matching Engine (1 endpoint)
 @app.get("/v1/match/{job_id}/top", tags=["AI Matching Engine"])

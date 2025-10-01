@@ -1,0 +1,365 @@
+{
+  "test_suite": "BHIV HR Platform - Complete System Validation",
+  "timestamp": "2025-10-01T10:52:32.248597",
+  "comprehensive_test": {
+    "timestamp": "2025-10-01T10:52:32.248597",
+    "services": {
+      "gateway": {
+        "service": "gateway",
+        "base_url": "https://bhiv-hr-gateway-46pz.onrender.com",
+        "endpoints_tested": 8,
+        "endpoints_passed": 4,
+        "endpoints_failed": 4,
+        "response_times": [
+          25.314663887023926,
+          3.150937080383301,
+          8.588407754898071,
+          1.9655828475952148,
+          3.1079349517822266,
+          1.4107894897460938,
+          0.9969139099121094,
+          2.577963352203369
+        ],
+        "detailed_results": {
+          "GET /health": {
+            "method": "GET",
+            "endpoint": "/health",
+            "status_code": 200,
+            "response_time": 25.314663887023926,
+            "success": true,
+            "response_size": 113,
+            "content_type": "application/json",
+            "response_data": {
+              "type": "json",
+              "keys": [
+                "status",
+                "service",
+                "version",
+                "timestamp"
+              ],
+              "data_count": 4
+            }
+          },
+          "GET /": {
+            "method": "GET",
+            "endpoint": "/",
+            "status_code": 200,
+            "response_time": 3.150937080383301,
+            "success": true,
+            "response_size": 194,
+            "content_type": "application/json",
+            "response_data": {
+              "type": "json",
+              "keys": [
+                "message",
+                "version",
+                "status",
+                "endpoints",
+                "documentation",
+                "monitoring",
+                "live_demo"
+              ],
+              "data_count": 7
+            }
+          },
+          "GET /v1/jobs": {
+            "method": "GET",
+            "endpoint": "/v1/jobs",
+            "status_code": 500,
+            "response_time": 8.588407754898071,
+            "success": false,
+            "response_size": 450,
+            "content_type": "application/json",
+            "response_data": {
+              "type": "json",
+              "keys": [
+                "detail"
+              ],
+              "data_count": 1
+            }
+          },
+          "GET /v1/candidates": {
+            "method": "GET",
+            "endpoint": "/v1/candidates",
+            "status_code": 404,
+            "response_time": 1.9655828475952148,
+            "success": false,
+            "response_size": 22,
+            "content_type": "application/json",
+            "response_data": {
+              "type": "json",
+              "keys": [
+                "detail"
+              ],
+              "data_count": 1
+            }
+          },
+          "GET /v1/candidates/stats": {
+            "method": "GET",
+            "endpoint": "/v1/candidates/stats",
+            "status_code": 404,
+            "response_time": 3.1079349517822266,
+            "success": false,
+            "response_size": 22,
+            "content_type": "application/json",
+            "response_data": {
+              "type": "json",
+              "keys": [
+                "detail"
+              ],
+              "data_count": 1
+            }
+          },
+          "POST /v1/jobs": {
+            "method": "POST",
+            "endpoint": "/v1/jobs",
+            "status_code": 422,
+            "response_time": 1.4107894897460938,
+            "success": false,
+            "response_size": 622,
+            "content_type": "application/json",
+            "response_data": {
+              "type": "json",
+              "keys": [
+                "detail"
+              ],
+              "data_count": 1
+            }
+          },
+          "GET /metrics": {
+            "method": "GET",
+            "endpoint": "/metrics",
+            "status_code": 200,
+            "response_time": 0.9969139099121094,
+            "success": true,
+            "response_size": 3229,
+            "content_type": "text/plain; charset=utf-8",
+            "response_data": {
+              "type": "text",
+              "length": 3229
+            }
+          },
+          "GET /health/detailed": {
+            "method": "GET",
+            "endpoint": "/health/detailed",
+            "status_code": 200,
+            "response_time": 2.577963352203369,
+            "success": true,
+            "response_size": 274,
+            "content_type": "application/json",
+            "response_data": {
+              "type": "json",
+              "keys": [
+                "status",
+                "timestamp",
+                "system",
+                "application",
+                "database"
+              ],
+              "data_count": 5
+            }
+          }
+        }
+      },
+      "agent": {
+        "service": "agent",
+        "base_url": "https://bhiv-hr-agent-m1me.onrender.com",
+        "endpoints_tested": 4,
+        "endpoints_passed": 2,
+        "endpoints_failed": 2,
+        "response_times": [
+          16.574291229248047,
+          2.0680465698242188,
+          2.437866449356079,
+          3.7110354900360107
+        ],
+        "detailed_results": {
+          "GET /health": {
+            "method": "GET",
+            "endpoint": "/health",
+            "status_code": 200,
+            "response_time": 16.574291229248047,
+            "success": true,
+            "response_size": 106,
+            "content_type": "application/json",
+            "response_data": {
+              "type": "json",
+              "keys": [
+                "status",
+                "service",
+                "version",
+                "timestamp"
+              ],
+              "data_count": 4
+            }
+          },
+          "GET /": {
+            "method": "GET",
+            "endpoint": "/",
+            "status_code": 200,
+            "response_time": 2.0680465698242188,
+            "success": true,
+            "response_size": 217,
+            "content_type": "application/json",
+            "response_data": {
+              "type": "json",
+              "keys": [
+                "service",
+                "version",
+                "endpoints"
+              ],
+              "data_count": 3
+            }
+          },
+          "GET /candidates": {
+            "method": "GET",
+            "endpoint": "/candidates",
+            "status_code": 404,
+            "response_time": 2.437866449356079,
+            "success": false,
+            "response_size": 22,
+            "content_type": "application/json",
+            "response_data": {
+              "type": "json",
+              "keys": [
+                "detail"
+              ],
+              "data_count": 1
+            }
+          },
+          "GET /jobs": {
+            "method": "GET",
+            "endpoint": "/jobs",
+            "status_code": 404,
+            "response_time": 3.7110354900360107,
+            "success": false,
+            "response_size": 22,
+            "content_type": "application/json",
+            "response_data": {
+              "type": "json",
+              "keys": [
+                "detail"
+              ],
+              "data_count": 1
+            }
+          }
+        }
+      }
+    },
+    "database": {
+      "connection": true,
+      "tables": {},
+      "data_counts": {
+        "candidates": 5,
+        "jobs": 3
+      },
+      "sample_data": {
+        "candidates": {
+          "columns": [
+            "id",
+            "name",
+            "email",
+            "phone",
+            "location",
+            "technical_skills",
+            "experience_years",
+            "seniority_level",
+            "education_level",
+            "resume_path",
+            "status",
+            "created_at",
+            "updated_at"
+          ],
+          "sample_rows": 3,
+          "has_data": true
+        },
+        "jobs": {
+          "columns": [
+            "id",
+            "title",
+            "department",
+            "location",
+            "experience_level",
+            "requirements",
+            "description",
+            "client_id",
+            "employment_type",
+            "status",
+            "created_at",
+            "updated_at"
+          ],
+          "sample_rows": 3,
+          "has_data": true
+        }
+      },
+      "errors": [
+        "Table job_applications: relation \"job_applications\" does not exist\nLINE 1: SELECT COUNT(*) FROM job_applications\n                             ^\n",
+        "Table users: current transaction is aborted, commands ignored until end of transaction block\n",
+        "Table clients: current transaction is aborted, commands ignored until end of transaction block\n",
+        "Relationships test: current transaction is aborted, commands ignored until end of transaction block\n"
+      ]
+    },
+    "integration": {
+      "ai_matching": {
+        "job_creation": false,
+        "candidate_matching": false,
+        "match_quality": {},
+        "performance": {},
+        "errors": []
+      },
+      "portals": {
+        "hr_portal": {
+          "accessible": true,
+          "response_time": 2.781137466430664,
+          "status_code": 200
+        },
+        "client_portal": {
+          "accessible": true,
+          "response_time": 4.6465208530426025,
+          "status_code": 200
+        },
+        "errors": []
+      }
+    },
+    "endpoints": {},
+    "summary": {
+      "total_services_tested": 2,
+      "services_healthy": 0,
+      "database_healthy": true,
+      "total_endpoints_tested": 12,
+      "total_endpoints_passed": 6,
+      "avg_response_time": 5.992036084334056,
+      "critical_issues": [
+        "Some services are unhealthy"
+      ],
+      "recommendations": [
+        "Consider optimizing response times",
+        "Fix failing endpoints"
+      ]
+    }
+  },
+  "integration_test": {
+    "error": "'charmap' codec can't encode character '\\u2194' in position 11: character maps to <undefined>"
+  },
+  "unified_summary": {
+    "overall_health": "Poor",
+    "critical_issues": [
+      "Multiple service health issues"
+    ],
+    "warnings": [
+      "High average response times detected"
+    ],
+    "performance_metrics": {
+      "avg_response_time": 5.992036084334056,
+      "endpoints_success_rate": 50.0
+    },
+    "service_status": {},
+    "database_status": "Healthy",
+    "integration_status": "Unknown",
+    "recommendations": [
+      "Review service logs and deployment status",
+      "Optimize service performance and database queries"
+    ]
+  },
+  "recommendations": []
+}
