@@ -1,0 +1,60 @@
+{
+  "start_time": "2025-10-01T14:43:33.992296",
+  "services_ready": true,
+  "test_results": {
+    "gateway_tests": {
+      "test_candidates": {
+        "status_code": 200,
+        "success": true,
+        "response": {
+          "database_status": "failed",
+          "error": "(psycopg2.OperationalError) connection to server at \"dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com\" (35.227.164.209), port 5432 failed: FATAL:  password authentication failed for user \"bhiv_user\"\nconnection to server at \"dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com\" (35.227.164.209), port 5432 failed: FATAL:  SSL/TLS required\n\n(Background on this error at: https://sqlalche.me/e/20/e3q8)",
+          "test_timestamp": "2025-10-01T09:13:39.877607+00:00"
+        }
+      },
+      "list_jobs": {
+        "status_code": 200,
+        "success": true,
+        "response": {
+          "jobs": [],
+          "count": 0,
+          "error": "(psycopg2.OperationalError) connection to server at \"dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com\" (35.227.164.209), port 5432 failed: FATAL:  password authentication failed for user \"bhiv_user\"\nconnection to server at \"dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com\" (35.227.164.209), port 5432 failed: FATAL:  SSL/TLS required\n\n(Background on this error at: https://sqlalche.me/e/20/e3q8)"
+        }
+      },
+      "create_job": {
+        "status_code": 200,
+        "success": true,
+        "response": {
+          "message": "Job creation failed",
+          "error": "(psycopg2.OperationalError) connection to server at \"dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com\" (35.227.164.209), port 5432 failed: FATAL:  password authentication failed for user \"bhiv_user\"\nconnection to server at \"dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com\" (35.227.164.209), port 5432 failed: FATAL:  SSL/TLS required\n\n(Background on this error at: https://sqlalche.me/e/20/e3q8)",
+          "status": "failed"
+        }
+      }
+    },
+    "agent_tests": {
+      "analyze": {
+        "status_code": 500,
+        "success": false,
+        "response": {
+          "detail": "Database connection failed"
+        }
+      },
+      "match": {
+        "status_code": 200,
+        "success": true,
+        "response": {
+          "job_id": 1,
+          "top_candidates": [],
+          "total_candidates": 0,
+          "processing_time": 0.0,
+          "algorithm_version": "2.0.0-fallback",
+          "status": "database_error"
+        }
+      }
+    },
+    "overall_success": true,
+    "success_rate": 80.0
+  },
+  "deployment_time": 1.7176754474639893,
+  "final_status": "success"
+}
