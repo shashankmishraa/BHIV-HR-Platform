@@ -1,6 +1,24 @@
+# Core Streamlit dependencies
 streamlit==1.28.1
+
+# HTTP & API dependencies
 requests==2.32.3
+httpx==0.25.2
+
+# Data processing & visualization
 pandas==2.3.2
-plotly
-python-dotenv
-pillow
+plotly==5.17.0
+numpy==1.26.4
+
+# File processing for batch upload
+werkzeug==3.0.1
+Pillow==10.1.0
+PyPDF2==3.0.1
+python-docx==0.8.11
+
+# Utilities
+python-dotenv==1.0.0
+pathlib2==2.3.7
+
+# Typing extensions
+typing-extensions==4.8.0
