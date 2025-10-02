@@ -24,4 +24,4 @@ scikit-learn==1.3.2
 pandas==2.1.4
 
 # Typing extensions
-typing-extensions==4.8.0
+typing-extensions>=4.10.0
