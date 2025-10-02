@@ -1,0 +1,33 @@
+{
+  "timestamp": "2025-10-02T11:37:36.493126",
+  "service_connectivity": {
+    "Gateway": "CONNECTED",
+    "AI Agent": "CONNECTED",
+    "HR Portal": "CONNECTED",
+    "Client Portal": "CONNECTED"
+  },
+  "gateway_routes": {
+    "/": "ACCESSIBLE",
+    "/health": "ACCESSIBLE",
+    "/test-candidates": "ACCESSIBLE",
+    "/v1/jobs": "ACCESSIBLE",
+    "/v1/candidates/search": "ACCESSIBLE",
+    "/metrics": "ACCESSIBLE",
+    "/health/detailed": "ACCESSIBLE"
+  },
+  "agent_routes": {
+    "/": "ACCESSIBLE",
+    "/health": "ACCESSIBLE",
+    "/test-db": "ACCESSIBLE",
+    "/match": "WORKING"
+  },
+  "integration_points": {
+    "gateway_to_database": "WORKING - 0 candidates",
+    "gateway_to_agent": "WORKING"
+  },
+  "summary": {
+    "services_connected": "4/4",
+    "routes_working": "11/11",
+    "integrations_working": "2/2"
+  }
+}

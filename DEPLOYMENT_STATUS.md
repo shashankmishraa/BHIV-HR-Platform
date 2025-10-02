@@ -180,4 +180,4 @@ curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr
      http://localhost:8000/v1/jobs
 ```
 
-**Last Updated**: January 2025 | **Status**: 🟢 All Systems Operational
+**Last Updated**: October 2025 | **Status**: 🟢 All Systems Operational
