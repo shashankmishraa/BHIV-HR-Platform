@@ -30,7 +30,7 @@ class ServiceRoutingAuditor:
             "client_portal": "http://localhost:8502"
         }
         
-        self.api_key = "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o"
+        self.api_key = "<REDACTED>"
         self.headers = {"Authorization": f"Bearer {self.api_key}"}
         
         # Audit results
@@ -415,9 +415,17 @@ class ServiceRoutingAuditor:
 
     def save_audit_report(self, filename: str = "service_routing_audit_report.json"):
         """Save audit report to file"""
-        with open(filename, 'w') as f:
-            json.dump(self.audit_results, f, indent=2)
-        print(f"\nAudit report saved to: {filename}")
+        # Sanitize filename to prevent path traversal
+        safe_filename = os.path.basename(filename)
+        if not safe_filename.endswith('.json'):
+            safe_filename += '.json'
+        
+        try:
+            with open(safe_filename, 'w') as f:
+                json.dump(self.audit_results, f, indent=2)
+            print(f"\nAudit report saved to: {safe_filename}")
+        except Exception as e:
+            print(f"Error saving audit report: {e}")
 
 if __name__ == "__main__":
     auditor = ServiceRoutingAuditor()

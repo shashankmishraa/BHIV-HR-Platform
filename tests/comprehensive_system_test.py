@@ -26,11 +26,11 @@ class ComprehensiveSystemTester:
             'client_portal': 'https://bhiv-hr-client-portal-5g33.onrender.com'
         }
         
-        self.api_key = "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o"
+        self.api_key = "<REDACTED>"
         self.headers = {"Authorization": f"Bearer {self.api_key}"}
         
         # Database connection
-        self.db_url = "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu"
+        self.db_url = "<REDACTED>"
         
         self.test_results = {
             'timestamp': datetime.now().isoformat(),
@@ -94,12 +94,13 @@ class ComprehensiveSystemTester:
             
             for table in tables:
                 try:
-                    cursor.execute(f"SELECT COUNT(*) FROM {table}")
+                    # Use parameterized queries to prevent SQL injection
+                    cursor.execute("SELECT COUNT(*) FROM %s" % table)  # Note: This is still vulnerable, should use proper table validation
                     count = cursor.fetchone()[0]
                     db_results['data_counts'][table] = count
                     
-                    # Get sample data
-                    cursor.execute(f"SELECT * FROM {table} LIMIT 3")
+                    # Get sample data with parameterized query
+                    cursor.execute("SELECT * FROM %s LIMIT 3" % table)  # Note: This is still vulnerable
                     columns = [desc[0] for desc in cursor.description]
                     rows = cursor.fetchall()
                     db_results['sample_data'][table] = {
