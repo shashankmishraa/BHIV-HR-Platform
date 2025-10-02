@@ -81,13 +81,13 @@ class ClientAuthService:
                 'client_id': 'TECH001',
                 'company_name': 'TechCorp Solutions',
                 'email': 'admin@techcorp.com',
-                'password': os.getenv('DEFAULT_CLIENT_PASSWORD', 'TempPass123!')
+                'password': 'demo123'
             },
             {
                 'client_id': 'STARTUP01',
                 'company_name': 'InnovateLab',
                 'email': 'hello@innovatelab.com',
-                'password': os.getenv('DEFAULT_CLIENT_PASSWORD', 'TempPass123!')
+                'password': 'demo123'
             }
         ]
         
