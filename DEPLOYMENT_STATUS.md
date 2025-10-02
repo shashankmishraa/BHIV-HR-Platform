@@ -12,10 +12,10 @@
 ### **🔗 Live Service URLs**
 | Service | URL | Status | Purpose |
 |---------|-----|--------|---------|
-| **API Gateway** | https://bhiv-hr-gateway-46pz.onrender.com | 🟢 Live | REST API Backend |
-| **HR Portal** | https://bhiv-hr-portal-cead.onrender.com | 🟢 Live | HR Dashboard |
-| **Client Portal** | https://bhiv-hr-client-portal-5g33.onrender.com | 🟢 Live | Client Interface |
-| **AI Agent** | https://bhiv-hr-agent-m1me.onrender.com | 🟢 Live | AI Matching Engine |
+| **API Gateway** | bhiv-hr-gateway-46pz.onrender.com | 🟢 Live | REST API Backend |
+| **HR Portal** | bhiv-hr-portal-cead.onrender.com | 🟢 Live | HR Dashboard |
+| **Client Portal** | bhiv-hr-client-portal-5g33.onrender.com | 🟢 Live | Client Interface |
+| **AI Agent** | bhiv-hr-agent-m1me.onrender.com | 🟢 Live | AI Matching Engine |
 
 ### **🔑 Demo Access Credentials**
 ```bash
@@ -164,7 +164,7 @@ curl http://localhost:8000/health
 ## 📞 Support & Resources
 
 ### **Quick Access**
-- **Live API Docs**: https://bhiv-hr-gateway-46pz.onrender.com/docs
+- **Live API Docs**: bhiv-hr-gateway-46pz.onrender.com/docs
 - **GitHub Repository**: https://github.com/shashankmishraa/BHIV-HR-Platform
 - **Local Portal**: http://localhost:8501
 

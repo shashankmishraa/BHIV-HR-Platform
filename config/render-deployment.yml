@@ -26,8 +26,8 @@ services:
     root_directory: services/gateway
     build_command: pip install -r requirements.txt
     start_command: uvicorn app.main:app --host 0.0.0.0 --port $PORT
-    public_url: https://bhiv-hr-gateway-46pz.onrender.com
-    docs_url: https://bhiv-hr-gateway-46pz.onrender.com/docs
+    public_url: bhiv-hr-gateway-46pz.onrender.com
+    docs_url: bhiv-hr-gateway-46pz.onrender.com/docs
     status: ✅ Active
     environment_variables:
       - DATABASE_URL: [Internal Database URL]
@@ -53,8 +53,8 @@ services:
     root_directory: services/agent
     build_command: pip install -r requirements.txt
     start_command: uvicorn app:app --host 0.0.0.0 --port $PORT
-    public_url: https://bhiv-hr-agent-m1me.onrender.com
-    docs_url: https://bhiv-hr-agent-m1me.onrender.com/docs
+    public_url: bhiv-hr-agent-m1me.onrender.com
+    docs_url: bhiv-hr-agent-m1me.onrender.com/docs
     status: ✅ Active
     environment_variables:
       - DATABASE_URL: [Internal Database URL]
@@ -76,10 +76,10 @@ services:
     root_directory: services/portal
     build_command: pip install -r requirements.txt
     start_command: streamlit run app.py --server.port $PORT --server.address 0.0.0.0
-    public_url: https://bhiv-hr-portal-cead.onrender.com
+    public_url: bhiv-hr-portal-cead.onrender.com
     status: ✅ Active
     environment_variables:
-      - GATEWAY_URL: https://bhiv-hr-gateway-46pz.onrender.com
+      - GATEWAY_URL: bhiv-hr-gateway-46pz.onrender.com
       - API_KEY_SECRET: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
     features:
       - HR dashboard interface
@@ -100,10 +100,10 @@ services:
     root_directory: services/client_portal
     build_command: pip install -r requirements.txt
     start_command: streamlit run app.py --server.port $PORT --server.address 0.0.0.0
-    public_url: https://bhiv-hr-client-portal-5g33.onrender.com
+    public_url: bhiv-hr-client-portal-5g33.onrender.com
     status: ✅ Active
     environment_variables:
-      - GATEWAY_URL: https://bhiv-hr-gateway-46pz.onrender.com
+      - GATEWAY_URL: bhiv-hr-gateway-46pz.onrender.com
       - API_KEY_SECRET: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
     features:
       - Client authentication system
@@ -146,9 +146,9 @@ performance:
 # Monitoring & Health
 monitoring:
   health_endpoints:
-    - https://bhiv-hr-gateway-46pz.onrender.com/health
-    - https://bhiv-hr-agent-m1me.onrender.com/health
-  metrics_endpoint: https://bhiv-hr-gateway-46pz.onrender.com/metrics
+    - bhiv-hr-gateway-46pz.onrender.com/health
+    - bhiv-hr-agent-m1me.onrender.com/health
+  metrics_endpoint: bhiv-hr-gateway-46pz.onrender.com/metrics
   logs_access: Render dashboard
   alerts: Basic (upgrade for advanced)
 
