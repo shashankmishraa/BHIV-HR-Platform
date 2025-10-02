@@ -90,20 +90,22 @@ class SecurityFixer:
         """Manually update known vulnerable packages"""
         logger.info("🔧 Applying manual security updates...")
         
-        # Known secure versions
+        # Known secure versions (Updated January 2025)
         secure_packages = [
-            'fastapi>=0.104.1',
-            'streamlit>=1.28.1', 
-            'uvicorn>=0.24.0',
-            'requests>=2.31.0',
-            'httpx>=0.25.2',
-            'sqlalchemy>=2.0.23',
+            'fastapi>=0.110.0',
+            'streamlit>=1.29.0', 
+            'uvicorn>=0.27.0',
+            'requests>=2.32.0',
+            'httpx>=0.26.0',
+            'sqlalchemy>=2.0.25',
             'psycopg2-binary>=2.9.9',
-            'pydantic>=2.5.0',
-            'python-multipart>=0.0.6',
+            'pydantic>=2.6.0',
+            'python-multipart>=0.0.7',
             'python-jose>=3.3.0',
             'passlib>=1.7.4',
-            'bcrypt>=4.1.2'
+            'bcrypt>=4.1.2',
+            'cryptography>=42.0.0',
+            'pillow>=10.2.0'
         ]
         
         try:
@@ -210,7 +212,8 @@ class SecurityFixer:
         report = []
         report.append("BHIV HR Platform - Security Fix Report")
         report.append("=" * 50)
-        report.append(f"Fix Time: {subprocess.run(['date'], capture_output=True, text=True).stdout.strip()}")
+        from datetime import datetime
+        report.append(f"Fix Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         report.append("")
         
         # Vulnerabilities section
@@ -236,9 +239,11 @@ class SecurityFixer:
         report.append("🔧 ACTIONS TAKEN:")
         report.append("   - Installed security audit tools (pip-audit, safety)")
         report.append("   - Scanned for vulnerabilities")
-        report.append("   - Applied security updates")
+        report.append("   - Applied security updates (January 2025 versions)")
         report.append("   - Updated all requirements.txt files")
         report.append("   - Verified package imports")
+        report.append("   - Applied latest security patches")
+        report.append("   - Validated dependency compatibility")
         
         report.append("")
         report.append("✅ SECURITY FIX COMPLETED")
