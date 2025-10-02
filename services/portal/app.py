@@ -3,14 +3,11 @@ import httpx
 import pandas as pd
 from datetime import datetime
 import numpy as np
+from config import API_BASE, http_client
 
 st.set_page_config(page_title="BHIV HR Platform v2.0", page_icon="🎯", layout="wide")
 
 import os
-
-API_BASE = os.getenv("GATEWAY_URL", "https://bhiv-hr-gateway-46pz.onrender.com")
-API_KEY = os.getenv("API_KEY_SECRET", "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o")
-headers = {"Authorization": f"Bearer {API_KEY}"}
 
 # Header
 st.title("🎯 BHIV HR Portal")
@@ -22,7 +19,7 @@ st.sidebar.title("🧭 HR Navigation")
 
 # Show real-time stats
 try:
-    jobs_response = httpx.get(f"{API_BASE}/v1/jobs", headers=headers, timeout=5.0)
+    jobs_response = http_client.get(f"{API_BASE}/v1/jobs")
     if jobs_response.status_code == 200:
         jobs_data = jobs_response.json()
         jobs = jobs_data.get('jobs', [])
@@ -75,7 +72,7 @@ with st.sidebar:
     st.markdown("**🔍 System Status**")
     
     try:
-        response = httpx.get(f"{API_BASE}/health", timeout=5.0)
+        response = http_client.get(f"{API_BASE}/health")
         if response.status_code == 200:
             st.success("✅ API Connected")
         else:

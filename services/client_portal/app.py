@@ -3,36 +3,16 @@ import requests
 from datetime import datetime
 import logging
 import os
-from contextlib import contextmanager
+from config import API_BASE_URL, http_session
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Configuration with secure environment variables
-API_BASE_URL = os.getenv("GATEWAY_URL")
-API_KEY = os.getenv("API_KEY_SECRET")
-
-if not API_BASE_URL or not API_KEY:
+if not API_BASE_URL:
     logger.error("Missing required environment variables")
     st.error("❌ Configuration Error: Missing environment variables")
     st.stop()
-
-headers = {
-    "Authorization": f"Bearer {API_KEY}",
-    "Content-Type": "application/json"
-}
-
-# Session management for HTTP requests
-@contextmanager
-def http_session():
-    """Context manager for HTTP sessions to prevent resource leaks"""
-    session = requests.Session()
-    session.headers.update(headers)
-    try:
-        yield session
-    finally:
-        session.close()
 
 # Cache client hash calculation
 @st.cache_data
@@ -60,8 +40,7 @@ def main():
     
     # Show real-time job count
     try:
-        with http_session() as session:
-            jobs_response = session.get(f"{API_BASE_URL}/v1/jobs", timeout=10)
+        jobs_response = http_session.get(f"{API_BASE_URL}/v1/jobs")
         if jobs_response.status_code == 200:
             jobs_data = jobs_response.json()
             jobs = jobs_data.get('jobs', [])
@@ -149,8 +128,6 @@ def show_client_login():
                             st.error(f"❌ {result.get('error', 'Authentication failed')}")
                 else:
                     st.warning("⚠️ Please enter both Client ID and Password")
-            
-
     
     with tab2:
         st.subheader("New Client Registration")
@@ -262,7 +239,7 @@ def show_job_posting():
             }
             
             try:
-                response = requests.post(f"{API_BASE_URL}/v1/jobs", headers=headers, json=job_data, timeout=10)
+                response = http_session.post(f"{API_BASE_URL}/v1/jobs", json=job_data)
                 if response.status_code == 200:
                     result = response.json()
                     job_id = result.get('job_id')
@@ -289,7 +266,7 @@ def show_candidate_review():
     
     try:
         # Get jobs from API
-        response = requests.get(f"{API_BASE_URL}/v1/jobs", headers=headers, timeout=10)
+        response = http_session.get(f"{API_BASE_URL}/v1/jobs")
         if response.status_code == 200:
             data = response.json()
             jobs = data.get('jobs', []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
@@ -319,7 +296,7 @@ def show_candidate_review():
                             agent_response = requests.post(
                                 f"{agent_url}/match", 
                                 json={"job_id": job_id}, 
-                                timeout=15
+                                timeout=30
                             )
                             st.info(f"AI agent response: {agent_response.status_code}")
                             
@@ -384,7 +361,7 @@ def show_candidate_review():
                                 st.text(f"Response: {agent_response.text[:200]}")
                                 # Fallback to gateway API
                                 try:
-                                    match_response = requests.get(f"{API_BASE_URL}/v1/match/{job_id}/top", headers=headers, timeout=15)
+                                    match_response = http_session.get(f"{API_BASE_URL}/v1/match/{job_id}/top")
                                     if match_response.status_code == 200:
                                         match_data = match_response.json()
                                         candidates = match_data.get('top_candidates', [])
@@ -403,7 +380,7 @@ def show_candidate_review():
                             st.error(f"AI matching error: {str(e)}")
                             st.info("Attempting fallback to gateway API...")
                             try:
-                                match_response = requests.get(f"{API_BASE_URL}/v1/match/{job_id}/top", headers=headers, timeout=15)
+                                match_response = http_session.get(f"{API_BASE_URL}/v1/match/{job_id}/top")
                                 if match_response.status_code == 200:
                                     match_data = match_response.json()
                                     candidates = match_data.get('top_candidates', [])
@@ -433,7 +410,7 @@ def show_match_results():
     
     try:
         # Get jobs from API
-        response = requests.get(f"{API_BASE_URL}/v1/jobs", headers=headers, timeout=10)
+        response = http_session.get(f"{API_BASE_URL}/v1/jobs")
         if response.status_code == 200:
             data = response.json()
             jobs = data.get('jobs', []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
@@ -468,7 +445,7 @@ def show_match_results():
                                 response = requests.post(
                                     f"{agent_url}/match", 
                                     json={"job_id": job_id}, 
-                                    timeout=20
+                                    timeout=30
                                 )
                                 if response.status_code == 200:
                                     data = response.json()
@@ -553,8 +530,8 @@ def show_reports():
     
     # Get consistent real-time data from API
     try:
-        jobs_response = requests.get(f"{API_BASE_URL}/v1/jobs", headers=headers, timeout=10)
-        candidates_response = requests.get(f"{API_BASE_URL}/v1/candidates/search", headers=headers, timeout=10)
+        jobs_response = http_session.get(f"{API_BASE_URL}/v1/jobs")
+        candidates_response = http_session.get(f"{API_BASE_URL}/v1/candidates/search")
         
         # Get real data from API
         total_jobs = 0
