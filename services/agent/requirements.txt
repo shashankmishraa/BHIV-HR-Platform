@@ -245,7 +245,7 @@ ply @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/ply_16994739
 prometheus-client @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/prometheus_client_1699495496669/work
 prompt-toolkit @ file:///C:/b/abs_68uwr58ed1/croot/prompt-toolkit_1704404394082/work
 Protego @ file:///tmp/build/80754af9/protego_1598657180827/work
-protobuf==4.25.3
+protobuf==4.25.8
 psutil @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/psutil_1699482842340/work
 psycopg2-binary==2.9.10
 ptyprocess @ file:///tmp/build/80754af9/ptyprocess_1609355006118/work/dist/ptyprocess-0.7.0-py2.py3-none-any.whl
@@ -341,7 +341,7 @@ Send2Trash @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/send2
 sentence-transformers==5.1.0
 sentry-sdk @ file:///C:/b/abs_03mwb6wi8k/croot/sentry-sdk_1732198189303/work
 service-identity @ file:///Users/ktietz/demo/mc3/conda-bld/service_identity_1629460757137/work
-setuptools==75.1.0
+setuptools==78.1.1
 shellingham @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/shellingham_1699475566718/work
 sip @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/sip_1699475590677/work
 six @ file:///tmp/build/80754af9/six_1644875935023/work
@@ -362,9 +362,9 @@ spyder @ file:///C:/b/abs_2f04kjngiv/croot/spyder_1727197291220/work
 spyder-kernels @ file:///C:/b/abs_e5u6y4ldr2/croot/spyder-kernels_1707937767956/work
 SQLAlchemy @ file:///C:/b/abs_7duxw5rxx8/croot/sqlalchemy_1725885067126/work
 stack-data @ file:///opt/conda/conda-bld/stack_data_1646927590127/work
-starlette==0.27.0
+starlette==0.47.2
 statsmodels @ file:///C:/b/abs_54b33xdukx/croot/statsmodels_1718381209933/work
-streamlit==1.28.1
+streamlit==1.37.0
 sympy==1.14.0
 tables @ file:///C:/b/abs_92un5wtnqq/croot/pytables_1725380800658/work
 tabulate @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/tabulate_1701812852133/work
