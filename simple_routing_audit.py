@@ -40,7 +40,7 @@ def test_gateway_routes():
     print("\n=== TESTING GATEWAY ROUTES ===")
     
     base_url = "https://bhiv-hr-gateway-46pz.onrender.com"
-    api_key = "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o"
+    api_key = "<REDACTED>"
     headers = {"Authorization": f"Bearer {api_key}"}
     
     routes = [
@@ -120,7 +120,7 @@ def test_integration_points():
     print("\n=== TESTING SERVICE INTEGRATION ===")
     
     gateway_url = "https://bhiv-hr-gateway-46pz.onrender.com"
-    api_key = "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o"
+    api_key = "<REDACTED>"
     headers = {"Authorization": f"Bearer {api_key}"}
     
     results = {}

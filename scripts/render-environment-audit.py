@@ -14,44 +14,44 @@ class RenderEnvironmentAuditor:
     def __init__(self, project_root: Path):
         self.project_root = project_root
         
-        # Current Render Environment Variables
+        # Current Render Environment Variables (sanitized)
         self.current_render_config = {
             'agent': {
-                'API_KEY_SECRET': 'prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o',
-                'DATABASE_URL': 'postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu',
+                'API_KEY_SECRET': '<REDACTED>',
+                'DATABASE_URL': '<REDACTED>',
                 'ENVIRONMENT': 'production',
-                'JWT_SECRET': 'prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA',
+                'JWT_SECRET': '<REDACTED>',
                 'LOG_LEVEL': 'INFO',
                 'OBSERVABILITY_ENABLED': 'true',
                 'PYTHON_VERSION': '3.12.7'
             },
             'gateway': {
                 'AGENT_SERVICE_URL': 'https://bhiv-hr-agent-m1me.onrender.com',
-                'API_KEY_SECRET': 'prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o',
-                'DATABASE_URL': 'postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu',
+                'API_KEY_SECRET': '<REDACTED>',
+                'DATABASE_URL': '<REDACTED>',
                 'ENVIRONMENT': 'production',
-                'JWT_SECRET': 'prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA',
+                'JWT_SECRET': '<REDACTED>',
                 'LOG_LEVEL': 'INFO',
                 'OBSERVABILITY_ENABLED': 'true',
                 'PYTHON_VERSION': '3.12.7',
-                'SECRET_KEY': 'prod_secret_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ'
+                'SECRET_KEY': '<REDACTED>'
             },
             'portal': {
                 'AGENT_SERVICE_URL': 'https://bhiv-hr-agent-m1me.onrender.com',
-                'API_KEY_SECRET': 'prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o',
+                'API_KEY_SECRET': '<REDACTED>',
                 'ENVIRONMENT': 'production',
                 'GATEWAY_URL': 'https://bhiv-hr-gateway-46pz.onrender.com',
-                'JWT_SECRET': 'prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA',
+                'JWT_SECRET': '<REDACTED>',
                 'LOG_LEVEL': 'INFO',
                 'PYTHON_VERSION': '3.12.7'
             },
             'client_portal': {
                 'AGENT_SERVICE_URL': 'https://bhiv-hr-agent-m1me.onrender.com',
-                'API_KEY_SECRET': 'prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o',
-                'DATABASE_URL': 'postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu',
+                'API_KEY_SECRET': '<REDACTED>',
+                'DATABASE_URL': '<REDACTED>',
                 'ENVIRONMENT': 'production',
                 'GATEWAY_URL': 'https://bhiv-hr-gateway-46pz.onrender.com',
-                'JWT_SECRET': 'prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA',
+                'JWT_SECRET': '<REDACTED>',
                 'LOG_LEVEL': 'INFO',
                 'PYTHON_VERSION': '3.12.7'
             }
@@ -63,7 +63,7 @@ class RenderEnvironmentAuditor:
             'GATEWAY_SERVICE_URL': 'https://bhiv-hr-gateway-46pz.onrender.com',
             'PORTAL_SERVICE_URL': 'https://bhiv-hr-portal-cead.onrender.com',
             'CLIENT_PORTAL_SERVICE_URL': 'https://bhiv-hr-client-portal-5g33.onrender.com',
-            'DATABASE_URL': 'postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu'
+            'DATABASE_URL': '<REDACTED>'
         }
     
     def scan_codebase_for_env_vars(self) -> Dict[str, Set[str]]:
@@ -124,35 +124,35 @@ class RenderEnvironmentAuditor:
         """Generate recommended Render environment configuration"""
         return {
             'agent': {
-                'API_KEY_SECRET': 'prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o',
-                'DATABASE_URL': 'postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu',
+                'API_KEY_SECRET': '<REDACTED>',
+                'DATABASE_URL': '<REDACTED>',
                 'ENVIRONMENT': 'production',
-                'JWT_SECRET_KEY': 'prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA',
+                'JWT_SECRET_KEY': '<REDACTED>',
                 'LOG_LEVEL': 'INFO',
                 'GATEWAY_SERVICE_URL': 'https://bhiv-hr-gateway-46pz.onrender.com'
             },
             'gateway': {
-                'API_KEY_SECRET': 'prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o',
-                'DATABASE_URL': 'postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu',
+                'API_KEY_SECRET': '<REDACTED>',
+                'DATABASE_URL': '<REDACTED>',
                 'ENVIRONMENT': 'production',
-                'JWT_SECRET_KEY': 'prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA',
+                'JWT_SECRET_KEY': '<REDACTED>',
                 'LOG_LEVEL': 'INFO',
                 'AGENT_SERVICE_URL': 'https://bhiv-hr-agent-m1me.onrender.com'
             },
             'portal': {
-                'API_KEY_SECRET': 'prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o',
+                'API_KEY_SECRET': '<REDACTED>',
                 'ENVIRONMENT': 'production',
                 'GATEWAY_URL': 'https://bhiv-hr-gateway-46pz.onrender.com',
-                'JWT_SECRET_KEY': 'prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA',
+                'JWT_SECRET_KEY': '<REDACTED>',
                 'LOG_LEVEL': 'INFO',
                 'AGENT_SERVICE_URL': 'https://bhiv-hr-agent-m1me.onrender.com'
             },
             'client_portal': {
-                'API_KEY_SECRET': 'prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o',
-                'DATABASE_URL': 'postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu',
+                'API_KEY_SECRET': '<REDACTED>',
+                'DATABASE_URL': '<REDACTED>',
                 'ENVIRONMENT': 'production',
                 'GATEWAY_URL': 'https://bhiv-hr-gateway-46pz.onrender.com',
-                'JWT_SECRET_KEY': 'prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA',
+                'JWT_SECRET_KEY': '<REDACTED>',
                 'LOG_LEVEL': 'INFO',
                 'AGENT_SERVICE_URL': 'https://bhiv-hr-agent-m1me.onrender.com'
             }
@@ -208,7 +208,7 @@ class RenderEnvironmentAuditor:
         
         report.append("\n2. FIX DATABASE URL:")
         report.append("   - Remove 'mailto:' prefix from DATABASE_URL")
-        report.append("   - Use: postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu")
+        report.append("   - Use proper PostgreSQL connection string format")
         
         report.append("\n3. ADD MISSING VARIABLES:")
         report.append("   - Add AGENT_SERVICE_URL to all services that need it")

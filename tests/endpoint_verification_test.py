@@ -16,7 +16,7 @@ class EndpointVerificationTester:
             'gateway': 'https://bhiv-hr-gateway-46pz.onrender.com',
             'agent': 'https://bhiv-hr-agent-m1me.onrender.com'
         }
-        self.api_key = "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o"
+        self.api_key = "<REDACTED>"
         self.headers = {"Authorization": f"Bearer {self.api_key}"}
         
         self.results = {
