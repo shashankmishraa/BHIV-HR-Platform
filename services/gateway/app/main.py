@@ -225,7 +225,7 @@ def read_root():
         "message": "BHIV HR Platform API Gateway",
         "version": "3.1.0",
         "status": "healthy",
-        "endpoints": 46,
+        "endpoints": 48,
         "documentation": "/docs",
         "monitoring": "/metrics",
         "live_demo": "https://bhiv-platform.aws.example.com"
@@ -329,7 +329,81 @@ async def list_jobs(api_key: str = Depends(get_api_key)):
     except Exception as e:
         return {"jobs": [], "count": 0, "error": str(e)}
 
-# Candidate Management (3 endpoints)
+# Candidate Management (5 endpoints)
+@app.get("/v1/candidates", tags=["Candidate Management"])
+async def get_all_candidates(limit: int = 50, offset: int = 0, api_key: str = Depends(get_api_key)):
+    """Get All Candidates with Pagination"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            query = text("""
+                SELECT id, name, email, phone, location, experience_years, technical_skills, seniority_level, education_level, created_at
+                FROM candidates ORDER BY created_at DESC LIMIT :limit OFFSET :offset
+            """)
+            result = connection.execute(query, {"limit": limit, "offset": offset})
+            candidates = [{
+                "id": row[0],
+                "name": row[1],
+                "email": row[2],
+                "phone": row[3],
+                "location": row[4],
+                "experience_years": row[5],
+                "technical_skills": row[6],
+                "seniority_level": row[7],
+                "education_level": row[8],
+                "created_at": row[9].isoformat() if row[9] else None
+            } for row in result]
+            
+            count_query = text("SELECT COUNT(*) FROM candidates")
+            count_result = connection.execute(count_query)
+            total_count = count_result.fetchone()[0]
+            
+        return {
+            "candidates": candidates,
+            "total": total_count,
+            "limit": limit,
+            "offset": offset,
+            "count": len(candidates)
+        }
+    except Exception as e:
+        return {"candidates": [], "total": 0, "error": str(e)}
+
+@app.get("/v1/candidates/{candidate_id}", tags=["Candidate Management"])
+async def get_candidate_by_id(candidate_id: int, api_key: str = Depends(get_api_key)):
+    """Get Specific Candidate by ID"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            query = text("""
+                SELECT id, name, email, phone, location, experience_years, technical_skills, 
+                       seniority_level, education_level, resume_path, created_at, updated_at
+                FROM candidates WHERE id = :candidate_id
+            """)
+            result = connection.execute(query, {"candidate_id": candidate_id})
+            row = result.fetchone()
+            
+            if not row:
+                return {"error": "Candidate not found", "candidate_id": candidate_id}
+            
+            candidate = {
+                "id": row[0],
+                "name": row[1],
+                "email": row[2],
+                "phone": row[3],
+                "location": row[4],
+                "experience_years": row[5],
+                "technical_skills": row[6],
+                "seniority_level": row[7],
+                "education_level": row[8],
+                "resume_path": row[9],
+                "created_at": row[10].isoformat() if row[10] else None,
+                "updated_at": row[11].isoformat() if row[11] else None
+            }
+            
+        return {"candidate": candidate}
+    except Exception as e:
+        return {"error": str(e), "candidate_id": candidate_id}
+
 @app.get("/v1/candidates/job/{job_id}", tags=["Candidate Management"])
 async def get_candidates_by_job(job_id: int, api_key: str = Depends(get_api_key)):
     """Get All Candidates (Dynamic Matching)"""
@@ -512,25 +586,94 @@ async def get_top_matches(job_id: int, limit: int = 10, api_key: str = Depends(g
     except Exception as e:
         return {"matches": [], "job_id": job_id, "limit": limit, "error": str(e)}
 
-# Assessment & Workflow (3 endpoints)
+# Assessment & Workflow (5 endpoints)
 @app.post("/v1/feedback", tags=["Assessment & Workflow"])
 async def submit_feedback(feedback: FeedbackSubmission, api_key: str = Depends(get_api_key)):
     """Values Assessment"""
-    return {
-        "message": "Feedback submitted successfully",
-        "candidate_id": feedback.candidate_id,
-        "job_id": feedback.job_id,
-        "values_scores": {
-            "integrity": feedback.integrity,
-            "honesty": feedback.honesty,
-            "discipline": feedback.discipline,
-            "hard_work": feedback.hard_work,
-            "gratitude": feedback.gratitude
-        },
-        "average_score": (feedback.integrity + feedback.honesty + feedback.discipline + 
-                         feedback.hard_work + feedback.gratitude) / 5,
-        "submitted_at": datetime.now(timezone.utc).isoformat()
-    }
+    try:
+        engine = get_db_engine()
+        with engine.begin() as connection:
+            avg_score = (feedback.integrity + feedback.honesty + feedback.discipline + 
+                        feedback.hard_work + feedback.gratitude) / 5
+            
+            query = text("""
+                INSERT INTO feedback (candidate_id, job_id, integrity, honesty, discipline, hard_work, gratitude, average_score, comments, created_at)
+                VALUES (:candidate_id, :job_id, :integrity, :honesty, :discipline, :hard_work, :gratitude, :average_score, :comments, NOW())
+                RETURNING id
+            """)
+            result = connection.execute(query, {
+                "candidate_id": feedback.candidate_id,
+                "job_id": feedback.job_id,
+                "integrity": feedback.integrity,
+                "honesty": feedback.honesty,
+                "discipline": feedback.discipline,
+                "hard_work": feedback.hard_work,
+                "gratitude": feedback.gratitude,
+                "average_score": avg_score,
+                "comments": feedback.comments
+            })
+            feedback_id = result.fetchone()[0]
+            
+        return {
+            "message": "Feedback submitted successfully",
+            "feedback_id": feedback_id,
+            "candidate_id": feedback.candidate_id,
+            "job_id": feedback.job_id,
+            "values_scores": {
+                "integrity": feedback.integrity,
+                "honesty": feedback.honesty,
+                "discipline": feedback.discipline,
+                "hard_work": feedback.hard_work,
+                "gratitude": feedback.gratitude
+            },
+            "average_score": round(avg_score, 2),
+            "submitted_at": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        return {
+            "message": "Feedback submission failed",
+            "error": str(e),
+            "candidate_id": feedback.candidate_id,
+            "job_id": feedback.job_id
+        }
+
+@app.get("/v1/feedback", tags=["Assessment & Workflow"])
+async def get_all_feedback(api_key: str = Depends(get_api_key)):
+    """Get All Feedback Records"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            query = text("""
+                SELECT f.id, f.candidate_id, f.job_id, f.integrity, f.honesty, f.discipline, 
+                       f.hard_work, f.gratitude, f.average_score, f.comments, f.created_at,
+                       c.name as candidate_name, j.title as job_title
+                FROM feedback f
+                LEFT JOIN candidates c ON f.candidate_id = c.id
+                LEFT JOIN jobs j ON f.job_id = j.id
+                ORDER BY f.created_at DESC
+            """)
+            result = connection.execute(query)
+            feedback_records = [{
+                "id": row[0],
+                "candidate_id": row[1],
+                "job_id": row[2],
+                "values_scores": {
+                    "integrity": row[3],
+                    "honesty": row[4],
+                    "discipline": row[5],
+                    "hard_work": row[6],
+                    "gratitude": row[7]
+                },
+                "average_score": float(row[8]) if row[8] else 0,
+                "comments": row[9],
+                "created_at": row[10].isoformat() if row[10] else None,
+                "candidate_name": row[11],
+                "job_title": row[12]
+            } for row in result]
+        
+        return {"feedback": feedback_records, "count": len(feedback_records)}
+    except Exception as e:
+        return {"feedback": [], "count": 0, "error": str(e)}
 
 
 
@@ -599,15 +742,73 @@ async def schedule_interview(interview: InterviewSchedule, api_key: str = Depend
 @app.post("/v1/offers", tags=["Assessment & Workflow"])
 async def create_job_offer(offer: JobOffer, api_key: str = Depends(get_api_key)):
     """Job Offers Management"""
-    return {
-        "message": "Job offer created successfully",
-        "offer_id": 1,
-        "candidate_id": offer.candidate_id,
-        "job_id": offer.job_id,
-        "salary": offer.salary,
-        "start_date": offer.start_date,
-        "status": "pending"
-    }
+    try:
+        engine = get_db_engine()
+        with engine.begin() as connection:
+            query = text("""
+                INSERT INTO offers (candidate_id, job_id, salary, start_date, terms, status, created_at)
+                VALUES (:candidate_id, :job_id, :salary, :start_date, :terms, 'pending', NOW())
+                RETURNING id
+            """)
+            result = connection.execute(query, {
+                "candidate_id": offer.candidate_id,
+                "job_id": offer.job_id,
+                "salary": offer.salary,
+                "start_date": offer.start_date,
+                "terms": offer.terms
+            })
+            offer_id = result.fetchone()[0]
+            
+        return {
+            "message": "Job offer created successfully",
+            "offer_id": offer_id,
+            "candidate_id": offer.candidate_id,
+            "job_id": offer.job_id,
+            "salary": offer.salary,
+            "start_date": offer.start_date,
+            "terms": offer.terms,
+            "status": "pending",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        return {
+            "message": "Job offer creation failed",
+            "error": str(e),
+            "candidate_id": offer.candidate_id,
+            "job_id": offer.job_id
+        }
+
+@app.get("/v1/offers", tags=["Assessment & Workflow"])
+async def get_all_offers(api_key: str = Depends(get_api_key)):
+    """Get All Job Offers"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            query = text("""
+                SELECT o.id, o.candidate_id, o.job_id, o.salary, o.start_date, o.terms, o.status, o.created_at,
+                       c.name as candidate_name, j.title as job_title
+                FROM offers o
+                LEFT JOIN candidates c ON o.candidate_id = c.id
+                LEFT JOIN jobs j ON o.job_id = j.id
+                ORDER BY o.created_at DESC
+            """)
+            result = connection.execute(query)
+            offers = [{
+                "id": row[0],
+                "candidate_id": row[1],
+                "job_id": row[2],
+                "salary": float(row[3]) if row[3] else 0,
+                "start_date": row[4].isoformat() if row[4] else None,
+                "terms": row[5],
+                "status": row[6],
+                "created_at": row[7].isoformat() if row[7] else None,
+                "candidate_name": row[8],
+                "job_title": row[9]
+            } for row in result]
+        
+        return {"offers": offers, "count": len(offers)}
+    except Exception as e:
+        return {"offers": [], "count": 0, "error": str(e)}
 
 # Analytics & Statistics (2 endpoints)
 @app.get("/candidates/stats", tags=["Analytics & Statistics"])
