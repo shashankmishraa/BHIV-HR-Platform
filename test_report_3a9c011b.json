@@ -1,0 +1,1437 @@
+{
+  "test_session_id": "3a9c011b",
+  "timestamp": "2025-10-03T15:22:15.637907",
+  "summary": {
+    "total_tests": 53,
+    "passed": 47,
+    "failed": 6,
+    "success_rate": 88.67924528301887,
+    "avg_response_time": 973.2762264150944
+  },
+  "created_data": {
+    "jobs": [
+      {
+        "id": 5,
+        "data": {
+          "title": "DynamicTest_3a9c011b_Engineer_194",
+          "department": "QA",
+          "location": "San Francisco",
+          "experience_level": "Senior",
+          "requirements": "Dynamic testing skills, Python, Azure",
+          "description": "Dynamic test position created at 2025-10-03T15:19:24.426791"
+        }
+      }
+    ],
+    "candidates": [
+      {
+        "name": "TestCandidate_3a9c011b_8215",
+        "email": "test_3a9c011b_1247@dynamictest.com",
+        "phone": "+1-555-3095",
+        "location": "Remote",
+        "experience_years": 11,
+        "technical_skills": "JavaScript, React, Node.js, MongoDB",
+        "seniority_level": "Junior",
+        "education_level": "Bachelor's"
+      },
+      {
+        "name": "TestCandidate_3a9c011b_9377",
+        "email": "test_3a9c011b_1600@dynamictest.com",
+        "phone": "+1-555-5183",
+        "location": "Remote",
+        "experience_years": 3,
+        "technical_skills": "Go, Kubernetes, Redis, GCP",
+        "seniority_level": "Lead",
+        "education_level": "Master's"
+      },
+      {
+        "name": "TestCandidate_3a9c011b_8039",
+        "email": "test_3a9c011b_2280@dynamictest.com",
+        "phone": "+1-555-9577",
+        "location": "Chicago",
+        "experience_years": 3,
+        "technical_skills": "Java, Spring Boot, MySQL, Docker",
+        "seniority_level": "Mid-level",
+        "education_level": "Bootcamp"
+      }
+    ],
+    "feedback": [
+      {
+        "candidate_id": 1,
+        "job_id": 5,
+        "integrity": 4,
+        "honesty": 5,
+        "discipline": 5,
+        "hard_work": 3,
+        "gratitude": 3,
+        "comments": "Dynamic test feedback - 3a9c011b"
+      }
+    ],
+    "interviews": [
+      {
+        "candidate_id": 1,
+        "job_id": 5,
+        "interview_date": "2025-10-10T15:19:34.173445",
+        "interviewer": "DynamicTester_3a9c011b",
+        "notes": "Dynamic test interview - 3a9c011b"
+      }
+    ],
+    "offers": [
+      {
+        "candidate_id": 1,
+        "job_id": 5,
+        "salary": 116831,
+        "start_date": "2025-11-02",
+        "terms": "Dynamic test offer - 3a9c011b"
+      }
+    ]
+  },
+  "detailed_results": [
+    {
+      "name": "Gateway Root",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/",
+      "status_code": 200,
+      "response_time": 22051.86,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "message": "BHIV HR Platform API Gateway",
+        "version": "3.1.0",
+        "status": "healthy",
+        "endpoints": 48,
+        "documentation": "/docs",
+        "monitoring": "/metrics",
+        "live_demo": "https://bhiv-platform.aws.example.com"
+      },
+      "error": null
+    },
+    {
+      "name": "Gateway Health",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/health",
+      "status_code": 200,
+      "response_time": 310.18,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "status": "healthy",
+        "service": "BHIV HR Gateway",
+        "version": "3.1.0",
+        "timestamp": "2025-10-03T09:49:19.003021+00:00"
+      },
+      "error": null
+    },
+    {
+      "name": "Test Candidates DB",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/test-candidates",
+      "status_code": 200,
+      "response_time": 1683.98,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "database_status": "connected",
+        "total_candidates": 5,
+        "test_timestamp": "2025-10-03T09:49:20.647921+00:00"
+      },
+      "error": null
+    },
+    {
+      "name": "Prometheus Metrics",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/metrics",
+      "status_code": 200,
+      "response_time": 894.35,
+      "success": true,
+      "data_sent": null,
+      "response_data": "# HELP python_gc_objects_collected_total Objects collected during gc\n# TYPE python_gc_objects_collected_total counter\npython_gc_objects_collected_total{generation=\"0\"} 3482.0\npython_gc_objects_collect",
+      "error": null
+    },
+    {
+      "name": "Detailed Health",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/health/detailed",
+      "status_code": 200,
+      "response_time": 1275.74,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "status": "healthy",
+        "timestamp": "2025-10-03T09:49:22.879031",
+        "system": {
+          "cpu_percent": 28.3,
+          "memory_percent": 56.5,
+          "disk_percent": 81.3
+        },
+        "application": {
+          "uptime_hours": 0.0038674830555555555,
+          "avg_response_time": 0,
+          "error_rate": 0.0
+        },
+        "database": {
+          "connections": 5,
+          "status": "connected"
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "Metrics Dashboard",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/metrics/dashboard",
+      "status_code": 200,
+      "response_time": 1875.38,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "performance_summary": {
+          "time_period": "Last 24 hours",
+          "total_requests": 0,
+          "avg_response_time": 0,
+          "error_count": 0,
+          "resumes_processed": 0,
+          "matches_generated": 0,
+          "uptime_hours": 0.004104748055555556
+        },
+        "business_metrics": {
+          "total_job_postings": 0.0,
+          "total_matches_generated": 0.0,
+          "total_resumes_processed": 0,
+          "current_active_users": 0.0,
+          "platform_uptime_hours": 0.004104754444444444
+        },
+        "system_metrics": {
+          "cpu_percent": 32.7,
+          "memory_percent": 56.4,
+          "memory_available": 14362808320,
+          "disk_percent": 81.3,
+          "database_connections": 5,
+          "active_users": 0
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "Candidate Stats",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/candidates/stats",
+      "status_code": 200,
+      "response_time": 1704.7,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "total_candidates": 5,
+        "active_jobs": 5,
+        "recent_matches": 25,
+        "pending_interviews": 8,
+        "statistics_generated_at": "2025-10-03T09:49:26.404544+00:00"
+      },
+      "error": null
+    },
+    {
+      "name": "List Jobs",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/jobs",
+      "status_code": 200,
+      "response_time": 890.27,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "jobs": [
+          {
+            "id": 4,
+            "title": "Software Engineer (Automation & Testing)",
+            "department": "Engineering",
+            "location": "Mumbai",
+            "experience_level": "Entry",
+            "requirements": "Java, Python, C++,\nVersion control (Git/SVN),\nScripting and test automation,\nDocumentation skills",
+            "description": "Build robust and scalable software, develop and execute verification and validation plans, and improve code quality through rigorous testing and code reviews. Collaborate within a multidisciplinary team to solve complex software problems.",
+            "created_at": "2025-10-02T15:14:42.945645"
+          },
+          {
+            "id": 1,
+            "title": "Software Engineer",
+            "department": "Engineering",
+            "location": "Remote",
+            "experience_level": "Mid-level",
+            "requirements": "Python, FastAPI, PostgreSQL",
+            "description": "Full-stack development role",
+            "created_at": "2025-09-27T08:21:12.010415"
+          },
+          {
+            "id": 2,
+            "title": "Data Scientist",
+            "department": "Analytics",
+            "location": "New York",
+            "experience_level": "Senior",
+            "requirements": "Python, Machine Learning, SQL",
+            "description": "Data analysis and ML model development",
+            "created_at": "2025-09-27T08:21:12.010415"
+          },
+          {
+            "id": 3,
+            "title": "Frontend Developer",
+            "department": "Engineering",
+            "location": "San Francisco",
+            "experience_level": "Junior",
+            "requirements": "React, JavaScript, CSS",
+            "description": "User interface development",
+            "created_at": "2025-09-27T08:21:12.010415"
+          }
+        ],
+        "count": 4
+      },
+      "error": null
+    },
+    {
+      "name": "Create Job",
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/jobs",
+      "status_code": 200,
+      "response_time": 937.99,
+      "success": true,
+      "data_sent": {
+        "title": "DynamicTest_3a9c011b_Engineer_194",
+        "department": "QA",
+        "location": "San Francisco",
+        "experience_level": "Senior",
+        "requirements": "Dynamic testing skills, Python, Azure",
+        "description": "Dynamic test position created at 2025-10-03T15:19:24.426791"
+      },
+      "response_data": {
+        "message": "Job created successfully",
+        "job_id": 5,
+        "created_at": "2025-10-03T09:49:28.237426+00:00"
+      },
+      "error": null
+    },
+    {
+      "name": "List Candidates",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/candidates?limit=10",
+      "status_code": 200,
+      "response_time": 892.36,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "candidates": [
+          {
+            "id": 7,
+            "name": "Test Candidate",
+            "email": "test@example.com",
+            "phone": null,
+            "location": "",
+            "experience_years": 3,
+            "technical_skills": "Python, FastAPI",
+            "seniority_level": "Junior",
+            "education_level": "Bachelor's",
+            "created_at": "2025-09-28T05:44:45.125787"
+          },
+          {
+            "id": 6,
+            "name": "Alice Johnson",
+            "email": "alice.johnson@example.com",
+            "phone": "+91-9876543212",
+            "location": "Remote",
+            "experience_years": 7,
+            "technical_skills": "Python, Machine Learning, TensorFlow, Pandas, Scikit-learn",
+            "seniority_level": "Senior",
+            "education_level": "Master's",
+            "created_at": "2025-09-28T05:42:37.808300"
+          },
+          {
+            "id": 1,
+            "name": "John Doe",
+            "email": "john.doe@example.com",
+            "phone": "+1-555-0101",
+            "location": "New York",
+            "experience_years": 3,
+            "technical_skills": "Python, FastAPI, PostgreSQL, React",
+            "seniority_level": "Mid-level",
+            "education_level": "Bachelor's",
+            "created_at": "2025-09-27T08:21:12.010415"
+          },
+          {
+            "id": 2,
+            "name": "Jane Smith",
+            "email": "jane.smith@example.com",
+            "phone": "+1-555-0102",
+            "location": "San Francisco",
+            "experience_years": 2,
+            "technical_skills": "JavaScript, React, Node.js, MongoDB",
+            "seniority_level": "Junior",
+            "education_level": "Bachelor's",
+            "created_at": "2025-09-27T08:21:12.010415"
+          },
+          {
+            "id": 3,
+            "name": "Mike Johnson",
+            "email": "mike.johnson@example.com",
+            "phone": "+1-555-0103",
+            "location": "Remote",
+            "experience_years": 5,
+            "technical_skills": "Python, Machine Learning, TensorFlow, SQL",
+            "seniority_level": "Senior",
+            "education_level": "Master's",
+            "created_at": "2025-09-27T08:21:12.010415"
+          }
+        ],
+        "total": 5,
+        "limit": 10,
+        "offset": 0,
+        "count": 5
+      },
+      "error": null
+    },
+    {
+      "name": "Get Candidate by ID",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/candidates/1",
+      "status_code": 200,
+      "response_time": 996.64,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "candidate": {
+          "id": 1,
+          "name": "John Doe",
+          "email": "john.doe@example.com",
+          "phone": "+1-555-0101",
+          "location": "New York",
+          "experience_years": 3,
+          "technical_skills": "Python, FastAPI, PostgreSQL, React",
+          "seniority_level": "Mid-level",
+          "education_level": "Bachelor's",
+          "resume_path": null,
+          "created_at": "2025-09-27T08:21:12.010415",
+          "updated_at": "2025-09-27T08:21:12.010415"
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "Search Candidates",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/candidates/search?skills=Python&limit=5",
+      "status_code": 422,
+      "response_time": 288.8,
+      "success": false,
+      "data_sent": null,
+      "response_data": {
+        "detail": [
+          {
+            "type": "int_parsing",
+            "loc": [
+              "path",
+              "candidate_id"
+            ],
+            "msg": "Input should be a valid integer, unable to parse string as an integer",
+            "input": "search",
+            "url": "https://errors.pydantic.dev/2.8/v/int_parsing"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "Bulk Upload Candidates",
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/candidates/bulk",
+      "status_code": 200,
+      "response_time": 2226.55,
+      "success": true,
+      "data_sent": {
+        "candidates": [
+          {
+            "name": "TestCandidate_3a9c011b_8215",
+            "email": "test_3a9c011b_1247@dynamictest.com",
+            "phone": "+1-555-3095",
+            "location": "Remote",
+            "experience_years": 11,
+            "technical_skills": "JavaScript, React, Node.js, MongoDB",
+            "seniority_level": "Junior",
+            "education_level": "Bachelor's"
+          },
+          {
+            "name": "TestCandidate_3a9c011b_9377",
+            "email": "test_3a9c011b_1600@dynamictest.com",
+            "phone": "+1-555-5183",
+            "location": "Remote",
+            "experience_years": 3,
+            "technical_skills": "Go, Kubernetes, Redis, GCP",
+            "seniority_level": "Lead",
+            "education_level": "Master's"
+          },
+          {
+            "name": "TestCandidate_3a9c011b_8039",
+            "email": "test_3a9c011b_2280@dynamictest.com",
+            "phone": "+1-555-9577",
+            "location": "Chicago",
+            "experience_years": 3,
+            "technical_skills": "Java, Spring Boot, MySQL, Docker",
+            "seniority_level": "Mid-level",
+            "education_level": "Bootcamp"
+          }
+        ]
+      },
+      "response_data": {
+        "message": "Bulk upload completed",
+        "candidates_received": 3,
+        "candidates_inserted": 3,
+        "errors": [],
+        "total_errors": 0,
+        "status": "success"
+      },
+      "error": null
+    },
+    {
+      "name": "Get Candidates for Job",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/candidates/job/5",
+      "status_code": 200,
+      "response_time": 833.78,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "candidates": [
+          {
+            "id": 1,
+            "name": "John Doe",
+            "email": "john.doe@example.com",
+            "skills": "Python, FastAPI, PostgreSQL, React",
+            "experience": 3
+          },
+          {
+            "id": 2,
+            "name": "Jane Smith",
+            "email": "jane.smith@example.com",
+            "skills": "JavaScript, React, Node.js, MongoDB",
+            "experience": 2
+          },
+          {
+            "id": 3,
+            "name": "Mike Johnson",
+            "email": "mike.johnson@example.com",
+            "skills": "Python, Machine Learning, TensorFlow, SQL",
+            "experience": 5
+          },
+          {
+            "id": 6,
+            "name": "Alice Johnson",
+            "email": "alice.johnson@example.com",
+            "skills": "Python, Machine Learning, TensorFlow, Pandas, Scikit-learn",
+            "experience": 7
+          },
+          {
+            "id": 7,
+            "name": "Test Candidate",
+            "email": "test@example.com",
+            "skills": "Python, FastAPI",
+            "experience": 3
+          },
+          {
+            "id": 9,
+            "name": "TestCandidate_3a9c011b_8215",
+            "email": "test_3a9c011b_1247@dynamictest.com",
+            "skills": "JavaScript, React, Node.js, MongoDB",
+            "experience": 11
+          },
+          {
+            "id": 10,
+            "name": "TestCandidate_3a9c011b_9377",
+            "email": "test_3a9c011b_1600@dynamictest.com",
+            "skills": "Go, Kubernetes, Redis, GCP",
+            "experience": 3
+          },
+          {
+            "id": 11,
+            "name": "TestCandidate_3a9c011b_8039",
+            "email": "test_3a9c011b_2280@dynamictest.com",
+            "skills": "Java, Spring Boot, MySQL, Docker",
+            "experience": 3
+          }
+        ],
+        "job_id": 5,
+        "count": 8
+      },
+      "error": null
+    },
+    {
+      "name": "Get Top Matches",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/match/5/top?limit=5",
+      "status_code": 200,
+      "response_time": 916.21,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "matches": [
+          {
+            "candidate_id": 1,
+            "name": "John Doe",
+            "email": "john.doe@example.com",
+            "score": 85.5,
+            "skills_match": "Python, FastAPI, PostgreSQL, React",
+            "experience_match": 80.0,
+            "values_alignment": 4.2,
+            "recommendation_strength": "Strong Match"
+          },
+          {
+            "candidate_id": 2,
+            "name": "Jane Smith",
+            "email": "jane.smith@example.com",
+            "score": 85.5,
+            "skills_match": "JavaScript, React, Node.js, MongoDB",
+            "experience_match": 80.0,
+            "values_alignment": 4.2,
+            "recommendation_strength": "Strong Match"
+          },
+          {
+            "candidate_id": 3,
+            "name": "Mike Johnson",
+            "email": "mike.johnson@example.com",
+            "score": 85.5,
+            "skills_match": "Python, Machine Learning, TensorFlow, SQL",
+            "experience_match": 80.0,
+            "values_alignment": 4.2,
+            "recommendation_strength": "Strong Match"
+          },
+          {
+            "candidate_id": 6,
+            "name": "Alice Johnson",
+            "email": "alice.johnson@example.com",
+            "score": 85.5,
+            "skills_match": "Python, Machine Learning, TensorFlow, Pandas, Scikit-learn",
+            "experience_match": 80.0,
+            "values_alignment": 4.2,
+            "recommendation_strength": "Strong Match"
+          },
+          {
+            "candidate_id": 7,
+            "name": "Test Candidate",
+            "email": "test@example.com",
+            "score": 85.5,
+            "skills_match": "Python, FastAPI",
+            "experience_match": 80.0,
+            "values_alignment": 4.2,
+            "recommendation_strength": "Strong Match"
+          }
+        ],
+        "top_candidates": [
+          {
+            "candidate_id": 1,
+            "name": "John Doe",
+            "email": "john.doe@example.com",
+            "score": 85.5,
+            "skills_match": "Python, FastAPI, PostgreSQL, React",
+            "experience_match": 80.0,
+            "values_alignment": 4.2,
+            "recommendation_strength": "Strong Match"
+          },
+          {
+            "candidate_id": 2,
+            "name": "Jane Smith",
+            "email": "jane.smith@example.com",
+            "score": 85.5,
+            "skills_match": "JavaScript, React, Node.js, MongoDB",
+            "experience_match": 80.0,
+            "values_alignment": 4.2,
+            "recommendation_strength": "Strong Match"
+          },
+          {
+            "candidate_id": 3,
+            "name": "Mike Johnson",
+            "email": "mike.johnson@example.com",
+            "score": 85.5,
+            "skills_match": "Python, Machine Learning, TensorFlow, SQL",
+            "experience_match": 80.0,
+            "values_alignment": 4.2,
+            "recommendation_strength": "Strong Match"
+          },
+          {
+            "candidate_id": 6,
+            "name": "Alice Johnson",
+            "email": "alice.johnson@example.com",
+            "score": 85.5,
+            "skills_match": "Python, Machine Learning, TensorFlow, Pandas, Scikit-learn",
+            "experience_match": 80.0,
+            "values_alignment": 4.2,
+            "recommendation_strength": "Strong Match"
+          },
+          {
+            "candidate_id": 7,
+            "name": "Test Candidate",
+            "email": "test@example.com",
+            "score": 85.5,
+            "skills_match": "Python, FastAPI",
+            "experience_match": 80.0,
+            "values_alignment": 4.2,
+            "recommendation_strength": "Strong Match"
+          }
+        ],
+        "job_id": 5,
+        "limit": 5,
+        "algorithm_version": "v2.0.0-fallback",
+        "processing_time": "0.05s",
+        "ai_analysis": "Database fallback matching with sample scoring"
+      },
+      "error": null
+    },
+    {
+      "name": "Get All Feedback",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/feedback",
+      "status_code": 200,
+      "response_time": 820.57,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "feedback": [],
+        "count": 0,
+        "error": "(psycopg2.errors.UndefinedColumn) column f.average_score does not exist\nLINE 3:                        f.hard_work, f.gratitude, f.average_s...\n                                                         ^\n\n[SQL: \n                SELECT f.id, f.candidate_id, f.job_id, f.integrity, f.honesty, f.discipline, \n                       f.hard_work, f.gratitude, f.average_score, f.comments, f.created_at,\n                       c.name as candidate_name, j.title as job_title\n                FROM feedback f\n                LEFT JOIN candidates c ON f.candidate_id = c.id\n                LEFT JOIN jobs j ON f.job_id = j.id\n                ORDER BY f.created_at DESC\n            ]\n(Background on this error at: https://sqlalche.me/e/20/f405)"
+      },
+      "error": null
+    },
+    {
+      "name": "Submit Feedback",
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/feedback",
+      "status_code": 200,
+      "response_time": 967.32,
+      "success": true,
+      "data_sent": {
+        "candidate_id": 1,
+        "job_id": 5,
+        "integrity": 4,
+        "honesty": 5,
+        "discipline": 5,
+        "hard_work": 3,
+        "gratitude": 3,
+        "comments": "Dynamic test feedback - 3a9c011b"
+      },
+      "response_data": {
+        "message": "Feedback submission failed",
+        "error": "(psycopg2.errors.UndefinedColumn) column \"average_score\" of relation \"feedback\" does not exist\nLINE 2: ...grity, honesty, discipline, hard_work, gratitude, average_sc...\n                                                             ^\n\n[SQL: \n                INSERT INTO feedback (candidate_id, job_id, integrity, honesty, discipline, hard_work, gratitude, average_score, comments, created_at)\n                VALUES (%(candidate_id)s, %(job_id)s, %(integrity)s, %(honesty)s, %(discipline)s, %(hard_work)s, %(gratitude)s, %(average_score)s, %(comments)s, NOW())\n                RETURNING id\n            ]\n[parameters: {'candidate_id': 1, 'job_id': 5, 'integrity': 4, 'honesty': 5, 'discipline': 5, 'hard_work': 3, 'gratitude': 3, 'average_score': 4.0, 'comments': 'Dynamic test feedback - 3a9c011b'}]\n(Background on this error at: https://sqlalche.me/e/20/f405)",
+        "candidate_id": 1,
+        "job_id": 5
+      },
+      "error": null
+    },
+    {
+      "name": "Get All Interviews",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/interviews",
+      "status_code": 200,
+      "response_time": 862.41,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "interviews": [],
+        "count": 0
+      },
+      "error": null
+    },
+    {
+      "name": "Schedule Interview",
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/interviews",
+      "status_code": 200,
+      "response_time": 1142.02,
+      "success": true,
+      "data_sent": {
+        "candidate_id": 1,
+        "job_id": 5,
+        "interview_date": "2025-10-10T15:19:34.173445",
+        "interviewer": "DynamicTester_3a9c011b",
+        "notes": "Dynamic test interview - 3a9c011b"
+      },
+      "response_data": {
+        "message": "Interview scheduled successfully",
+        "interview_id": 1,
+        "candidate_id": 1,
+        "job_id": 5,
+        "interview_date": "2025-10-10T15:19:34.173445",
+        "status": "scheduled"
+      },
+      "error": null
+    },
+    {
+      "name": "Get All Offers",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/offers",
+      "status_code": 200,
+      "response_time": 839.26,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "offers": [],
+        "count": 0,
+        "error": "(psycopg2.errors.UndefinedTable) relation \"offers\" does not exist\nLINE 4:                 FROM offers o\n                             ^\n\n[SQL: \n                SELECT o.id, o.candidate_id, o.job_id, o.salary, o.start_date, o.terms, o.status, o.created_at,\n                       c.name as candidate_name, j.title as job_title\n                FROM offers o\n                LEFT JOIN candidates c ON o.candidate_id = c.id\n                LEFT JOIN jobs j ON o.job_id = j.id\n                ORDER BY o.created_at DESC\n            ]\n(Background on this error at: https://sqlalche.me/e/20/f405)"
+      },
+      "error": null
+    },
+    {
+      "name": "Create Job Offer",
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/offers",
+      "status_code": 200,
+      "response_time": 878.13,
+      "success": true,
+      "data_sent": {
+        "candidate_id": 1,
+        "job_id": 5,
+        "salary": 116831,
+        "start_date": "2025-11-02",
+        "terms": "Dynamic test offer - 3a9c011b"
+      },
+      "response_data": {
+        "message": "Job offer creation failed",
+        "error": "(psycopg2.errors.UndefinedTable) relation \"offers\" does not exist\nLINE 2:                 INSERT INTO offers (candidate_id, job_id, sa...\n                                    ^\n\n[SQL: \n                INSERT INTO offers (candidate_id, job_id, salary, start_date, terms, status, created_at)\n                VALUES (%(candidate_id)s, %(job_id)s, %(salary)s, %(start_date)s, %(terms)s, 'pending', NOW())\n                RETURNING id\n            ]\n[parameters: {'candidate_id': 1, 'job_id': 5, 'salary': 116831.0, 'start_date': '2025-11-02', 'terms': 'Dynamic test offer - 3a9c011b'}]\n(Background on this error at: https://sqlalche.me/e/20/f405)",
+        "candidate_id": 1,
+        "job_id": 5
+      },
+      "error": null
+    },
+    {
+      "name": "Client Login",
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/client/login",
+      "status_code": 200,
+      "response_time": 304.15,
+      "success": true,
+      "data_sent": {
+        "client_id": "TECH001",
+        "password": "demo123"
+      },
+      "response_data": {
+        "message": "Authentication successful",
+        "client_id": "TECH001",
+        "access_token": "client_token_TECH001_1759484980.249123",
+        "token_type": "bearer",
+        "expires_in": 3600,
+        "permissions": [
+          "view_jobs",
+          "create_jobs",
+          "view_candidates",
+          "schedule_interviews"
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "Export Job Report",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/reports/job/5/export.csv",
+      "status_code": 200,
+      "response_time": 303.4,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "message": "Job report export",
+        "job_id": 5,
+        "format": "CSV",
+        "download_url": "/downloads/job_5_report.csv",
+        "generated_at": "2025-10-03T09:49:40.546954+00:00"
+      },
+      "error": null
+    },
+    {
+      "name": "Rate Limit Status",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/rate-limit-status",
+      "status_code": 200,
+      "response_time": 292.45,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "rate_limit_enabled": true,
+        "requests_per_minute": 60,
+        "current_requests": 15,
+        "remaining_requests": 45,
+        "reset_time": "2025-10-03T09:49:40.858620+00:00",
+        "status": "active"
+      },
+      "error": null
+    },
+    {
+      "name": "Blocked IPs",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/blocked-ips",
+      "status_code": 200,
+      "response_time": 315.52,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "blocked_ips": [
+          {
+            "ip": "192.168.1.100",
+            "reason": "Rate limit exceeded",
+            "blocked_at": "2025-01-02T10:30:00Z"
+          },
+          {
+            "ip": "10.0.0.50",
+            "reason": "Suspicious activity",
+            "blocked_at": "2025-01-02T09:15:00Z"
+          }
+        ],
+        "total_blocked": 2,
+        "last_updated": "2025-10-03T09:49:41.155363+00:00"
+      },
+      "error": null
+    },
+    {
+      "name": "Input Validation",
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/test-input-validation",
+      "status_code": 200,
+      "response_time": 269.43,
+      "success": true,
+      "data_sent": {
+        "input_data": "<script>alert('test_3a9c011b')</script>"
+      },
+      "response_data": {
+        "input": "<script>alert('test_3a9c011b')</script>",
+        "validation_result": "BLOCKED",
+        "threats_detected": [
+          "XSS attempt detected"
+        ],
+        "timestamp": "2025-10-03T09:49:41.455918+00:00"
+      },
+      "error": null
+    },
+    {
+      "name": "Email Validation",
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/test-email-validation",
+      "status_code": 200,
+      "response_time": 313.63,
+      "success": true,
+      "data_sent": {
+        "email": "test_3a9c011b@example.com"
+      },
+      "response_data": {
+        "email": "test_3a9c011b@example.com",
+        "is_valid": true,
+        "validation_type": "regex_pattern",
+        "timestamp": "2025-10-03T09:49:41.739851+00:00"
+      },
+      "error": null
+    },
+    {
+      "name": "Phone Validation",
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/test-phone-validation",
+      "status_code": 200,
+      "response_time": 308.14,
+      "success": true,
+      "data_sent": {
+        "phone": "+1-555-1577"
+      },
+      "response_data": {
+        "phone": "+1-555-1577",
+        "is_valid": false,
+        "validation_type": "US_phone_format",
+        "timestamp": "2025-10-03T09:49:42.052432+00:00"
+      },
+      "error": null
+    },
+    {
+      "name": "Security Headers",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/security-headers-test",
+      "status_code": 200,
+      "response_time": 309.32,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "security_headers": {
+          "X-Content-Type-Options": "nosniff",
+          "X-Frame-Options": "DENY",
+          "X-XSS-Protection": "1; mode=block",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+          "Content-Security-Policy": "default-src 'self'"
+        },
+        "headers_count": 5,
+        "status": "all_headers_applied"
+      },
+      "error": null
+    },
+    {
+      "name": "Penetration Test Endpoints",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/penetration-test-endpoints",
+      "status_code": 200,
+      "response_time": 305.7,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "test_endpoints": [
+          {
+            "endpoint": "/v1/security/test-input-validation",
+            "method": "POST",
+            "purpose": "XSS/SQL injection testing"
+          },
+          {
+            "endpoint": "/v1/security/test-email-validation",
+            "method": "POST",
+            "purpose": "Email format validation"
+          },
+          {
+            "endpoint": "/v1/security/test-phone-validation",
+            "method": "POST",
+            "purpose": "Phone format validation"
+          },
+          {
+            "endpoint": "/v1/security/security-headers-test",
+            "method": "GET",
+            "purpose": "Security headers verification"
+          }
+        ],
+        "total_endpoints": 4,
+        "penetration_testing_enabled": true
+      },
+      "error": null
+    },
+    {
+      "name": "CSP Policies",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/csp-policies",
+      "status_code": 200,
+      "response_time": 320.33,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "current_policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https:; media-src 'self'; object-src 'none'; child-src 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests; block-all-mixed-content",
+        "policy_length": 408,
+        "last_updated": "2025-10-03T09:49:43.002619+00:00",
+        "status": "active"
+      },
+      "error": null
+    },
+    {
+      "name": "CSP Violations",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/csp-violations",
+      "status_code": 200,
+      "response_time": 317.11,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "violations": [
+          {
+            "id": "csp_001",
+            "violated_directive": "script-src",
+            "blocked_uri": "https://malicious-site.com/script.js",
+            "document_uri": "https://bhiv-platform.com/dashboard",
+            "timestamp": "2025-01-02T10:15:00Z"
+          }
+        ],
+        "total_violations": 1,
+        "last_24_hours": 1
+      },
+      "error": null
+    },
+    {
+      "name": "CSP Report",
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/csp-report",
+      "status_code": 200,
+      "response_time": 316.97,
+      "success": true,
+      "data_sent": {
+        "violated_directive": "script-src",
+        "blocked_uri": "https://malicious-3a9c011b.com/script.js",
+        "document_uri": "https://test-3a9c011b.com/page"
+      },
+      "response_data": {
+        "message": "CSP violation reported successfully",
+        "violation": {
+          "violated_directive": "script-src",
+          "blocked_uri": "https://malicious-3a9c011b.com/script.js",
+          "document_uri": "https://test-3a9c011b.com/page",
+          "timestamp": "2025-10-03T09:49:43.620928+00:00"
+        },
+        "report_id": "csp_report_1759484983.620939"
+      },
+      "error": null
+    },
+    {
+      "name": "Test CSP Policy",
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/test-csp-policy",
+      "status_code": 200,
+      "response_time": 278.87,
+      "success": true,
+      "data_sent": {
+        "policy": "default-src 'self'; script-src 'self' test-3a9c011b.com"
+      },
+      "response_data": {
+        "message": "CSP policy test completed",
+        "test_policy": "default-src 'self'; script-src 'self' test-3a9c011b.com",
+        "policy_length": 55,
+        "validation_result": "valid",
+        "tested_at": "2025-10-03T09:49:43.928669+00:00"
+      },
+      "error": null
+    },
+    {
+      "name": "2FA Setup",
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/2fa/setup",
+      "status_code": 200,
+      "response_time": 334.68,
+      "success": true,
+      "data_sent": {
+        "user_id": "test_user_3a9c011b"
+      },
+      "response_data": {
+        "message": "2FA setup initiated",
+        "user_id": "test_user_3a9c011b",
+        "secret": "OHJXUV5S562OMRII6QTYTPO2VWTXZMUW",
+        "qr_code": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAiYAAAImAQAAAABPtXzrAAAEyElEQVR4nO2dTW7cOBCFX0UCekkBfYAcRX0DH2mQm0lH8QEMUMsBKNQsWEVS7QSOZ+xQ435cNPT7QQQe6GL9WRT/fezfPgACkEIKKaSQQgoppJBCCimkkGJDVVV1Kaf5KKjqEuyGagQwayo3kj8eVFU1nWlGpDwKxbVrIsw6tSNVxRwBU3FQBTAoZr9bXjvTjEh5OMouIhMAhAS5Yci+M13yKYD5eQTm6M+vIvJZ30IKKf+Gsk5uOKwignUaFPOziMi0i92Y/tC3kELKuyjbRUVkBIBBgU2kEev6/W959cbZZ0TK16SMfjAogB1AeBHFNgnmeIUgRGB9igC2CTI/X+y5uQ3InWlGpDwK5bWfIaTf+bHBvRop3Si27jar6HZRzHG3zZkZDheVcioIw10WxJlmRMqjUFpnV15Py88ci0RDyn6zPMzZMNBHRkpPSqNdIGh23roHtwQjcHTyZmX7u9QuKV0orr9Yw2du/mYVx8EDFABUY3H8wh+mdknpQinaHVQXDLb42mo7aKNnjUC2HpaQ8jXu1UjpSKl/93G/+GoslgI8TrwEVcxx0MOgdknpQEFVYF5KzUgY7BQAPKkhwZfm1KQ8ULuk9KGUvZo5Eaqpm/Wck28izLswa8Ld1o3aJaUPpV134faumb9FnXcRidmNY2qXlI6UElcbtDoW/BpQpWyKDcU4Lh40apeULpTGz1CU6Bu24nswUfsb1R8x094lpRul8e/6qbsT8qhxiLKJA+hnIKU/5VgAYSo2narVTQAHiwJZu/4ItUtKH4rn4kTAEnNDGrHehnyiOXU3RADbVSVnO2AXAJCSkXOmGZHygJQah8iusB8ywiJs2wggWNp5fU5un/UtpJDy5ii55/uo+WcbgfXpZcQcr/WGyRbbNQnCPiowpFJCcaYZkfIoFNfudi3+3ZdRgBEKJPi1CKxTVKxPCbo+2TXaDKR0pDR1E+7QLSG1kPwa3L+bcxz8GmMTpHSktPm7FpYoqy2Amv7oR54DST8DKWeh7KILdpHbdmk3bPkoAm1Bhaa7iuFTzoiUL0451gkPSRCSectWAYCg/rNN7YtzhGKd4gd+CymkvGvUmHDbigyHGFpTIpwfMbOCcTVSOlIONe6hzd+tHfTaHmWxTYmkdknpSGnqJtysLR30cAwMh9QknTEHkpTelF/kM2hJ50UxHErJhNXCK7VLSk/Kwd51TdqNeKxmazTeFlxSu6T0obSxCS32QTUSlmbdLXqO5t+lvUtKR0pT81P74lQp32/ibFUeGrVTu6T0oRxyz6u5UGRbOuR4IK3t7kTtktKRcuzplA7JCvWh4NotLZ64VyPlJJRa1WOnu7QdcrYRcoP3PTcB71Jq2E44I1IehbKKDbscirvXU3et+bmrOPc1vX3Gt5BCym8Nz2cIEQD20Tvx5jboI0r+riBEyKy71Gsf/C2kkPKu8crFULvl1f67gKeVhVpAzF56pHSlvNKuddCzzZkl9japDG1wjX4GUjpSfqpdG56rWzPTAc9xoH+XlN6Un/xfS48Otz37TaQ11tZmQFC7pPSkbCL5v6qt0y7y13PJSW8bMkCX7WJdRgDU/xJ4xhmR8tUpom8/8+bYzzQjUkghhRRSSCGFFFJIIYWU/z/lH9DCehPc/y65AAAAAElFTkSuQmCC",
+        "manual_entry_key": "OHJXUV5S562OMRII6QTYTPO2VWTXZMUW",
+        "instructions": "Scan QR code with Google Authenticator, Microsoft Authenticator, or Authy"
+      },
+      "error": null
+    },
+    {
+      "name": "2FA Verify Setup",
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/2fa/verify-setup",
+      "status_code": 401,
+      "response_time": 306.68,
+      "success": true,
+      "data_sent": {
+        "user_id": "test_user_3a9c011b",
+        "totp_code": "123456"
+      },
+      "response_data": {
+        "detail": "Invalid 2FA code"
+      },
+      "error": null
+    },
+    {
+      "name": "2FA Login",
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/2fa/login-with-2fa",
+      "status_code": 401,
+      "response_time": 317.98,
+      "success": true,
+      "data_sent": {
+        "user_id": "test_user_3a9c011b",
+        "totp_code": "123456"
+      },
+      "response_data": {
+        "detail": "Invalid 2FA code"
+      },
+      "error": null
+    },
+    {
+      "name": "2FA Status",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/2fa/status/test_user_3a9c011b",
+      "status_code": 200,
+      "response_time": 283.22,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "client_id": "test_user_3a9c011b",
+        "2fa_enabled": true,
+        "setup_date": "2025-01-01T12:00:00Z",
+        "last_used": "2025-01-02T08:30:00Z",
+        "backup_codes_remaining": 8
+      },
+      "error": null
+    },
+    {
+      "name": "2FA Disable",
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/2fa/disable",
+      "status_code": 200,
+      "response_time": 315.27,
+      "success": true,
+      "data_sent": {
+        "user_id": "test_user_3a9c011b"
+      },
+      "response_data": {
+        "message": "2FA disabled successfully",
+        "user_id": "test_user_3a9c011b",
+        "disabled_at": "2025-10-03T09:49:45.485689+00:00",
+        "2fa_enabled": false
+      },
+      "error": null
+    },
+    {
+      "name": "2FA Regenerate Codes",
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/2fa/regenerate-backup-codes",
+      "status_code": 200,
+      "response_time": 329.37,
+      "success": true,
+      "data_sent": {
+        "user_id": "test_user_3a9c011b"
+      },
+      "response_data": {
+        "message": "Backup codes regenerated successfully",
+        "user_id": "test_user_3a9c011b",
+        "backup_codes": [
+          "BACKUP-0EBB9D92",
+          "BACKUP-8A789714",
+          "BACKUP-D5FE044E",
+          "BACKUP-CE19006B",
+          "BACKUP-878075ED",
+          "BACKUP-A39C41AD",
+          "BACKUP-F2DFA2DD",
+          "BACKUP-7039A676",
+          "BACKUP-7A8A1980",
+          "BACKUP-81B54F9C"
+        ],
+        "generated_at": "2025-10-03T09:49:45.793026+00:00",
+        "codes_count": 10
+      },
+      "error": null
+    },
+    {
+      "name": "2FA Test Token",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/2fa/test-token/test_user_3a9c011b/123456",
+      "status_code": 200,
+      "response_time": 318.85,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "client_id": "test_user_3a9c011b",
+        "token": "123456",
+        "is_valid": false,
+        "test_timestamp": "2025-10-03T09:49:46.107930+00:00"
+      },
+      "error": null
+    },
+    {
+      "name": "2FA Demo Setup",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/2fa/demo-setup",
+      "status_code": 200,
+      "response_time": 310.17,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "demo_secret": "JBSWY3DPEHPK3PXP",
+        "demo_qr_url": "https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl=otpauth://totp/BHIV%20HR%20Platform:demo_user%3Fsecret%3DJBSWY3DPEHPK3PXP%26issuer%3DBHIV%2520HR%2520Platform",
+        "test_codes": [
+          "123456",
+          "654321",
+          "111111"
+        ],
+        "instructions": "Use demo secret or scan QR code for testing"
+      },
+      "error": null
+    },
+    {
+      "name": "Password Validate",
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/password/validate",
+      "status_code": 200,
+      "response_time": 307.23,
+      "success": true,
+      "data_sent": {
+        "password": "TestPass123!_3a9c011b"
+      },
+      "response_data": {
+        "password_strength": "Very Strong",
+        "score": 100,
+        "max_score": 100,
+        "is_valid": true,
+        "feedback": []
+      },
+      "error": null
+    },
+    {
+      "name": "Password Generate",
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/password/generate?length=16",
+      "status_code": 200,
+      "response_time": 292.08,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "generated_password": "hU_=*9wiWu7i_iJh",
+        "length": 16,
+        "entropy_bits": 104.0,
+        "strength": "Very Strong",
+        "generated_at": "2025-10-03T09:49:47.029440+00:00"
+      },
+      "error": null
+    },
+    {
+      "name": "Password Policy",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/password/policy",
+      "status_code": 200,
+      "response_time": 317.62,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "policy": {
+          "minimum_length": 8,
+          "require_uppercase": true,
+          "require_lowercase": true,
+          "require_numbers": true,
+          "require_special_chars": true,
+          "max_age_days": 90,
+          "history_count": 5
+        },
+        "complexity_requirements": [
+          "At least 8 characters long",
+          "Contains uppercase letters",
+          "Contains lowercase letters",
+          "Contains numbers",
+          "Contains special characters"
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "Password Change",
+      "method": "POST",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/password/change",
+      "status_code": 200,
+      "response_time": 317.58,
+      "success": true,
+      "data_sent": {
+        "old_password": "oldpass123",
+        "new_password": "NewPass123!_3a9c011b"
+      },
+      "response_data": {
+        "message": "Password changed successfully",
+        "changed_at": "2025-10-03T09:49:47.652200+00:00",
+        "password_strength": "Strong",
+        "next_change_due": "2025-04-02T00:00:00Z"
+      },
+      "error": null
+    },
+    {
+      "name": "Password Strength Test",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/password/strength-test",
+      "status_code": 200,
+      "response_time": 310.31,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "testing_tool": {
+          "endpoint": "/v1/password/validate",
+          "method": "POST",
+          "sample_passwords": [
+            {
+              "password": "weak",
+              "expected_strength": "Very Weak"
+            },
+            {
+              "password": "StrongPass123!",
+              "expected_strength": "Very Strong"
+            },
+            {
+              "password": "medium123",
+              "expected_strength": "Medium"
+            }
+          ]
+        },
+        "strength_levels": [
+          "Very Weak",
+          "Weak",
+          "Medium",
+          "Strong",
+          "Very Strong"
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "Password Security Tips",
+      "method": "GET",
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/password/security-tips",
+      "status_code": 200,
+      "response_time": 279.08,
+      "success": true,
+      "data_sent": null,
+      "response_data": {
+        "security_tips": [
+          "Use a unique password for each account",
+          "Enable two-factor authentication when available",
+          "Use a password manager to generate and store passwords",
+          "Avoid using personal information in passwords",
+          "Change passwords immediately if a breach is suspected",
+          "Use passphrases with random words for better security"
+        ],
+        "password_requirements": {
+          "minimum_length": 8,
+          "character_types": 4,
+          "avoid": [
+            "dictionary words",
+            "personal info",
+            "common patterns"
+          ]
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "Agent Root",
+      "method": "GET",
+      "url": "https://bhiv-hr-agent-m1me.onrender.com/",
+      "status_code": 0,
+      "response_time": 0,
+      "success": false,
+      "data_sent": null,
+      "response_data": null,
+      "error": "HTTPSConnectionPool(host='bhiv-hr-agent-m1me.onrender.com', port=443): Read timed out. (read timeout=30)"
+    },
+    {
+      "name": "Agent Health",
+      "method": "GET",
+      "url": "https://bhiv-hr-agent-m1me.onrender.com/health",
+      "status_code": 0,
+      "response_time": 0,
+      "success": false,
+      "data_sent": null,
+      "response_data": null,
+      "error": "HTTPSConnectionPool(host='bhiv-hr-agent-m1me.onrender.com', port=443): Read timed out. (read timeout=30)"
+    },
+    {
+      "name": "AI Match",
+      "method": "POST",
+      "url": "https://bhiv-hr-agent-m1me.onrender.com/match",
+      "status_code": 0,
+      "response_time": 0,
+      "success": false,
+      "data_sent": {
+        "job_id": 5
+      },
+      "response_data": null,
+      "error": "HTTPSConnectionPool(host='bhiv-hr-agent-m1me.onrender.com', port=443): Read timed out. (read timeout=30)"
+    },
+    {
+      "name": "Analyze Candidate",
+      "method": "GET",
+      "url": "https://bhiv-hr-agent-m1me.onrender.com/analyze/1",
+      "status_code": 0,
+      "response_time": 0,
+      "success": false,
+      "data_sent": null,
+      "response_data": null,
+      "error": "HTTPSConnectionPool(host='bhiv-hr-agent-m1me.onrender.com', port=443): Read timed out. (read timeout=30)"
+    },
+    {
+      "name": "Agent DB Test",
+      "method": "GET",
+      "url": "https://bhiv-hr-agent-m1me.onrender.com/test-db",
+      "status_code": 0,
+      "response_time": 0,
+      "success": false,
+      "data_sent": null,
+      "response_data": null,
+      "error": "HTTPSConnectionPool(host='bhiv-hr-agent-m1me.onrender.com', port=443): Read timed out. (read timeout=30)"
+    }
+  ]
+}
