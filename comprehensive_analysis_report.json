@@ -1,0 +1,523 @@
+{
+  "analysis_date": "2025-10-04T11:12:26.020182",
+  "summary": {
+    "total_endpoints_implemented": 53,
+    "working_endpoints": 39,
+    "non_working_endpoints": 14,
+    "success_rate": 73.58490566037736,
+    "missing_endpoints": 8,
+    "unused_code_items": 5,
+    "portal_services": 2
+  },
+  "detailed_results": {
+    "implemented_working": [
+      {
+        "endpoint": "GET /health/detailed",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/health/detailed",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'status': 'healthy', 'timestamp': '2025-10-04T05:41:48.613145', 'system': {'cpu_percent': 31.1, 'me"
+      },
+      {
+        "endpoint": "GET /metrics/dashboard",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/metrics/dashboard",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'performance_summary': {'time_period': 'Last 24 hours', 'total_requests': 0, 'avg_response_time': 0"
+      },
+      {
+        "endpoint": "GET /",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'message': 'BHIV HR Platform API Gateway', 'version': '3.1.0', 'status': 'healthy', 'endpoints': 48"
+      },
+      {
+        "endpoint": "GET /health",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/health",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'status': 'healthy', 'service': 'BHIV HR Gateway', 'version': '3.1.0', 'timestamp': '2025-10-04T05:"
+      },
+      {
+        "endpoint": "GET /test-candidates",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/test-candidates",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'database_status': 'connected', 'total_candidates': 8, 'test_timestamp': '2025-10-04T05:41:51.58430"
+      },
+      {
+        "endpoint": "GET /v1/jobs",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/jobs",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'jobs': [{'id': 8, 'title': 'Test Engineer', 'department': 'Engineering', 'location': 'Remote', 'ex"
+      },
+      {
+        "endpoint": "GET /v1/candidates",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/candidates",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'candidates': [{'id': 9, 'name': 'TestCandidate_3a9c011b_8215', 'email': 'test_3a9c011b_1247@dynami"
+      },
+      {
+        "endpoint": "GET /v1/feedback",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/feedback",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'feedback': [], 'count': 0, 'error': '(psycopg2.errors.UndefinedColumn) column f.average_score does"
+      },
+      {
+        "endpoint": "GET /v1/interviews",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/interviews",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'interviews': [{'id': 1, 'candidate_id': 1, 'job_id': 5, 'interview_date': '2025-10-10T15:19:34.173"
+      },
+      {
+        "endpoint": "GET /v1/offers",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/offers",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'offers': [], 'count': 0, 'error': '(psycopg2.errors.UndefinedTable) relation \"offers\" does not exi"
+      },
+      {
+        "endpoint": "GET /candidates/stats",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/candidates/stats",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'total_candidates': 8, 'active_jobs': 5, 'recent_matches': 25, 'pending_interviews': 8, 'statistics"
+      },
+      {
+        "endpoint": "GET /v1/security/rate-limit-status",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/rate-limit-status",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'rate_limit_enabled': True, 'requests_per_minute': 60, 'current_requests': 15, 'remaining_requests'"
+      },
+      {
+        "endpoint": "GET /v1/security/blocked-ips",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/blocked-ips",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'blocked_ips': [{'ip': '192.168.1.100', 'reason': 'Rate limit exceeded', 'blocked_at': '2025-01-02T"
+      },
+      {
+        "endpoint": "GET /v1/security/security-headers-test",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/security-headers-test",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'security_headers': {'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'DENY', 'X-XSS-Protect"
+      },
+      {
+        "endpoint": "GET /v1/security/penetration-test-endpoints",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/penetration-test-endpoints",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'test_endpoints': [{'endpoint': '/v1/security/test-input-validation', 'method': 'POST', 'purpose': "
+      },
+      {
+        "endpoint": "GET /v1/security/csp-violations",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/csp-violations",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'violations': [{'id': 'csp_001', 'violated_directive': 'script-src', 'blocked_uri': 'https://malici"
+      },
+      {
+        "endpoint": "GET /v1/security/csp-policies",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/csp-policies",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'current_policy': \"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-"
+      },
+      {
+        "endpoint": "GET /v1/2fa/status/{client_id}",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/2fa/status/{client_id}",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'client_id': '{client_id}', '2fa_enabled': True, 'setup_date': '2025-01-01T12:00:00Z', 'last_used':"
+      },
+      {
+        "endpoint": "GET /v1/2fa/test-token/{client_id}/{token}",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/2fa/test-token/{client_id}/{token}",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'client_id': '{client_id}', 'token': '{token}', 'is_valid': False, 'test_timestamp': '2025-10-04T05"
+      },
+      {
+        "endpoint": "GET /v1/2fa/demo-setup",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/2fa/demo-setup",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'demo_secret': 'JBSWY3DPEHPK3PXP', 'demo_qr_url': 'https://chart.googleapis.com/chart?chs=200x200&c"
+      },
+      {
+        "endpoint": "GET /v1/password/policy",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/password/policy",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'policy': {'minimum_length': 8, 'require_uppercase': True, 'require_lowercase': True, 'require_numb"
+      },
+      {
+        "endpoint": "GET /v1/password/strength-test",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/password/strength-test",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'testing_tool': {'endpoint': '/v1/password/validate', 'method': 'POST', 'sample_passwords': [{'pass"
+      },
+      {
+        "endpoint": "GET /v1/password/security-tips",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/password/security-tips",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'security_tips': ['Use a unique password for each account', 'Enable two-factor authentication when "
+      },
+      {
+        "endpoint": "POST /v1/jobs",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/jobs",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'message': 'Job created successfully', 'job_id': 9, 'created_at': '2025-10-04T05:42:04.314296+00:00"
+      },
+      {
+        "endpoint": "POST /v1/candidates/bulk",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/candidates/bulk",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'message': 'Bulk upload completed', 'candidates_received': 1, 'candidates_inserted': 0, 'errors': ["
+      },
+      {
+        "endpoint": "POST /v1/feedback",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/feedback",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'message': 'Feedback submission failed', 'error': '(psycopg2.errors.UndefinedColumn) column \"averag"
+      },
+      {
+        "endpoint": "POST /v1/interviews",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/interviews",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'message': 'Interview scheduled successfully', 'interview_id': 2, 'candidate_id': 1, 'job_id': 1, '"
+      },
+      {
+        "endpoint": "POST /v1/offers",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/offers",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'message': 'Job offer creation failed', 'error': '(psycopg2.errors.UndefinedTable) relation \"offers"
+      },
+      {
+        "endpoint": "POST /v1/client/login",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/client/login",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'message': 'Authentication successful', 'client_id': 'TECH001', 'access_token': 'client_token_TECH0"
+      },
+      {
+        "endpoint": "POST /v1/security/test-input-validation",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/test-input-validation",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'input': 'test input', 'validation_result': 'SAFE', 'threats_detected': [], 'timestamp': '2025-10-0"
+      },
+      {
+        "endpoint": "POST /v1/security/test-email-validation",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/test-email-validation",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'email': 'test@example.com', 'is_valid': True, 'validation_type': 'regex_pattern', 'timestamp': '20"
+      },
+      {
+        "endpoint": "POST /v1/security/csp-report",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/csp-report",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'message': 'CSP violation reported successfully', 'violation': {'violated_directive': 'script-src',"
+      },
+      {
+        "endpoint": "POST /v1/2fa/setup",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/2fa/setup",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'message': '2FA setup initiated', 'user_id': 'test_user', 'secret': 'VDKIUKKVUZBYOC4V32VTPLLIFFAOD3"
+      },
+      {
+        "endpoint": "POST /v1/password/validate",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/password/validate",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'password_strength': 'Very Strong', 'score': 100, 'max_score': 100, 'is_valid': True, 'feedback': ["
+      },
+      {
+        "endpoint": "POST /v1/password/generate",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/password/generate",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'generated_password': '7c(1Ev*4c*8g', 'length': 12, 'entropy_bits': 78.0, 'strength': 'Very Strong'"
+      },
+      {
+        "endpoint": "GET /",
+        "url": "https://bhiv-hr-agent-m1me.onrender.com/",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'service': 'Talah AI Agent', 'version': '1.0.0', 'endpoints': {'match': 'POST /match - Get top cand"
+      },
+      {
+        "endpoint": "GET /health",
+        "url": "https://bhiv-hr-agent-m1me.onrender.com/health",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'status': 'healthy', 'service': 'Talah AI Agent', 'version': '1.0.0', 'timestamp': '2025-10-04T05:4"
+      },
+      {
+        "endpoint": "GET /test-db",
+        "url": "https://bhiv-hr-agent-m1me.onrender.com/test-db",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'status': 'success', 'candidates_count': 8, 'samples': [{'id': 1, 'name': 'John Doe'}, {'id': 2, 'n"
+      },
+      {
+        "endpoint": "POST /match",
+        "url": "https://bhiv-hr-agent-m1me.onrender.com/match",
+        "status_code": 200,
+        "working": true,
+        "error": null,
+        "response_sample": "{'job_id': 1, 'top_candidates': [], 'total_candidates': 0, 'processing_time': 0.230612, 'algorithm_v"
+      }
+    ],
+    "implemented_not_working": [
+      {
+        "endpoint": "GET /metrics",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/metrics",
+        "status_code": null,
+        "working": false,
+        "error": "Expecting value: line 1 column 1 (char 0)",
+        "response_sample": null
+      },
+      {
+        "endpoint": "GET /v1/candidates/{candidate_id}",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/candidates/{candidate_id}",
+        "status_code": 422,
+        "working": false,
+        "error": null,
+        "response_sample": "{'detail': [{'type': 'int_parsing', 'loc': ['path', 'candidate_id'], 'msg': 'Input should be a valid"
+      },
+      {
+        "endpoint": "GET /v1/candidates/job/{job_id}",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/candidates/job/{job_id}",
+        "status_code": 422,
+        "working": false,
+        "error": null,
+        "response_sample": "{'detail': [{'type': 'int_parsing', 'loc': ['path', 'job_id'], 'msg': 'Input should be a valid integ"
+      },
+      {
+        "endpoint": "GET /v1/candidates/search",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/candidates/search",
+        "status_code": 422,
+        "working": false,
+        "error": null,
+        "response_sample": "{'detail': [{'type': 'int_parsing', 'loc': ['path', 'candidate_id'], 'msg': 'Input should be a valid"
+      },
+      {
+        "endpoint": "GET /v1/match/{job_id}/top",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/match/{job_id}/top",
+        "status_code": 422,
+        "working": false,
+        "error": null,
+        "response_sample": "{'detail': [{'type': 'int_parsing', 'loc': ['path', 'job_id'], 'msg': 'Input should be a valid integ"
+      },
+      {
+        "endpoint": "GET /v1/reports/job/{job_id}/export.csv",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/reports/job/{job_id}/export.csv",
+        "status_code": 422,
+        "working": false,
+        "error": null,
+        "response_sample": "{'detail': [{'type': 'int_parsing', 'loc': ['path', 'job_id'], 'msg': 'Input should be a valid integ"
+      },
+      {
+        "endpoint": "POST /v1/security/test-phone-validation",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/test-phone-validation",
+        "status_code": 422,
+        "working": false,
+        "error": null,
+        "response_sample": "{'detail': [{'type': 'missing', 'loc': ['body', 'phone'], 'msg': 'Field required', 'input': {}, 'url"
+      },
+      {
+        "endpoint": "POST /v1/security/test-csp-policy",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/test-csp-policy",
+        "status_code": 422,
+        "working": false,
+        "error": null,
+        "response_sample": "{'detail': [{'type': 'missing', 'loc': ['body', 'policy'], 'msg': 'Field required', 'input': {}, 'ur"
+      },
+      {
+        "endpoint": "POST /v1/2fa/verify-setup",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/2fa/verify-setup",
+        "status_code": 422,
+        "working": false,
+        "error": null,
+        "response_sample": "{'detail': [{'type': 'missing', 'loc': ['body', 'user_id'], 'msg': 'Field required', 'input': {}, 'u"
+      },
+      {
+        "endpoint": "POST /v1/2fa/login-with-2fa",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/2fa/login-with-2fa",
+        "status_code": 422,
+        "working": false,
+        "error": null,
+        "response_sample": "{'detail': [{'type': 'missing', 'loc': ['body', 'user_id'], 'msg': 'Field required', 'input': {}, 'u"
+      },
+      {
+        "endpoint": "POST /v1/2fa/disable",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/2fa/disable",
+        "status_code": 422,
+        "working": false,
+        "error": null,
+        "response_sample": "{'detail': [{'type': 'missing', 'loc': ['body', 'user_id'], 'msg': 'Field required', 'input': {}, 'u"
+      },
+      {
+        "endpoint": "POST /v1/2fa/regenerate-backup-codes",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/2fa/regenerate-backup-codes",
+        "status_code": 422,
+        "working": false,
+        "error": null,
+        "response_sample": "{'detail': [{'type': 'missing', 'loc': ['body', 'user_id'], 'msg': 'Field required', 'input': {}, 'u"
+      },
+      {
+        "endpoint": "POST /v1/password/change",
+        "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/password/change",
+        "status_code": 422,
+        "working": false,
+        "error": null,
+        "response_sample": "{'detail': [{'type': 'missing', 'loc': ['body', 'old_password'], 'msg': 'Field required', 'input': {"
+      },
+      {
+        "endpoint": "GET /analyze/{candidate_id}",
+        "url": "https://bhiv-hr-agent-m1me.onrender.com/analyze/{candidate_id}",
+        "status_code": 422,
+        "working": false,
+        "error": null,
+        "response_sample": "{'detail': [{'type': 'int_parsing', 'loc': ['path', 'candidate_id'], 'msg': 'Input should be a valid"
+      }
+    ],
+    "missing_endpoints": [
+      {
+        "endpoint": "PUT /v1/jobs/{job_id}",
+        "reason": "Expected but not implemented"
+      },
+      {
+        "endpoint": "DELETE /v1/jobs/{job_id}",
+        "reason": "Expected but not implemented"
+      },
+      {
+        "endpoint": "PUT /v1/candidates/{candidate_id}",
+        "reason": "Expected but not implemented"
+      },
+      {
+        "endpoint": "DELETE /v1/candidates/{candidate_id}",
+        "reason": "Expected but not implemented"
+      },
+      {
+        "endpoint": "GET /v1/analytics/dashboard",
+        "reason": "Expected but not implemented"
+      },
+      {
+        "endpoint": "GET /v1/reports/candidates",
+        "reason": "Expected but not implemented"
+      },
+      {
+        "endpoint": "POST /v1/notifications/email",
+        "reason": "Expected but not implemented"
+      },
+      {
+        "endpoint": "GET /v1/calendar/integration",
+        "reason": "Expected but not implemented"
+      }
+    ],
+    "code_not_exposed": [],
+    "unused_code": [
+      {
+        "file": "c:\\BHIV-HR-Platform\\services\\gateway\\app\\main.py",
+        "type": "function",
+        "name": "read_root",
+        "reason": "Defined but never called"
+      },
+      {
+        "file": "c:\\BHIV-HR-Platform\\services\\agent\\app.py",
+        "type": "function",
+        "name": "read_root",
+        "reason": "Defined but never called"
+      },
+      {
+        "file": "c:\\BHIV-HR-Platform\\services\\agent\\app.py",
+        "type": "function",
+        "name": "health_check",
+        "reason": "Defined but never called"
+      },
+      {
+        "file": "c:\\BHIV-HR-Platform\\services\\agent\\app.py",
+        "type": "function",
+        "name": "test_database",
+        "reason": "Defined but never called"
+      },
+      {
+        "file": "c:\\BHIV-HR-Platform\\services\\client_portal\\app.py",
+        "type": "function",
+        "name": "verify_client_token",
+        "reason": "Defined but never called"
+      }
+    ],
+    "portal_features": [
+      {
+        "name": "HR Portal",
+        "url": "https://bhiv-hr-portal-cead.onrender.com",
+        "accessible": true,
+        "status_code": 200
+      },
+      {
+        "name": "Client Portal",
+        "url": "https://bhiv-hr-client-portal-5g33.onrender.com",
+        "accessible": true,
+        "status_code": 200
+      }
+    ]
+  }
+}
