@@ -13,7 +13,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./services/db/init_complete.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./services/db/consolidated_schema.sql:/docker-entrypoint-initdb.d/init.sql
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U bhiv_user -d bhiv_hr"]

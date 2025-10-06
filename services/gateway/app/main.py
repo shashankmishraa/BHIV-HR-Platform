@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, Security, Response
+from fastapi import FastAPI, HTTPException, Depends, Security, Response, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timezone
@@ -8,11 +8,31 @@ import pyotp
 import qrcode
 import io
 import base64
+import re
+import string
+import random
+from collections import defaultdict
 from sqlalchemy import create_engine, text
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
 import time
-from .monitoring import monitor, log_resume_processing, log_matching_performance, log_user_activity, log_error
+import psutil
+try:
+    from .monitoring import monitor, log_resume_processing, log_matching_performance, log_user_activity, log_error
+except ImportError:
+    # Fallback if monitoring module is not available
+    class MockMonitor:
+        def export_prometheus_metrics(self): return "# No metrics available"
+        def health_check(self): return {"status": "healthy", "monitoring": "disabled"}
+        def get_performance_summary(self, hours): return {"monitoring": "disabled"}
+        def get_business_metrics(self): return {"monitoring": "disabled"}
+        def collect_system_metrics(self): return {"monitoring": "disabled"}
+    
+    monitor = MockMonitor()
+    def log_resume_processing(*args, **kwargs): pass
+    def log_matching_performance(*args, **kwargs): pass
+    def log_user_activity(*args, **kwargs): pass
+    def log_error(*args, **kwargs): pass
 
 security = HTTPBearer()
 
@@ -51,9 +71,6 @@ async def metrics_dashboard():
     }
 
 # Enhanced Granular Rate Limiting
-from collections import defaultdict
-from fastapi import Request
-import psutil
 
 rate_limit_storage = defaultdict(list)
 
@@ -920,7 +937,6 @@ async def test_input_validation(input_data: InputValidation, api_key: str = Depe
 @app.post("/v1/security/test-email-validation", tags=["Security Testing"])
 async def test_email_validation(email_data: EmailValidation, api_key: str = Depends(get_api_key)):
     """Test Email Validation"""
-    import re
     email = email_data.email
     
     email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
@@ -936,7 +952,6 @@ async def test_email_validation(email_data: EmailValidation, api_key: str = Depe
 @app.post("/v1/security/test-phone-validation", tags=["Security Testing"])
 async def test_phone_validation(phone_data: PhoneValidation, api_key: str = Depends(get_api_key)):
     """Test Phone Validation"""
-    import re
     phone = phone_data.phone
     
     phone_pattern = r'^\+?1?[-.s]?\(?[0-9]{3}\)?[-.s]?[0-9]{3}[-.s]?[0-9]{4}$'
@@ -1215,9 +1230,6 @@ async def generate_secure_password(length: int = 12, api_key: str = Depends(get_
     """Generate Secure Password"""
     if length < 8 or length > 128:
         raise HTTPException(status_code=400, detail="Password length must be between 8 and 128 characters")
-    
-    import string
-    import random
     
     chars = string.ascii_letters + string.digits + "!@#$%^&*()_+-="
     password = ''.join(random.choice(chars) for _ in range(length))

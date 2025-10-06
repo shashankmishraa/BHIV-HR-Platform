@@ -1,7 +1,7 @@
 FROM postgres:15-alpine
 
-# Copy initialization script
-COPY init_complete.sql /docker-entrypoint-initdb.d/
+# Copy consolidated schema
+COPY consolidated_schema.sql /docker-entrypoint-initdb.d/
 
 # Set environment variables
 ENV POSTGRES_DB=bhiv_hr
