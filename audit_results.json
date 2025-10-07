@@ -1,0 +1,307 @@
+{
+  "timestamp": "2025-10-07T14:12:50.039531",
+  "files_analyzed": 7,
+  "issues_found": [
+    {
+      "type": "search_endpoint_validation",
+      "description": "Search endpoint has been fixed with Optional parameters",
+      "status": "RESOLVED",
+      "fix_applied": "Individual Optional parameters used"
+    }
+  ],
+  "endpoints_found": [
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/metrics"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/health/detailed"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/metrics/dashboard"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/health"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/test-candidates"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "POST",
+      "path": "/v1/jobs"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/v1/jobs"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/v1/candidates"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/v1/candidates/{candidate_id}"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/v1/candidates/job/{job_id}"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/v1/candidates/search"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "POST",
+      "path": "/v1/candidates/bulk"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/v1/match/{job_id}/top"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "POST",
+      "path": "/v1/feedback"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/v1/feedback"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/v1/interviews"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "POST",
+      "path": "/v1/interviews"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "POST",
+      "path": "/v1/offers"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/v1/offers"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/candidates/stats"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/v1/reports/job/{job_id}/export.csv"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "POST",
+      "path": "/v1/client/login"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/v1/security/rate-limit-status"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/v1/security/blocked-ips"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "POST",
+      "path": "/v1/security/test-input-validation"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "POST",
+      "path": "/v1/security/test-email-validation"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "POST",
+      "path": "/v1/security/test-phone-validation"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/v1/security/security-headers-test"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/v1/security/penetration-test-endpoints"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "POST",
+      "path": "/v1/security/csp-report"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/v1/security/csp-violations"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/v1/security/csp-policies"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "POST",
+      "path": "/v1/security/test-csp-policy"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "POST",
+      "path": "/v1/2fa/setup"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "POST",
+      "path": "/v1/2fa/verify-setup"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "POST",
+      "path": "/v1/2fa/login-with-2fa"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/v1/2fa/status/{client_id}"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "POST",
+      "path": "/v1/2fa/disable"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "POST",
+      "path": "/v1/2fa/regenerate-backup-codes"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/v1/2fa/test-token/{client_id}/{token}"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/v1/2fa/demo-setup"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "POST",
+      "path": "/v1/password/validate"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "POST",
+      "path": "/v1/password/generate"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/v1/password/policy"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "POST",
+      "path": "/v1/password/change"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/v1/password/strength-test"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "method": "GET",
+      "path": "/v1/password/security-tips"
+    },
+    {
+      "file": "services/agent/app.py",
+      "method": "GET",
+      "path": "/"
+    },
+    {
+      "file": "services/agent/app.py",
+      "method": "GET",
+      "path": "/health"
+    },
+    {
+      "file": "services/agent/app.py",
+      "method": "GET",
+      "path": "/test-db"
+    },
+    {
+      "file": "services/agent/app.py",
+      "method": "POST",
+      "path": "/match"
+    },
+    {
+      "file": "services/agent/app.py",
+      "method": "GET",
+      "path": "/analyze/{candidate_id}"
+    }
+  ],
+  "recent_changes": [
+    {
+      "file": "services/gateway/app/main.py",
+      "pattern": "CandidateSearch"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "pattern": "pool_size=10"
+    },
+    {
+      "file": "services/gateway/app/main.py",
+      "pattern": "@validator"
+    },
+    {
+      "file": "COMPREHENSIVE_ROUTING_ANALYSIS.md",
+      "pattern": "CandidateSearch"
+    }
+  ],
+  "documentation_status": {
+    "readme_endpoint_count": {
+      "status": "OUTDATED",
+      "readme_claims": 48,
+      "actual_found": 53
+    },
+    "connection pooling_documented": false,
+    "pydantic validation_documented": false,
+    "timeout optimization_documented": false
+  }
+}
