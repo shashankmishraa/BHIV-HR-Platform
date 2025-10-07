@@ -887,28 +887,44 @@ async def export_job_report(job_id: int, api_key: str = Depends(get_api_key)):
 # Client Portal API (1 endpoint)
 @app.post("/v1/client/login", tags=["Client Portal API"])
 async def client_login(login_data: ClientLogin):
-    """Client Authentication"""
+    """Client Authentication with Auth Service Integration"""
     try:
-        valid_clients = {
-            "TECH001": "demo123",
-            "STARTUP01": "startup123",
-            "ENTERPRISE01": "enterprise123"
-        }
+        # Import auth service
+        import sys
+        import os
+        auth_service_path = os.path.join(os.path.dirname(__file__), '..', '..', 'client_portal')
+        sys.path.append(auth_service_path)
         
-        if login_data.client_id in valid_clients and valid_clients[login_data.client_id] == login_data.password:
+        from auth_service import ClientAuthService
+        
+        # Initialize auth service
+        auth_service = ClientAuthService()
+        
+        # Authenticate using auth service
+        auth_result = auth_service.authenticate_client(login_data.client_id, login_data.password)
+        
+        if auth_result.get('success'):
             return {
+                "success": True,
                 "message": "Authentication successful",
-                "client_id": login_data.client_id,
-                "access_token": f"client_token_{login_data.client_id}_{datetime.now().timestamp()}",
+                "client_id": auth_result.get('client_id'),
+                "company_name": auth_result.get('company_name'),
+                "token": auth_result.get('token'),
                 "token_type": "bearer",
-                "expires_in": 3600,
+                "expires_in": 86400,  # 24 hours
                 "permissions": ["view_jobs", "create_jobs", "view_candidates", "schedule_interviews"]
             }
         else:
-            raise HTTPException(status_code=401, detail="Invalid client credentials")
+            return {
+                "success": False,
+                "error": auth_result.get('error', 'Authentication failed')
+            }
             
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Authentication failed: {str(e)}")
+        return {
+            "success": False,
+            "error": f"Authentication service error: {str(e)}"
+        }
 
 # Security Testing (7 endpoints)
 @app.get("/v1/security/rate-limit-status", tags=["Security Testing"])
