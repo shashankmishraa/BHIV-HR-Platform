@@ -248,6 +248,26 @@ def get_api_key(credentials: HTTPAuthorizationCredentials = Security(security)):
         raise HTTPException(status_code=401, detail="Invalid API key")
     return credentials.credentials
 
+def get_auth(credentials: HTTPAuthorizationCredentials = Security(security)):
+    """Dual authentication: API key or client JWT token"""
+    if not credentials:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    # Try API key first
+    if validate_api_key(credentials.credentials):
+        return {"type": "api_key", "credentials": credentials.credentials}
+    
+    # Try client JWT token
+    try:
+        import jwt
+        jwt_secret = os.getenv("JWT_SECRET", "fallback_jwt_secret_key_for_client_auth_2025")
+        payload = jwt.decode(credentials.credentials, jwt_secret, algorithms=["HS256"])
+        return {"type": "client_token", "client_id": payload.get("client_id")}
+    except:
+        pass
+    
+    raise HTTPException(status_code=401, detail="Invalid authentication")
+
 # Core API Endpoints (3 endpoints)
 @app.get("/", tags=["Core API Endpoints"])
 def read_root():
@@ -336,7 +356,7 @@ async def create_job(job: JobCreate, api_key: str = Depends(get_api_key)):
         }
 
 @app.get("/v1/jobs", tags=["Job Management"])
-async def list_jobs(api_key: str = Depends(get_api_key)):
+async def list_jobs(auth = Depends(get_auth)):
     """List All Active Jobs"""
     try:
         engine = get_db_engine()
