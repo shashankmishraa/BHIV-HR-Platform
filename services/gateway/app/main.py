@@ -459,11 +459,18 @@ async def get_candidates_by_job(job_id: int, api_key: str = Depends(get_api_key)
         return {"candidates": [], "job_id": job_id, "count": 0, "error": str(e)}
 
 @app.get("/v1/candidates/search", tags=["Candidate Management"])
-async def search_candidates(search_params: CandidateSearch = Depends(), api_key: str = Depends(get_api_key)):
+async def search_candidates(
+    skills: Optional[str] = None, 
+    location: Optional[str] = None, 
+    experience_min: Optional[int] = None, 
+    api_key: str = Depends(get_api_key)
+):
     """Search & Filter Candidates"""
-    skills = search_params.skills
-    location = search_params.location
-    experience_min = search_params.experience_min
+    # Apply validation manually
+    if skills:
+        skills = skills[:200]
+    if location:
+        location = location[:100]
     
     try:
         engine = get_db_engine()
