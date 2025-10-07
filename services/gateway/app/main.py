@@ -14,7 +14,7 @@ import random
 from collections import defaultdict
 from sqlalchemy import create_engine, text
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 import time
 import psutil
 try:
@@ -214,15 +214,29 @@ class PasswordChange(BaseModel):
     old_password: str
     new_password: str
 
+class CandidateSearch(BaseModel):
+    skills: Optional[str] = None
+    location: Optional[str] = None
+    experience_min: Optional[int] = None
+    
+    @validator('skills')
+    def validate_skills(cls, v):
+        return v[:200] if v else None
+        
+    @validator('location')
+    def validate_location(cls, v):
+        return v[:100] if v else None
+
 def get_db_engine():
     database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu")
     return create_engine(
         database_url, 
         pool_pre_ping=True, 
         pool_recycle=3600,
+        pool_size=10,
         connect_args={"connect_timeout": 10, "application_name": "bhiv_gateway"},
         pool_timeout=20,
-        max_overflow=0
+        max_overflow=5
     )
 
 def validate_api_key(api_key: str) -> bool:
@@ -445,12 +459,11 @@ async def get_candidates_by_job(job_id: int, api_key: str = Depends(get_api_key)
         return {"candidates": [], "job_id": job_id, "count": 0, "error": str(e)}
 
 @app.get("/v1/candidates/search", tags=["Candidate Management"])
-async def search_candidates(skills: Optional[str] = None, location: Optional[str] = None, experience_min: Optional[int] = None, api_key: str = Depends(get_api_key)):
+async def search_candidates(search_params: CandidateSearch = Depends(), api_key: str = Depends(get_api_key)):
     """Search & Filter Candidates"""
-    if skills:
-        skills = skills.strip()[:200]
-    if location:
-        location = location.strip()[:100]
+    skills = search_params.skills
+    location = search_params.location
+    experience_min = search_params.experience_min
     
     try:
         engine = get_db_engine()

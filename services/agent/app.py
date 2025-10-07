@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import psycopg2
+from psycopg2 import pool
 import os
 import json
 from typing import List, Dict, Any
@@ -85,25 +86,46 @@ class MatchResponse(BaseModel):
     algorithm_version: str
     status: str
 
-def get_db_connection():
-    """Get database connection with retry logic"""
-    import time
+# Initialize connection pool
+connection_pool = None
+
+def init_connection_pool():
+    """Initialize database connection pool"""
+    global connection_pool
     database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu")
     
-    for attempt in range(3):
-        try:
-            conn = psycopg2.connect(
-                database_url,
-                connect_timeout=10,
-                application_name="bhiv_agent"
-            )
+    try:
+        connection_pool = psycopg2.pool.ThreadedConnectionPool(
+            minconn=2,
+            maxconn=10,
+            dsn=database_url,
+            connect_timeout=10,
+            application_name="bhiv_agent"
+        )
+        logger.info("Database connection pool initialized")
+    except Exception as e:
+        logger.error(f"Failed to initialize connection pool: {e}")
+
+def get_db_connection():
+    """Get database connection from pool"""
+    global connection_pool
+    if not connection_pool:
+        init_connection_pool()
+    
+    try:
+        conn = connection_pool.getconn()
+        if conn:
             conn.autocommit = True
-            return conn
-        except Exception as e:
-            logger.error(f"Connection attempt {attempt + 1} failed: {e}")
-            if attempt < 2:
-                time.sleep(1)
-    return None
+        return conn
+    except Exception as e:
+        logger.error(f"Failed to get connection from pool: {e}")
+        return None
+
+def return_db_connection(conn):
+    """Return connection to pool"""
+    global connection_pool
+    if connection_pool and conn:
+        connection_pool.putconn(conn)
 
 def calculate_skills_match(job_requirements: str, candidate_skills: str) -> tuple:
     """Enhanced skills matching with dynamic keyword extraction"""
@@ -269,7 +291,7 @@ def test_database():
         return {"status": "failed", "error": str(e)}
     finally:
         if conn:
-            conn.close()
+            return_db_connection(conn)
 
 @app.post("/match", response_model=MatchResponse, tags=["AI Matching Engine"], summary="AI-Powered Candidate Matching")
 async def match_candidates(request: MatchRequest):
@@ -524,7 +546,7 @@ async def match_candidates(request: MatchRequest):
         )
     finally:
         if conn:
-            conn.close()
+            return_db_connection(conn)
 
 @app.get("/analyze/{candidate_id}", tags=["Candidate Analysis"], summary="Detailed Candidate Analysis")
 async def analyze_candidate(candidate_id: int):
@@ -584,7 +606,7 @@ async def analyze_candidate(candidate_id: int):
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
     finally:
         if conn:
-            conn.close()
+            return_db_connection(conn)
 
 if __name__ == "__main__":
     import uvicorn
