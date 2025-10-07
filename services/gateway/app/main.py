@@ -399,65 +399,6 @@ async def get_all_candidates(limit: int = 50, offset: int = 0, api_key: str = De
     except Exception as e:
         return {"candidates": [], "total": 0, "error": str(e)}
 
-@app.get("/v1/candidates/{candidate_id}", tags=["Candidate Management"])
-async def get_candidate_by_id(candidate_id: int, api_key: str = Depends(get_api_key)):
-    """Get Specific Candidate by ID"""
-    try:
-        engine = get_db_engine()
-        with engine.connect() as connection:
-            query = text("""
-                SELECT id, name, email, phone, location, experience_years, technical_skills, 
-                       seniority_level, education_level, resume_path, created_at, updated_at
-                FROM candidates WHERE id = :candidate_id
-            """)
-            result = connection.execute(query, {"candidate_id": candidate_id})
-            row = result.fetchone()
-            
-            if not row:
-                return {"error": "Candidate not found", "candidate_id": candidate_id}
-            
-            candidate = {
-                "id": row[0],
-                "name": row[1],
-                "email": row[2],
-                "phone": row[3],
-                "location": row[4],
-                "experience_years": row[5],
-                "technical_skills": row[6],
-                "seniority_level": row[7],
-                "education_level": row[8],
-                "resume_path": row[9],
-                "created_at": row[10].isoformat() if row[10] else None,
-                "updated_at": row[11].isoformat() if row[11] else None
-            }
-            
-        return {"candidate": candidate}
-    except Exception as e:
-        return {"error": str(e), "candidate_id": candidate_id}
-
-@app.get("/v1/candidates/job/{job_id}", tags=["Candidate Management"])
-async def get_candidates_by_job(job_id: int, api_key: str = Depends(get_api_key)):
-    """Get All Candidates (Dynamic Matching)"""
-    if job_id < 1:
-        raise HTTPException(status_code=400, detail="Invalid job ID")
-    
-    try:
-        engine = get_db_engine()
-        with engine.connect() as connection:
-            query = text("SELECT id, name, email, technical_skills, experience_years FROM candidates LIMIT 10")
-            result = connection.execute(query)
-            candidates = [{
-                "id": row[0],
-                "name": row[1],
-                "email": row[2],
-                "skills": row[3],
-                "experience": row[4]
-            } for row in result]
-        
-        return {"candidates": candidates, "job_id": job_id, "count": len(candidates)}
-    except Exception as e:
-        return {"candidates": [], "job_id": job_id, "count": 0, "error": str(e)}
-
 @app.get("/v1/candidates/search", tags=["Candidate Management"])
 async def search_candidates(
     skills: Optional[str] = None, 
@@ -466,7 +407,6 @@ async def search_candidates(
     api_key: str = Depends(get_api_key)
 ):
     """Search & Filter Candidates"""
-    # Apply validation manually
     if skills:
         skills = skills[:200]
     if location:
@@ -475,7 +415,6 @@ async def search_candidates(
     try:
         engine = get_db_engine()
         with engine.connect() as connection:
-            # Build dynamic query
             where_conditions = []
             params = {}
             
@@ -525,6 +464,66 @@ async def search_candidates(
             "count": 0, 
             "error": str(e)
         }
+
+@app.get("/v1/candidates/job/{job_id}", tags=["Candidate Management"])
+async def get_candidates_by_job(job_id: int, api_key: str = Depends(get_api_key)):
+    """Get All Candidates (Dynamic Matching)"""
+    if job_id < 1:
+        raise HTTPException(status_code=400, detail="Invalid job ID")
+    
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            query = text("SELECT id, name, email, technical_skills, experience_years FROM candidates LIMIT 10")
+            result = connection.execute(query)
+            candidates = [{
+                "id": row[0],
+                "name": row[1],
+                "email": row[2],
+                "skills": row[3],
+                "experience": row[4]
+            } for row in result]
+        
+        return {"candidates": candidates, "job_id": job_id, "count": len(candidates)}
+    except Exception as e:
+        return {"candidates": [], "job_id": job_id, "count": 0, "error": str(e)}
+
+@app.get("/v1/candidates/{candidate_id}", tags=["Candidate Management"])
+async def get_candidate_by_id(candidate_id: int, api_key: str = Depends(get_api_key)):
+    """Get Specific Candidate by ID"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            query = text("""
+                SELECT id, name, email, phone, location, experience_years, technical_skills, 
+                       seniority_level, education_level, resume_path, created_at, updated_at
+                FROM candidates WHERE id = :candidate_id
+            """)
+            result = connection.execute(query, {"candidate_id": candidate_id})
+            row = result.fetchone()
+            
+            if not row:
+                return {"error": "Candidate not found", "candidate_id": candidate_id}
+            
+            candidate = {
+                "id": row[0],
+                "name": row[1],
+                "email": row[2],
+                "phone": row[3],
+                "location": row[4],
+                "experience_years": row[5],
+                "technical_skills": row[6],
+                "seniority_level": row[7],
+                "education_level": row[8],
+                "resume_path": row[9],
+                "created_at": row[10].isoformat() if row[10] else None,
+                "updated_at": row[11].isoformat() if row[11] else None
+            }
+            
+        return {"candidate": candidate}
+    except Exception as e:
+        return {"error": str(e), "candidate_id": candidate_id}
+
 
 @app.post("/v1/candidates/bulk", tags=["Candidate Management"])
 async def bulk_upload_candidates(candidates: CandidateBulk, api_key: str = Depends(get_api_key)):
