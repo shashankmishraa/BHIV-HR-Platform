@@ -249,12 +249,15 @@ def calculate_location_match(job_location: str, candidate_location: str) -> tupl
 @app.get("/", tags=["Core API Endpoints"], summary="AI Service Information")
 def read_root():
     return {
-        "service": "Talah AI Agent",
-        "version": "1.0.0",
-        "endpoints": {
-            "match": "POST /match - Get top candidates for job",
-            "analyze": "GET /analyze/{candidate_id} - Analyze candidate",
-            "health": "GET /health - Service health check"
+        "service": "BHIV AI Agent",
+        "version": "2.1.0",
+        "endpoints": 5,
+        "available_endpoints": {
+            "root": "GET / - Service information",
+            "health": "GET /health - Service health check", 
+            "test_db": "GET /test-db - Database connectivity test",
+            "match": "POST /match - AI-powered candidate matching",
+            "analyze": "GET /analyze/{candidate_id} - Detailed candidate analysis"
         }
     }
 
