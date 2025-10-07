@@ -915,7 +915,7 @@ async def client_login(login_data: ClientLogin):
         auth_service_path = os.path.join(os.path.dirname(__file__), '..', '..', 'client_portal')
         sys.path.append(auth_service_path)
         
-        from auth_service import ClientAuthService
+        from auth_service import ClientAuthService  # type: ignore
         
         # Initialize auth service
         auth_service = ClientAuthService()
