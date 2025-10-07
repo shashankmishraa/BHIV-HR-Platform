@@ -13,4 +13,4 @@ COPY app/ ./app/
 EXPOSE 8000
 
 # Important: Use PORT environment variable for Render with tuned timeouts
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --timeout-keep-alive 30 --graceful-timeout 90"]
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --timeout-keep-alive 30"]
