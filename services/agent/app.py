@@ -10,7 +10,8 @@ from datetime import datetime
 import sys
 
 # Add semantic engine to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+import os, sys
+sys.path.insert(0, os.path.abspath(os.path.join(__file__, "..", "..")))
 
 try:
     from services.semantic_engine.job_matcher import SemanticJobMatcher
@@ -278,11 +279,12 @@ def test_database():
         if not conn:
             return {"status": "failed", "error": "Connection failed"}
         
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT COUNT(*) FROM candidates")
-            count = cursor.fetchone()[0]
-            cursor.execute("SELECT id, name FROM candidates LIMIT 3")
-            samples = cursor.fetchall()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM candidates")
+        count = cursor.fetchone()[0]
+        cursor.execute("SELECT id, name FROM candidates LIMIT 3")
+        samples = cursor.fetchall()
+        cursor.close()
         
         return {
             "status": "success",
@@ -319,6 +321,7 @@ async def match_candidates(request: MatchRequest):
         logger.info("Database connection successful")
         
         # Get job details with enhanced requirements parsing
+        cursor = conn.cursor()
         cursor.execute("""
             SELECT title, description, department, location, experience_level, requirements
             FROM jobs WHERE id = %s
@@ -524,6 +527,7 @@ async def match_candidates(request: MatchRequest):
         
         top_candidates = scored_candidates[:10]
         
+        cursor.close()
         processing_time = (datetime.now() - start_time).total_seconds()
         
         logger.info(f"Dynamic matching completed: {len(top_candidates)} top candidates found")
@@ -560,16 +564,16 @@ async def analyze_candidate(candidate_id: int):
         if not conn:
             raise HTTPException(status_code=500, detail="Database connection failed")
         
-        with conn.cursor() as cursor:
-            cursor.execute("""
-                SELECT name, email, technical_skills, experience_years, 
-                       seniority_level, education_level, location
-                FROM candidates WHERE id = %s
-            """, (candidate_id,))
-            
-            candidate = cursor.fetchone()
-            if not candidate:
-                raise HTTPException(status_code=404, detail="Candidate not found")
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT name, email, technical_skills, experience_years, 
+                   seniority_level, education_level, location
+            FROM candidates WHERE id = %s
+        """, (candidate_id,))
+        
+        candidate = cursor.fetchone()
+        if not candidate:
+            raise HTTPException(status_code=404, detail="Candidate not found")
         
         name, email, skills, exp_years, seniority, education, location = candidate
         
@@ -601,6 +605,7 @@ async def analyze_candidate(candidate_id: int):
             "total_skills": len(skills.split(',')) if skills else 0,
             "analysis_timestamp": datetime.now().isoformat()
         }
+        cursor.close()
         
     except HTTPException:
         raise
