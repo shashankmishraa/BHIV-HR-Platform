@@ -11,6 +11,7 @@ import base64
 import re
 import string
 import random
+import jwt
 from collections import defaultdict
 from sqlalchemy import create_engine, text
 from typing import Optional, List, Dict, Any
@@ -259,7 +260,6 @@ def get_auth(credentials: HTTPAuthorizationCredentials = Security(security)):
     
     # Try client JWT token
     try:
-        import jwt
         jwt_secret = os.getenv("JWT_SECRET", "fallback_jwt_secret_key_for_client_auth_2025")
         payload = jwt.decode(credentials.credentials, jwt_secret, algorithms=["HS256"])
         return {"type": "client_token", "client_id": payload.get("client_id")}
