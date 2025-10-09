@@ -15,7 +15,7 @@ import jwt
 from collections import defaultdict
 from sqlalchemy import create_engine, text
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 import time
 import psutil
 try:
@@ -220,11 +220,13 @@ class CandidateSearch(BaseModel):
     location: Optional[str] = None
     experience_min: Optional[int] = None
     
-    @validator('skills')
+    @field_validator('skills')
+    @classmethod
     def validate_skills(cls, v):
         return v[:200] if v else None
         
-    @validator('location')
+    @field_validator('location')
+    @classmethod
     def validate_location(cls, v):
         return v[:100] if v else None
 

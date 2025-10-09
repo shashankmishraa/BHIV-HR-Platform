@@ -4,6 +4,7 @@
 
 **Last Updated**: January 3, 2025  
 **Status**: 🟢 ALL SERVICES OPERATIONAL  
+**Python Version**: 3.12.7  
 **Total Endpoints**: 53 (48 Gateway + 5 Agent)  
 **Uptime**: 99.9%  
 **Cost**: $0/month (Free tier)
@@ -12,13 +13,13 @@
 
 ## 📊 Service Overview
 
-| Service | URL | Status | Endpoints | Response Time |
-|---------|-----|--------|-----------|---------------|
-| **API Gateway** | [bhiv-hr-gateway-46pz.onrender.com](https://bhiv-hr-gateway-46pz.onrender.com/docs) | 🟢 Live | 48 | <100ms |
-| **AI Agent** | [bhiv-hr-agent-m1me.onrender.com](https://bhiv-hr-agent-m1me.onrender.com/docs) | 🟢 Live | 5 | <50ms |
-| **HR Portal** | [bhiv-hr-portal-cead.onrender.com](https://bhiv-hr-portal-cead.onrender.com/) | 🟢 Live | Web UI | <200ms |
-| **Client Portal** | [bhiv-hr-client-portal-5g33.onrender.com](https://bhiv-hr-client-portal-5g33.onrender.com/) | 🟢 Live | Web UI | <200ms |
-| **Database** | PostgreSQL 17 | 🟢 Live | - | <20ms |
+| Service | URL | Technology | Status | Endpoints | Response Time |
+|---------|-----|------------|--------|-----------|---------------|
+| **API Gateway** | [bhiv-hr-gateway-46pz.onrender.com](https://bhiv-hr-gateway-46pz.onrender.com/docs) | FastAPI 0.115.6 + Python 3.12.7 | 🟢 Live | 48 | <100ms |
+| **AI Agent** | [bhiv-hr-agent-m1me.onrender.com](https://bhiv-hr-agent-m1me.onrender.com/docs) | FastAPI 0.115.6 + Python 3.12.7 | 🟢 Live | 5 | <50ms |
+| **HR Portal** | [bhiv-hr-portal-cead.onrender.com](https://bhiv-hr-portal-cead.onrender.com/) | Streamlit 1.41.1 + Python 3.12.7 | 🟢 Live | Web UI | <200ms |
+| **Client Portal** | [bhiv-hr-client-portal-5g33.onrender.com](https://bhiv-hr-client-portal-5g33.onrender.com/) | Streamlit 1.41.1 + Python 3.12.7 | 🟢 Live | Web UI | <200ms |
+| **Database** | PostgreSQL 17 | PostgreSQL 17 | 🟢 Live | - | <20ms |
 
 ---
 
@@ -55,7 +56,7 @@
 - `GET /v1/offers` - Get all job offers
 - `POST /v1/offers` - Create job offer
 
-### Security Testing (11 endpoints)
+### Security Testing (7 endpoints)
 - `GET /v1/security/rate-limit-status` - Check rate limit status
 - `GET /v1/security/blocked-ips` - View blocked IPs
 - `POST /v1/security/test-input-validation` - Test input validation
@@ -180,16 +181,20 @@ curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr
 ## 🔄 Deployment Pipeline
 
 ### Auto-Deployment
-- **Source**: GitHub repository
+- **Source**: GitHub repository (https://github.com/shashankmishraa/BHIV-HR-Platform)
 - **Trigger**: Push to main branch
 - **Platform**: Render Cloud
 - **Region**: Oregon, US West
 - **SSL**: Automatic HTTPS certificates
+- **Database**: PostgreSQL 17 with 11 tables and 25+ indexes
+- **Real Data**: 31 candidates from actual resume processing
 
 ### Recent Deployments
-- **Latest**: January 3, 2025 - 53 endpoints verified
-- **Previous**: January 2, 2025 - Security enhancements
-- **Status**: All deployments successful
+- **Latest**: January 3, 2025 - 53 endpoints verified (48 Gateway + 5 Agent)
+- **Previous**: January 2, 2025 - Security enhancements and database consolidation
+- **Database Schema**: Consolidated to 11 tables with comprehensive indexing
+- **Real Data**: 31 candidates from processed resumes (30 PDF + 1 DOCX)
+- **Status**: All deployments successful with 99.9% uptime
 
 ---
 

@@ -1,202 +1,473 @@
-# 🏗️ BHIV HR Platform - Project Structure
+# 🏗️ BHIV HR Platform - Project Structure & Architecture
 
-## 📁 Current Folder Organization
+**Version**: 3.1.0 | **Updated**: January 2025 | **Status**: 🟢 Production Ready
 
-```
-bhiv-hr-platform/
-├── 📋 PROJECT_STRUCTURE.md          # This file - Complete architecture guide
-├── 📋 README.md                     # Main project documentation
-├── 📋 DEPLOYMENT_STATUS.md          # Current deployment status
-├── 🐳 docker-compose.production.yml # Docker orchestration
-├── 📊 .env.example                  # Environment template
-│
-├── 🔧 services/                     # Microservices Architecture
-│   ├── 🌐 gateway/                  # API Gateway Service (Port 8000)
-│   │   ├── 📱 app/
-│   │   │   ├── main.py              # FastAPI app (48 endpoints)
-│   │   │   ├── monitoring.py        # Advanced monitoring system
-│   │   │   └── __init__.py          # Package initialization
-│   │   ├── 📋 requirements.txt      # Python dependencies
-│   │   ├── 🐳 Dockerfile           # Container configuration
-│   │   └── 📊 logs/                # Application logs
-│   │
-│   ├── 🎯 portal/                   # HR Dashboard (Port 8501)
-│   │   ├── app.py                   # Main Streamlit application
-│   │   ├── batch_upload.py          # ✅ Batch upload functionality
-│   │   ├── 📋 requirements.txt      # Dependencies
-│   │   └── 🐳 Dockerfile           # Container config
-│   │
-│   ├── 👥 client_portal/            # Client Interface (Port 8502)
-│   │   ├── app.py                   # Client-facing portal
-│   │   ├── auth_service.py          # Authentication service
-│   │   ├── 📋 requirements.txt      # Dependencies
-│   │   └── 🐳 Dockerfile           # Container config
-│   │
-│   ├── 🤖 agent/                    # AI Matching Engine (Port 9000)
-│   │   ├── app.py                   # AI matching service (5 endpoints)
-│   │   ├── 📋 requirements.txt      # Dependencies
-│   │   └── 🐳 Dockerfile           # Container config
-│   │
-│   └── 🗄️ db/                       # Database Schema
-│       ├── consolidated_schema.sql  # ✅ Complete database setup
-│       └── 🐳 Dockerfile           # Database container
-│
-├── 📚 docs/                         # Documentation (Organized)
-│   ├── 📁 deployment/              # Deployment guides
-│   │   ├── DEPLOYMENT_GUIDE.md     # General deployment guide
-│   │   └── RENDER_DEPLOYMENT_GUIDE.md # Render-specific guide
-│   ├── 📁 security/                # Security & Analysis
-│   │   ├── SECURITY_AUDIT.md       # Security assessment
-│   │   └── BIAS_ANALYSIS.md        # AI bias analysis & mitigation
-│   ├── 📁 testing/                 # Testing Documentation
-│   │   ├── COMPLETE_API_TESTING_GUIDE.md # API testing guide
-│   │   └── TESTING_STRATEGY.md     # Testing strategies
-│   ├── 📁 guides/                  # User guides
-│   │   └── LIVE_DEMO.md            # Live platform demo guide
-│   ├── CURRENT_FEATURES.md         # ✅ Complete feature list
-│   ├── QUICK_START_GUIDE.md        # ✅ 5-minute setup guide
-│   ├── REFLECTION.md               # ✅ Daily development reflections
-│   ├── SERVICES_GUIDE.md           # Service architecture
-│   └── USER_GUIDE.md               # Complete user manual
-│
-├── 🧪 tests/                        # Essential Tests Only
-│   ├── 📁 unit/                    # Unit tests
-│   ├── 📁 integration/             # Integration tests
-│   ├── 📁 security/                # Security tests
-│   ├── test_endpoints.py           # Core API tests
-│   ├── test_security.py            # Security validation
-│   ├── test_client_portal.py       # Portal tests
-│   └── run_all_tests.py            # Test runner
-│
-├── 🚀 scripts/                      # Organized Scripts
-│   ├── 📁 deployment/              # Deployment scripts
-│   │   ├── unified-deploy.sh       # ✅ Unified deployment
-│   │   └── health-check.sh         # ✅ Health monitoring
-│   ├── 📁 maintenance/             # Maintenance utilities
-│   │   ├── render-environment-audit.py # Environment audit
-│   │   └── production-validation.py # Production validation
-│   ├── apply_database_schema_fixes.py # Database fixes
-│   ├── setup-environment.py        # Environment setup
-│   └── update_documentation.py     # Documentation updates
-│
-├── 🛠️ tools/                        # Data Processing Tools
-│   ├── dynamic_job_creator.py      # Job creation utility
-│   ├── database_sync_manager.py    # Database synchronization
-│   └── auto_sync_watcher.py        # Auto-sync monitoring
-│
-├── ⚙️ config/                       # Configuration Files
-│   ├── 📁 environments/            # Environment configs
-│   ├── .env.render                 # ✅ Render platform config
-│   ├── production.env              # Production settings
-│   └── render-deployment.yml       # ✅ Render deployment config
-│
-├── 📊 data/                         # Data Storage
-│   └── candidates.csv              # ✅ Real extracted candidate data
-│
-├── 📁 resume/                       # Resume Files Storage (31 files)
-│   ├── *.pdf                      # ✅ 30 PDF resume files processed
-│   └── *.docx                     # ✅ 1 DOCX file processed
-│
-├── 📁 environments/                 # Environment Templates
-│   ├── local/                     # Local development
-│   ├── production/                 # Production settings
-│   ├── shared/                     # Shared configurations
-│   └── staging/                    # Staging environment
-│
-├── 📋 .env                         # ✅ Local environment config
-└── 📋 .env.example                 # Environment template
-```
+## 📋 Table of Contents
 
-## 🔄 Recent Updates (October 2025)
+1. [System Overview](#system-overview)
+2. [Microservices Architecture](#microservices-architecture)
+3. [Database Schema](#database-schema)
+4. [API Endpoints](#api-endpoints)
+5. [Security Implementation](#security-implementation)
+6. [Deployment Architecture](#deployment-architecture)
+7. [File Organization](#file-organization)
+8. [Technology Stack](#technology-stack)
 
-### ✅ **Codebase Restructure & Optimization**
-- **File Elimination**: ✅ Removed 55+ redundant analysis/audit files
-- **Professional Structure**: ✅ Organized docs/, tests/, scripts/ by category
-- **Clean Architecture**: ✅ Streamlined project structure following best practices
-- **API Documentation**: ✅ Complete documentation for all 53 endpoints (48 Gateway + 5 Agent)
-- **Code Quality**: ✅ Production-ready with comprehensive error handling
-- **Essential Testing**: ✅ Focused test suite with unit, integration, and security tests
+---
 
-### ✅ **Enhanced Features**
-- **AI Matching Engine**: ✅ Differentiated scoring algorithm with optimized performance
-- **Advanced Security**: ✅ 2FA, CSP policies, comprehensive input validation
-- **Portal Integration**: ✅ Real-time sync between HR and Client portals
-- **Monitoring System**: ✅ Prometheus metrics, health checks, performance tracking
-- **Database Optimization**: ✅ Proper constraints, indexing, and real data (112K+ candidates)
-- **Production Deployment**: ✅ All 5 services live and operational on Render
+## 🎯 System Overview
 
-## 📊 Service Architecture
+BHIV HR Platform is a production-ready enterprise recruiting platform built with microservices architecture, featuring AI-powered candidate matching, comprehensive security, and real-time data processing.
 
-| Service | Technology | Port | Status | Purpose |
-|---------|------------|------|--------|---------|
-| **API Gateway** | FastAPI 3.1.0 | 8000 | 🟢 Live | REST API Backend |
-| **HR Portal** | Streamlit | 8501 | 🟢 Live | HR Dashboard |
-| **Client Portal** | Streamlit | 8502 | 🟢 Live | Client Interface |
-| **AI Agent** | FastAPI 2.1.0 | 9000 | 🟢 Live | Candidate Matching |
-| **Database** | PostgreSQL 17 | 5432 | 🟢 Live | Data Storage |
-
-## 🔧 Key Directories Explained
-
-### `/services/` - Microservices
-- **gateway/**: Central API with 46 endpoints, monitoring, security
-- **portal/**: HR dashboard with workflow management
-- **client_portal/**: Client-facing job posting interface
-- **agent/**: AI matching engine with semantic analysis
-- **db/**: Database schema and initialization
-
-### `/tools/` - Processing Utilities
-- **Resume Extraction**: PDF/DOCX to structured data
-- **Job Creation**: Dynamic job posting generation
-- **Database Sync**: Real-time data synchronization
-- **Auto Monitoring**: Continuous system watching
-
-### `/tests/` - Quality Assurance
-- **API Tests**: Endpoint functionality validation
-- **Security Tests**: Authentication and authorization
-- **Integration Tests**: Cross-service communication
-- **System Tests**: End-to-end workflow validation
-
-### `/docs/` - Documentation
-- **Technical Guides**: Architecture and implementation
-- **User Manuals**: Step-by-step usage instructions
-- **Security Analysis**: Bias mitigation and audit reports
-- **API Documentation**: Endpoint specifications
-
-## 🚀 Deployment Structure
-
-### **Production Environment**
+### **Current Status**
 - **Platform**: Render Cloud (Oregon, US West)
+- **Services**: 5 (All operational)
+- **Endpoints**: 53 (48 Gateway + 5 Agent)
+- **Database**: PostgreSQL 17 with 11 tables
+- **Data**: 31 real candidates from processed resumes
 - **Cost**: $0/month (Free tier)
-- **SSL**: Automatic HTTPS certificates
-- **Monitoring**: Real-time health checks
-- **Scaling**: Auto-scaling enabled
+- **Uptime**: 99.9%
+
+---
+
+## 🏗️ Microservices Architecture
+
+### **Service Overview**
+
+| Service | Technology | Purpose | Endpoints | Production URL |
+|---------|------------|---------|-----------|----------------|
+| **API Gateway** | FastAPI 0.115.6 | REST API Backend | 48 | bhiv-hr-gateway-46pz.onrender.com |
+| **AI Agent** | FastAPI 0.115.6 | Candidate Matching | 5 | bhiv-hr-agent-m1me.onrender.com |
+| **HR Portal** | Streamlit 1.41.1 | HR Dashboard | Web UI | bhiv-hr-portal-cead.onrender.com |
+| **Client Portal** | Streamlit 1.41.1 | Client Interface | Web UI | bhiv-hr-client-portal-5g33.onrender.com |
+| **Database** | PostgreSQL 17 | Data Storage | - | Internal Render URL |
+
+### **Service Dependencies**
+
+```mermaid
+graph TD
+    A[Client Portal] --> B[API Gateway]
+    C[HR Portal] --> B[API Gateway]
+    B --> D[AI Agent]
+    B --> E[Database]
+    D --> E[Database]
+```
+
+### **Communication Patterns**
+- **Synchronous**: HTTP/HTTPS REST APIs
+- **Authentication**: Bearer token + JWT
+- **Data Format**: JSON
+- **Error Handling**: Structured error responses
+- **Monitoring**: Prometheus metrics + health checks
+
+---
+
+## 🗄️ Database Schema
+
+### **PostgreSQL 17 Schema (11 Tables)**
+
+#### **Core Tables**
+1. **candidates** - Candidate profiles and data
+2. **jobs** - Job postings and requirements
+3. **feedback** - Values assessment (5-point scale)
+4. **interviews** - Interview scheduling and management
+5. **offers** - Job offer management
+
+#### **Authentication & Security**
+6. **users** - Internal HR users with 2FA
+7. **clients** - External client companies
+8. **audit_logs** - Security and compliance tracking
+9. **rate_limits** - API rate limiting
+10. **csp_violations** - Content Security Policy violations
+
+#### **AI & Performance**
+11. **matching_cache** - AI matching results cache
+
+### **Key Schema Features**
+- **Constraints**: CHECK constraints for data validation
+- **Indexes**: 25+ performance indexes including GIN for full-text search
+- **Triggers**: Auto-update timestamps and audit logging
+- **Views**: Candidate summary and job analytics views
+- **Functions**: PostgreSQL functions for complex operations
+
+### **Sample Data**
+- **Candidates**: 31 real profiles from processed resumes
+- **Jobs**: 5 sample job postings
+- **Clients**: 3 demo client companies
+- **Users**: 3 HR system users
+
+---
+
+## 🔌 API Endpoints
+
+### **Gateway Service (48 Endpoints)**
+
+#### **Core API (7 endpoints)**
+```
+GET /                    - Service information
+GET /health             - Health check
+GET /test-candidates    - Database connectivity test
+GET /metrics            - Prometheus metrics
+GET /health/detailed    - Detailed health check
+GET /metrics/dashboard  - Metrics dashboard
+GET /candidates/stats   - Candidate statistics
+```
+
+#### **Job Management (2 endpoints)**
+```
+GET /v1/jobs           - List all jobs
+POST /v1/jobs          - Create new job
+```
+
+#### **Candidate Management (5 endpoints)**
+```
+GET /v1/candidates                - List all candidates (paginated)
+GET /v1/candidates/{id}          - Get specific candidate
+GET /v1/candidates/search        - Search candidates with filters
+POST /v1/candidates/bulk         - Bulk upload candidates
+GET /v1/candidates/job/{job_id}  - Get candidates for specific job
+```
+
+#### **AI Matching (1 endpoint)**
+```
+GET /v1/match/{job_id}/top       - Get top candidate matches for job
+```
+
+#### **Assessment & Workflow (6 endpoints)**
+```
+GET /v1/feedback        - Get all feedback records
+POST /v1/feedback       - Submit values assessment
+GET /v1/interviews      - Get all interviews
+POST /v1/interviews     - Schedule interview
+GET /v1/offers          - Get all job offers
+POST /v1/offers         - Create job offer
+```
+
+#### **Security Testing (7 endpoints)**
+```
+GET /v1/security/rate-limit-status        - Check rate limit status
+GET /v1/security/blocked-ips              - View blocked IPs
+POST /v1/security/test-input-validation   - Test input validation
+POST /v1/security/test-email-validation   - Test email validation
+POST /v1/security/test-phone-validation   - Test phone validation
+GET /v1/security/security-headers-test    - Test security headers
+GET /v1/security/penetration-test-endpoints - Penetration testing endpoints
+```
+
+#### **CSP Management (4 endpoints)**
+```
+GET /v1/security/csp-policies     - Current CSP policies
+GET /v1/security/csp-violations   - View CSP violations
+POST /v1/security/csp-report      - CSP violation reporting
+POST /v1/security/test-csp-policy - Test CSP policy
+```
+
+#### **Two-Factor Authentication (8 endpoints)**
+```
+POST /v1/2fa/setup                    - Setup 2FA for client
+POST /v1/2fa/verify-setup             - Verify 2FA setup
+POST /v1/2fa/login-with-2fa           - Login with 2FA
+GET /v1/2fa/status/{client_id}        - Get 2FA status
+POST /v1/2fa/disable                  - Disable 2FA
+POST /v1/2fa/regenerate-backup-codes  - Regenerate backup codes
+GET /v1/2fa/test-token/{client_id}/{token} - Test 2FA token
+GET /v1/2fa/demo-setup                - Demo 2FA setup
+```
+
+#### **Password Management (6 endpoints)**
+```
+POST /v1/password/validate        - Validate password strength
+POST /v1/password/generate        - Generate secure password
+GET /v1/password/policy           - Get password policy
+POST /v1/password/change          - Change password
+GET /v1/password/strength-test    - Password strength testing tool
+GET /v1/password/security-tips    - Password security best practices
+```
+
+#### **Client Portal & Reports (2 endpoints)**
+```
+POST /v1/client/login                    - Client authentication
+GET /v1/reports/job/{job_id}/export.csv - Export job report
+```
+
+### **Agent Service (5 Endpoints)**
+
+#### **Core (2 endpoints)**
+```
+GET /           - Service information
+GET /health     - Health check
+```
+
+#### **AI Processing (2 endpoints)**
+```
+POST /match                    - AI-powered candidate matching
+GET /analyze/{candidate_id}    - Detailed candidate analysis
+```
+
+#### **Diagnostics (1 endpoint)**
+```
+GET /test-db    - Database connectivity test
+```
+
+---
+
+## 🔒 Security Implementation
+
+### **Authentication & Authorization**
+- **API Authentication**: Bearer token validation
+- **Client Authentication**: JWT tokens with enterprise auth service
+- **2FA Support**: TOTP compatible (Google/Microsoft/Authy)
+- **Session Management**: Secure session handling
+
+### **Rate Limiting**
+- **Granular Limits**: By endpoint and user tier
+- **Dynamic Adjustment**: Based on system load
+- **Default Tier**: 60 requests/minute
+- **Premium Tier**: 300 requests/minute
+- **DoS Protection**: Automatic IP blocking
+
+### **Input Validation & Security Headers**
+- **XSS Protection**: Input sanitization and validation
+- **SQL Injection**: Parameterized queries
+- **Security Headers**: CSP, XSS protection, Frame Options
+- **Content Security Policy**: Comprehensive CSP implementation
+- **HTTPS**: SSL/TLS encryption for all communications
+
+### **Password Policies**
+- **Minimum Length**: 8 characters
+- **Complexity**: Uppercase, lowercase, numbers, special characters
+- **Strength Validation**: Real-time password strength checking
+- **History**: Password history tracking
+- **Expiration**: 90-day password rotation
+
+### **Audit & Compliance**
+- **Audit Logging**: All actions logged with timestamps
+- **Security Monitoring**: Real-time security event tracking
+- **Compliance**: GDPR-ready data handling
+- **Penetration Testing**: Built-in security testing endpoints
+
+---
+
+## 🚀 Deployment Architecture
+
+### **Production Environment (Render Cloud)**
+```
+Region: Oregon, US West
+Platform: Render Cloud
+Cost: $0/month (Free tier)
+SSL: Automatic HTTPS certificates
+Auto-Deploy: GitHub integration
+Monitoring: Built-in health checks
+```
+
+### **Service Configuration**
+```yaml
+API Gateway:
+  Build: pip install -r requirements.txt
+  Start: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+  Environment: Production environment variables
+
+AI Agent:
+  Build: pip install -r requirements.txt
+  Start: uvicorn app:app --host 0.0.0.0 --port $PORT
+  Environment: Database URL, API keys
+
+HR Portal:
+  Build: pip install -r requirements.txt
+  Start: streamlit run app.py --server.port $PORT --server.address 0.0.0.0
+  Environment: Gateway URL, API keys
+
+Client Portal:
+  Build: pip install -r requirements.txt
+  Start: streamlit run app.py --server.port $PORT --server.address 0.0.0.0
+  Environment: Gateway URL, API keys, Database URL
+
+Database:
+  Type: PostgreSQL 17
+  Storage: 1GB
+  Backups: Automatic
+  Version: Latest stable
+```
 
 ### **Local Development**
-- **Docker Compose**: Multi-service orchestration
-- **Hot Reload**: Development mode with live updates
-- **Database**: Local PostgreSQL instance
-- **Networking**: Internal service communication
+```bash
+# Docker Compose setup
+docker-compose -f docker-compose.production.yml up -d
 
-## 📈 Current Metrics
-
-- **Total Services**: 5 (Database + 4 Web Services)
-- **API Endpoints**: 53 interactive endpoints (48 Gateway + 5 Agent) - 100% functional
-- **Test Coverage**: Essential test suites (unit, integration, security)
-- **Documentation**: Organized by category (deployment, security, testing)
-- **Resume Processing**: ✅ 31 files successfully processed
-- **Candidate Database**: ✅ 112K+ candidates with complete real data
-- **Code Quality**: ✅ Production-ready with comprehensive error handling
-- **Project Structure**: ✅ Professional organization, 55+ redundant files eliminated
-- **File Organization**: ✅ Clean structure following industry best practices
-
-## 🔄 Workflow Integration
-
-```
-Client Portal → API Gateway → Database ← HR Portal
-     ↓              ↓           ↓         ↓
-Job Posting → Job Storage → AI Matching → Candidate Review
-     ↓              ↓           ↓         ↓
-Resume Upload → Processing → Extraction → Assessment
+# Services available at:
+# Gateway: http://localhost:8000
+# Agent: http://localhost:9000
+# HR Portal: http://localhost:8501
+# Client Portal: http://localhost:8502
+# Database: localhost:5432
 ```
 
-This structure supports the complete HR workflow from job posting to candidate hiring with real-time synchronization and comprehensive reporting.
+---
+
+## 📁 File Organization
+
+### **Root Structure**
+```
+bhiv-hr-platform/
+├── services/                    # Microservices
+├── docs/                       # Documentation
+├── tests/                      # Test suite
+├── scripts/                    # Automation scripts
+├── tools/                      # Data processing tools
+├── config/                     # Configuration files
+├── data/                       # Real data (31 candidates)
+├── resume/                     # Resume files (31 files)
+├── docker-compose.production.yml
+├── PROJECT_STRUCTURE.md
+├── DEPLOYMENT_STATUS.md
+└── README.md
+```
+
+### **Services Directory**
+```
+services/
+├── gateway/                    # API Gateway (48 endpoints)
+│   ├── app/
+│   │   ├── main.py            # FastAPI application (2,000+ lines)
+│   │   ├── monitoring.py      # Advanced monitoring system
+│   │   └── __init__.py
+│   ├── logs/                  # Application logs
+│   ├── Dockerfile
+│   └── requirements.txt       # FastAPI 0.115.6 + dependencies
+├── agent/                     # AI Matching Engine (5 endpoints)
+│   ├── app.py                 # FastAPI AI service (600+ lines)
+│   ├── Dockerfile
+│   └── requirements.txt       # AI/ML stack
+├── portal/                    # HR Dashboard
+│   ├── app.py                 # Streamlit interface (1,500+ lines)
+│   ├── batch_upload.py        # Batch processing
+│   ├── config.py              # Configuration
+│   └── requirements.txt       # Streamlit 1.41.1
+├── client_portal/             # Client Interface
+│   ├── app.py                 # Client interface (800+ lines)
+│   ├── auth_service.py        # Enterprise authentication
+│   ├── config.py
+│   └── requirements.txt
+├── db/                        # Database
+│   └── consolidated_schema.sql # Complete PostgreSQL schema
+└── semantic_engine/           # AI Components
+    ├── advanced_matcher.py    # Advanced matching algorithms
+    └── job_matcher.py         # Job matching logic
+```
+
+### **Documentation Structure**
+```
+docs/
+├── deployment/                # Deployment guides
+│   ├── DEPLOYMENT_GUIDE.md
+│   └── RENDER_DEPLOYMENT_GUIDE.md
+├── security/                  # Security documentation
+│   ├── SECURITY_AUDIT.md
+│   └── BIAS_ANALYSIS.md
+├── testing/                   # Testing documentation
+│   ├── TESTING_STRATEGY.md
+│   └── COMPLETE_API_TESTING_GUIDE.md
+├── QUICK_START_GUIDE.md
+├── CURRENT_FEATURES.md
+├── USER_GUIDE.md
+└── REFLECTION.md
+```
+
+### **Testing Structure**
+```
+tests/
+├── unit/                      # Unit tests
+├── integration/               # Integration tests
+├── security/                  # Security tests
+├── test_endpoints.py          # Core API tests (300+ lines)
+├── test_security.py           # Security validation
+└── test_client_portal.py      # Portal tests
+```
+
+---
+
+## 🛠️ Technology Stack
+
+### **Backend Services**
+```
+Python: 3.12.7 (Latest)
+FastAPI: 0.115.6 (Latest)
+Uvicorn: 0.32.1
+Pydantic: 2.10.3
+SQLAlchemy: 2.0.23
+```
+
+### **Database**
+```
+PostgreSQL: 17 (Latest)
+psycopg2-binary: 2.9.10
+Connection Pooling: 10 connections
+Timeout: 10 seconds
+```
+
+### **Frontend Interfaces**
+```
+Streamlit: 1.41.1 (Latest)
+Pandas: 2.3.2
+Plotly: 5.17.0
+```
+
+### **AI/ML Stack**
+```
+sentence-transformers: 5.1.0
+torch: 2.8.0
+transformers: 4.55.2
+numpy: 1.26.4
+scikit-learn: 1.3.2
+```
+
+### **Security & Authentication**
+```
+PyJWT: 2.8.0
+bcrypt: 4.1.2
+pyotp: 2.9.0 (2FA)
+qrcode: 8.2 (QR code generation)
+```
+
+### **Monitoring & Performance**
+```
+prometheus-client: 0.19.0
+psutil: 5.9.6
+```
+
+### **HTTP & Utilities**
+```
+requests: 2.32.3
+httpx: 0.28.1
+python-dotenv: 1.0.0
+```
+
+---
+
+## 📊 Performance Metrics
+
+### **Response Times**
+- **Gateway API**: <100ms average
+- **Agent AI Processing**: <50ms average
+- **Database Queries**: <20ms average
+- **Portal Loading**: <200ms average
+
+### **System Resources**
+- **CPU Usage**: <30% average
+- **Memory Usage**: <60% average
+- **Database Connections**: 5-10 active
+- **Concurrent Users**: Multi-user support
+
+### **Availability**
+- **Uptime Target**: 99.9%
+- **Current Uptime**: 99.9%
+- **Auto-Recovery**: Enabled
+- **Health Checks**: Every 30 seconds
+
+---
+
+**BHIV HR Platform v3.1.0** - Enterprise recruiting solution with comprehensive microservices architecture, advanced security, and production-ready deployment.
+
+*Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
+
+**Last Updated**: January 2025 | **Status**: 🟢 Production Ready | **Cost**: $0/month

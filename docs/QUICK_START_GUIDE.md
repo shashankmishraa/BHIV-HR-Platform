@@ -45,6 +45,7 @@ curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr
 ### **📋 Prerequisites**
 - Docker & Docker Compose
 - Git
+- Python 3.12.7 (for local development)
 - 4GB+ RAM available
 
 ### **🚀 Quick Start**
@@ -149,7 +150,7 @@ python tools/comprehensive_resume_extractor.py
 # Create sample jobs - ✅ Real job data
 python tools/dynamic_job_creator.py --count 5
 
-# Sync to database - ✅ 68+ candidates loaded
+# Sync to database - ✅ 31 candidates loaded
 python tools/database_sync_manager.py
 ```
 
@@ -221,7 +222,7 @@ docker exec bhivhraiplatform-db-1 psql -U bhiv_user -d bhiv_hr -c "SELECT COUNT(
 2. **Security Features**: ✅ Try 2FA setup and rate limiting
 3. **Monitoring Dashboard**: ✅ View Prometheus metrics
 4. **Search & Filter**: ✅ Advanced candidate search capabilities
-5. **Real Data**: ✅ 68+ candidates from actual resume files
+5. **Real Data**: ✅ 31 candidates from actual resume files
 6. **Error Handling**: ✅ Fixed skills match TypeError and batch upload paths
 
 ---

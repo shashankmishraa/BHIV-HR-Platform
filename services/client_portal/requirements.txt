@@ -1,9 +1,9 @@
 # Core Streamlit dependencies
-streamlit==1.39.0
+streamlit==1.41.1
 
 # HTTP & API dependencies
 requests==2.32.3
-httpx==0.27.2
+httpx==0.28.1
 urllib3==2.0.7
 
 # Data processing & visualization

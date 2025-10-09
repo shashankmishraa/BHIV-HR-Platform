@@ -1,6 +1,6 @@
 # 🚀 BHIV HR Platform
 
-**Production-Ready AI-Powered Recruiting Platform** with intelligent candidate matching, comprehensive assessment tools, and enterprise-grade security.
+**Enterprise AI-Powered Recruiting Platform** with intelligent candidate matching, comprehensive assessment tools, and production-grade security.
 
 ## 🌐 Live Production Platform
 
@@ -9,9 +9,10 @@
 - **AI Matching Engine**: bhiv-hr-agent-m1me.onrender.com/docs ✅ (5 endpoints)
 - **HR Portal**: bhiv-hr-portal-cead.onrender.com/ ✅
 - **Client Portal**: bhiv-hr-client-portal-5g33.onrender.com/ ✅
-- **Status**: 🟢 **ALL SERVICES LIVE & OPERATIONAL** | **Cost**: $0/month (Free tier)
-- **Total Endpoints**: 53 (48 Gateway + 5 Agent) | **Last Updated**: January 2025
-- **Recent Optimizations**: Connection pooling, Pydantic validation, Timeout optimization
+- **Database**: PostgreSQL 17 on Render ✅
+- **Status**: 🟢 **ALL SERVICES OPERATIONAL** | **Cost**: $0/month (Free tier)
+- **Total Endpoints**: 53 (48 Gateway + 5 Agent) | **Updated**: January 2025
+- **Python Version**: 3.12.7 | **FastAPI**: 0.115.6 | **Streamlit**: 1.41.1
 
 ### **🔑 Demo Access**
 ```bash
@@ -20,8 +21,9 @@ Username: TECH001
 Password: demo123
 
 # API Testing
-API Key: myverysecureapikey123
-curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" bhiv-hr-gateway-46pz.onrender.com/health
+API Key: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
+curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
+     https://bhiv-hr-gateway-46pz.onrender.com/health
 ```
 
 ## 📋 Documentation Structure
@@ -63,14 +65,14 @@ docker-compose -f docker-compose.production.yml up -d
 
 ## 🏗️ System Architecture
 
-### **Microservices Overview**
-| Service | Purpose | Technology | Port | Status |
-|---------|---------|------------|------|--------|
-| **API Gateway** | REST API Backend | FastAPI 3.1.0 | 8000 | 🟢 Live |
-| **AI Agent** | Candidate Matching | FastAPI 2.1.0 | 9000 | ✅ Live |
-| **HR Portal** | HR Dashboard | Streamlit | 8501 | ✅ Live |
-| **Client Portal** | Client Interface | Streamlit | 8502 | ✅ Live |
-| **Database** | Data Storage | PostgreSQL 17 | 5432 | ✅ Live |
+### **Microservices Architecture**
+| Service | Purpose | Technology | Port | Status | Production URL |
+|---------|---------|------------|------|--------|----------------|
+| **API Gateway** | REST API Backend | FastAPI 0.115.6 + Python 3.12.7 | 8000 | 🟢 Live | bhiv-hr-gateway-46pz.onrender.com |
+| **AI Agent** | Candidate Matching | FastAPI 0.115.6 + Python 3.12.7 | 9000 | ✅ Live | bhiv-hr-agent-m1me.onrender.com |
+| **HR Portal** | HR Dashboard | Streamlit 1.41.1 + Python 3.12.7 | 8501 | ✅ Live | bhiv-hr-portal-cead.onrender.com |
+| **Client Portal** | Client Interface | Streamlit 1.41.1 + Python 3.12.7 | 8502 | ✅ Live | bhiv-hr-client-portal-5g33.onrender.com |
+| **Database** | Data Storage | PostgreSQL 17 | 5432 | ✅ Live | Internal Render URL |
 
 ### **API Endpoints (53 Total)**
 ```
@@ -80,7 +82,7 @@ Gateway Service (48 endpoints):
   Candidate Mgmt (5):     GET /v1/candidates, GET /v1/candidates/{id}, GET /v1/candidates/search, POST /v1/candidates/bulk, GET /v1/candidates/job/{job_id}
   AI Matching (1):        GET /v1/match/{job_id}/top
   Assessment (6):         GET/POST /v1/feedback, GET/POST /v1/interviews, GET/POST /v1/offers
-  Security Testing (11):  Rate limiting, input validation, email/phone validation, headers, penetration testing
+  Security Testing (7):   Rate limiting, input validation, email/phone validation, headers, penetration testing
   CSP Management (4):     Policies, violations, reporting, testing
   2FA Authentication (8): Setup, verify, login, status, disable, backup codes, token testing
   Password Mgmt (6):      Validate, generate, policy, change, strength test, security tips
@@ -198,19 +200,21 @@ RENDER_DEPLOYMENT_GUIDE.md     # Complete deployment guide
 ```bash
 # Prerequisites
 - Docker & Docker Compose
-- Python 3.11+
+- Python 3.12.7 (Required)
 - Git
 
 # Environment Setup
 cp .env.example .env
-# Edit .env with your settings
+# Edit .env with your configuration
 
-# Start Services
+# Start All Services
 docker-compose -f docker-compose.production.yml up -d
 
-# Verify Services
-curl http://localhost:8000/health
-curl http://localhost:9000/health
+# Health Verification
+curl http://localhost:8000/health    # Gateway
+curl http://localhost:9000/health    # AI Agent
+open http://localhost:8501           # HR Portal
+open http://localhost:8502           # Client Portal
 ```
 
 ---
@@ -341,7 +345,7 @@ python tools/auto_sync_watcher.py
 ### **📈 System Metrics**
 - **Total Services**: 5 (Database + 4 Web Services)
 - **API Endpoints**: 53 interactive endpoints (100% functional)
-- **Real Candidates**: ✅ 112K+ from actual resume files
+- **Real Candidates**: ✅ 31 from actual resume files
 - **Resume Files**: ✅ 31 successfully processed
 - **Code Quality**: ✅ Production-ready with comprehensive error handling
 - **Test Coverage**: ✅ Complete test suite covering all functionality
@@ -355,7 +359,7 @@ python tools/auto_sync_watcher.py
 - ✅ **Codebase Restructure**: Eliminated 55+ redundant files, organized professional structure
 - ✅ **Enhanced AI Matching**: Differentiated scoring algorithm with optimized performance
 - ✅ **53 API Endpoints**: All endpoints functional with comprehensive documentation (48 Gateway + 5 Agent)
-- ✅ **Real Data Integration**: 112K+ candidates from actual resume files
+- ✅ **Real Data Integration**: 31 candidates from actual resume files
 - ✅ **Advanced Security**: 2FA, rate limiting, CSP policies, input validation
 - ✅ **Portal Integration**: Real-time sync between HR and Client portals
 - ✅ **Performance Optimizations**: Connection pooling (pool_size=10), Pydantic validation, timeout optimization
@@ -409,4 +413,4 @@ python tools/auto_sync_watcher.py
 
 *Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
 
-**Last Updated**: October 2025 | **Status**: 🟢 All Services Live | **Cost**: $0/month | **Uptime**: 99.9%
+**Last Updated**: January 2025 | **Status**: 🟢 All Services Live | **Cost**: $0/month | **Uptime**: 99.9%

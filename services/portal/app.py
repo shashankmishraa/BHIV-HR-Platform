@@ -3,11 +3,10 @@ import httpx
 import pandas as pd
 from datetime import datetime
 import numpy as np
+import os
 from config import API_BASE, API_KEY, headers, http_client
 
 st.set_page_config(page_title="BHIV HR Platform v2.0", page_icon="🎯", layout="wide")
-
-import os
 
 # Header
 st.title("🎯 BHIV HR Portal")

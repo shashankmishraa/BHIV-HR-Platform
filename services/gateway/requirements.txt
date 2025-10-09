@@ -1,8 +1,8 @@
 # Core FastAPI dependencies
-fastapi==0.104.1
-uvicorn==0.24.0
-starlette==0.27.0
-pydantic==2.8.2
+fastapi==0.115.6
+uvicorn==0.32.1
+starlette==0.41.3
+pydantic==2.10.3
 
 # Database dependencies
 asyncpg==0.30.0
@@ -25,7 +25,7 @@ psutil==5.9.6
 
 # HTTP & Utilities
 requests==2.32.3
-httpx==0.25.2
+httpx==0.28.1
 python-dotenv==1.0.0
 
 # Image processing for QR codes
@@ -35,6 +35,5 @@ Pillow==10.1.0
 redis==6.4.0
 
 # Standard library modules (ensure compatibility)
-typing-extensions==4.8.0
+typing-extensions>=4.10.0
 collections-extended==2.0.2
-dataclasses==0.6; python_version<'3.7'

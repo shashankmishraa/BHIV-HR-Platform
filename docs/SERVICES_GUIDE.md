@@ -10,47 +10,86 @@ The BHIV HR Platform consists of 5 core microservices, each with specific respon
 ### 🎯 Purpose: Central API hub and request routing
 
 #### Key Files:
-- `app/main.py` - Main FastAPI application with 16 endpoints
+- `app/main.py` - Main FastAPI application with 48 endpoints
 - `client_auth.py` - Client authentication utilities
 - `app/db/schemas.py` - Pydantic models for validation
 
-#### API Endpoints (16 total):
+#### API Endpoints (48 total):
 ```
-Core API Endpoints:
-├── GET  /           - API root information
+Core API (7 endpoints):
+├── GET  /           - Service information
 ├── GET  /health     - Health check
-└── GET  /test-candidates - Database connectivity test
+├── GET  /test-candidates - Database connectivity test
+├── GET  /metrics    - Prometheus metrics
+├── GET  /health/detailed - Detailed health check
+├── GET  /metrics/dashboard - Metrics dashboard
+└── GET  /candidates/stats - Candidate statistics
 
-Job Management:
-├── POST /v1/jobs    - Create new job posting
-└── GET  /v1/jobs    - List all active jobs
+Job Management (2 endpoints):
+├── GET  /v1/jobs    - List all jobs
+└── POST /v1/jobs    - Create new job
 
-Candidate Management:
-├── GET  /v1/candidates/job/{job_id} - Get candidates by job
-├── GET  /v1/candidates/search       - Search & filter candidates
-└── POST /v1/candidates/bulk         - Bulk upload candidates
+Candidate Management (5 endpoints):
+├── GET  /v1/candidates - List all candidates (paginated)
+├── GET  /v1/candidates/{id} - Get specific candidate
+├── GET  /v1/candidates/search - Search candidates with filters
+├── POST /v1/candidates/bulk - Bulk upload candidates
+└── GET  /v1/candidates/job/{job_id} - Get candidates for specific job
 
-AI Matching Engine:
-└── GET  /v1/match/{job_id}/top      - Get AI-matched candidates
+AI Matching (1 endpoint):
+└── GET  /v1/match/{job_id}/top - Get top candidate matches for job
 
-Assessment & Workflow:
-├── POST /v1/feedback    - Submit values assessment
-├── POST /v1/interviews  - Schedule interview
-└── POST /v1/offers      - Create job offer
+Assessment & Workflow (6 endpoints):
+├── GET  /v1/feedback - Get all feedback records
+├── POST /v1/feedback - Submit values assessment
+├── GET  /v1/interviews - Get all interviews
+├── POST /v1/interviews - Schedule interview
+├── GET  /v1/offers - Get all job offers
+└── POST /v1/offers - Create job offer
 
-Analytics & Statistics:
-└── GET  /candidates/stats - Platform statistics
+Security Testing (11 endpoints):
+├── GET  /v1/security/rate-limit-status - Check rate limit status
+├── GET  /v1/security/blocked-ips - View blocked IPs
+├── POST /v1/security/test-input-validation - Test input validation
+├── POST /v1/security/test-email-validation - Test email validation
+├── POST /v1/security/test-phone-validation - Test phone validation
+├── GET  /v1/security/security-headers-test - Test security headers
+├── GET  /v1/security/penetration-test-endpoints - Penetration testing endpoints
+├── GET  /v1/security/csp-policies - Current CSP policies
+├── GET  /v1/security/csp-violations - View CSP violations
+├── POST /v1/security/csp-report - CSP violation reporting
+└── POST /v1/security/test-csp-policy - Test CSP policy
 
-Client Portal API:
-├── POST /v1/client/login - Client authentication
-└── GET  /v1/client/jobs  - Get client jobs
+Two-Factor Authentication (8 endpoints):
+├── POST /v1/2fa/setup - Setup 2FA for client
+├── POST /v1/2fa/verify-setup - Verify 2FA setup
+├── POST /v1/2fa/login-with-2fa - Login with 2FA
+├── GET  /v1/2fa/status/{client_id} - Get 2FA status
+├── POST /v1/2fa/disable - Disable 2FA
+├── POST /v1/2fa/regenerate-backup-codes - Regenerate backup codes
+├── GET  /v1/2fa/test-token/{client_id}/{token} - Test 2FA token
+└── GET  /v1/2fa/demo-setup - Demo 2FA setup
+
+Password Management (6 endpoints):
+├── POST /v1/password/validate - Validate password strength
+├── POST /v1/password/generate - Generate secure password
+├── GET  /v1/password/policy - Get password policy
+├── POST /v1/password/change - Change password
+├── GET  /v1/password/strength-test - Password strength testing tool
+└── GET  /v1/password/security-tips - Password security best practices
+
+Client Portal (1 endpoint):
+└── POST /v1/client/login - Client authentication
+
+Reports (1 endpoint):
+└── GET  /v1/reports/job/{job_id}/export.csv - Export job report
 ```
 
 #### Dependencies:
-- FastAPI 0.104.1
-- SQLAlchemy 2.0.23
-- psycopg2-binary 2.9.9
-- Pydantic 2.5.0
+- FastAPI 0.115.6
+- SQLAlchemy 2.0.36
+- psycopg2-binary 2.9.10
+- Pydantic 2.10.3
 
 ## 🤖 Agent Service (Port 9000)
 
@@ -66,19 +105,25 @@ Client Portal API:
 - Real-time candidate ranking
 - Transparent scoring explanations
 
-#### API Endpoints:
+#### API Endpoints (5 total):
 ```
-AI Matching:
-├── GET  /health     - Health check
-├── GET  /match      - Basic matching endpoint
-└── POST /analyze    - Advanced semantic analysis
+Core (2 endpoints):
+├── GET  /           - Service information
+└── GET  /health     - Health check
+
+AI Processing (2 endpoints):
+├── POST /match      - AI-powered candidate matching
+└── GET  /analyze/{candidate_id} - Detailed candidate analysis
+
+Diagnostics (1 endpoint):
+└── GET  /test-db    - Database connectivity test
 ```
 
 #### Dependencies:
-- FastAPI 0.104.1
-- sentence-transformers (optional)
-- scikit-learn
-- numpy
+- FastAPI 0.115.6
+- httpx 0.28.1
+- psycopg2-binary 2.9.10
+- pydantic 2.10.3
 
 ## 👥 Portal Service (Port 8501)
 
@@ -113,10 +158,10 @@ HR Portal Navigation:
 ```
 
 #### Dependencies:
-- Streamlit 1.28.1
-- pandas 2.1.3
-- httpx 0.25.2
-- requests 2.31.0
+- Streamlit 1.41.1
+- pandas 2.3.2
+- httpx 0.28.1
+- requests 2.32.3
 
 ## 🏢 Client Portal Service (Port 8502)
 
@@ -156,12 +201,12 @@ Client Portal Navigation:
 ```
 
 #### Dependencies:
-- Streamlit 1.28.1
-- pandas 2.1.3
+- Streamlit 1.41.1
+- pandas 2.3.2
 - bcrypt 4.1.2
 - PyJWT 2.8.0
-- sqlalchemy 2.0.23
-- psycopg2-binary 2.9.9
+- sqlalchemy 2.0.36
+- psycopg2-binary 2.9.10
 
 ## 🗄️ Database Service (Port 5432)
 
@@ -171,24 +216,35 @@ Client Portal Navigation:
 #### Key Files:
 - `init.sql` - Database initialization scripts
 
-#### Database Schema:
+#### Database Schema (11 tables):
 ```
-Tables:
+Core Tables:
 ├── candidates        - Candidate information and profiles
 ├── jobs             - Job postings and requirements
 ├── client_auth      - Client authentication data
 ├── client_sessions  - JWT session management
 ├── feedback         - Values assessment data
 ├── interviews       - Interview scheduling
-└── offers           - Job offers and status
+├── offers           - Job offers and status
+├── candidate_skills - Skills mapping and proficiency
+├── job_skills       - Required skills for jobs
+├── match_results    - AI matching results and scores
+└── system_metrics   - Performance and usage metrics
+
+Indexes: 25+ optimized indexes for performance
+Triggers: Audit logging and data validation
+Views: Materialized views for analytics
 ```
 
 #### Features:
-- PostgreSQL 15-alpine for reliability
-- Encrypted credential storage
-- Foreign key relationships
+- PostgreSQL 17 for latest performance
+- Encrypted credential storage with bcrypt
+- Comprehensive foreign key relationships
+- 25+ optimized indexes for query performance
+- Audit triggers and logging
 - Health check monitoring
-- Automatic backups
+- Connection pooling (pool_size=10)
+- Real data: 31 candidates from actual resumes
 
 ## 🧠 Semantic Engine
 
