@@ -1,0 +1,270 @@
+{
+  "gateway_results": [
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 194,
+      "feature": "API Root"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/health",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 113,
+      "feature": "Health Check"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/metrics",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 3233,
+      "feature": "Prometheus Metrics"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/health/detailed",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 272,
+      "feature": "Detailed Health"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/metrics/dashboard",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 518,
+      "feature": "Metrics Dashboard"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/jobs",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 5263,
+      "feature": "List Jobs"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/candidates",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 2658,
+      "feature": "Get Candidates"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/candidates/search",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 2478,
+      "feature": "Search Candidates"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/candidates/1",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 356,
+      "feature": "Get Candidate by ID"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/match/1/top",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 6843,
+      "feature": "AI Top Matches"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/feedback",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 322,
+      "feature": "Get Feedback"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/interviews",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 807,
+      "feature": "Get Interviews"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/offers",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 23,
+      "feature": "Get Offers"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/rate-limit-status",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 164,
+      "feature": "Rate Limit Status"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/blocked-ips",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 261,
+      "feature": "Blocked IPs"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/security-headers-test",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 279,
+      "feature": "Security Headers"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/penetration-test-endpoints",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 490,
+      "feature": "Penetration Test"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/csp-violations",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 247,
+      "feature": "CSP Violations"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/csp-policies",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 427,
+      "feature": "CSP Policies"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/2fa/status/test_user",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 142,
+      "feature": "2FA Status"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/2fa/demo-setup",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 330,
+      "feature": "2FA Demo Setup"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/password/policy",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 333,
+      "feature": "Password Policy"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/password/strength-test",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 331,
+      "feature": "Password Strength Test"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/password/security-tips",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 455,
+      "feature": "Password Security Tips"
+    }
+  ],
+  "agent_results": [
+    {
+      "url": "https://bhiv-hr-agent-m1me.onrender.com/",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 416,
+      "feature": "Agent Root"
+    },
+    {
+      "url": "https://bhiv-hr-agent-m1me.onrender.com/health",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 105,
+      "feature": "Agent Health"
+    },
+    {
+      "url": "https://bhiv-hr-agent-m1me.onrender.com/test-db",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 140,
+      "feature": "Agent DB Test"
+    },
+    {
+      "url": "https://bhiv-hr-agent-m1me.onrender.com/analyze/1",
+      "method": "GET",
+      "status": 200,
+      "success": true,
+      "size": 392,
+      "feature": "Candidate Analysis"
+    }
+  ],
+  "post_results": [
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/2fa/setup",
+      "method": "POST",
+      "status": 200,
+      "success": true,
+      "size": 1734,
+      "feature": "2FA Setup"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/password/validate",
+      "method": "POST",
+      "status": 200,
+      "success": true,
+      "size": 93,
+      "feature": "Password Validation"
+    },
+    {
+      "url": "https://bhiv-hr-gateway-46pz.onrender.com/v1/security/test-input-validation",
+      "method": "POST",
+      "status": 200,
+      "success": true,
+      "size": 112,
+      "feature": "Input Validation"
+    },
+    {
+      "url": "https://bhiv-hr-agent-m1me.onrender.com/match",
+      "method": "POST",
+      "status": 200,
+      "success": true,
+      "size": 3101,
+      "feature": "AI Matching"
+    }
+  ],
+  "summary": {
+    "total": 32,
+    "working": 32,
+    "failing": 0,
+    "success_rate": 1.0
+  }
+}
