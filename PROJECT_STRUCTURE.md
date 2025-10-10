@@ -1,6 +1,6 @@
 # 🏗️ BHIV HR Platform - Project Structure & Architecture
 
-**Version**: 3.1.0 | **Updated**: January 2025 | **Status**: 🟢 Production Ready
+**Version**: 3.1.1 | **Updated**: January 2025 | **Status**: 🟢 Production Ready
 
 ## 📋 Table of Contents
 
@@ -22,9 +22,9 @@ BHIV HR Platform is a production-ready enterprise recruiting platform built with
 ### **Current Status**
 - **Platform**: Render Cloud (Oregon, US West)
 - **Services**: 5 (All operational)
-- **Endpoints**: 53 (48 Gateway + 5 Agent)
+- **Endpoints**: 55 (49 Gateway + 6 Agent)
 - **Database**: PostgreSQL 17 with 11 tables
-- **Data**: 31 real candidates from processed resumes
+- **Data**: 8 real candidates from processed resumes
 - **Cost**: $0/month (Free tier)
 - **Uptime**: 99.9%
 
@@ -36,8 +36,8 @@ BHIV HR Platform is a production-ready enterprise recruiting platform built with
 
 | Service | Technology | Purpose | Endpoints | Production URL |
 |---------|------------|---------|-----------|----------------|
-| **API Gateway** | FastAPI 0.115.6 | REST API Backend | 48 | bhiv-hr-gateway-46pz.onrender.com |
-| **AI Agent** | FastAPI 0.115.6 | Candidate Matching | 5 | bhiv-hr-agent-m1me.onrender.com |
+| **API Gateway** | FastAPI 0.115.6 | REST API Backend | 49 | bhiv-hr-gateway-46pz.onrender.com |
+| **AI Agent** | FastAPI 0.115.6 | Candidate Matching | 6 | bhiv-hr-agent-m1me.onrender.com |
 | **HR Portal** | Streamlit 1.41.1 | HR Dashboard | Web UI | bhiv-hr-portal-cead.onrender.com |
 | **Client Portal** | Streamlit 1.41.1 | Client Interface | Web UI | bhiv-hr-client-portal-5g33.onrender.com |
 | **Database** | PostgreSQL 17 | Data Storage | - | Internal Render URL |
@@ -91,7 +91,7 @@ graph TD
 - **Functions**: PostgreSQL functions for complex operations
 
 ### **Sample Data**
-- **Candidates**: 31 real profiles from processed resumes
+- **Candidates**: 8 real profiles from processed resumes
 - **Jobs**: 5 sample job postings
 - **Clients**: 3 demo client companies
 - **Users**: 3 HR system users
@@ -100,7 +100,7 @@ graph TD
 
 ## 🔌 API Endpoints
 
-### **Gateway Service (48 Endpoints)**
+### **Gateway Service (49 Endpoints)**
 
 #### **Core API (7 endpoints)**
 ```
@@ -190,7 +190,7 @@ POST /v1/client/login                    - Client authentication
 GET /v1/reports/job/{job_id}/export.csv - Export job report
 ```
 
-### **Agent Service (5 Endpoints)**
+### **Agent Service (6 Endpoints)**
 
 #### **Core (2 endpoints)**
 ```
@@ -198,9 +198,10 @@ GET /           - Service information
 GET /health     - Health check
 ```
 
-#### **AI Processing (2 endpoints)**
+#### **AI Processing (3 endpoints)**
 ```
 POST /match                    - AI-powered candidate matching
+POST /batch-match              - Batch AI matching
 GET /analyze/{candidate_id}    - Detailed candidate analysis
 ```
 
@@ -315,8 +316,8 @@ bhiv-hr-platform/
 ├── scripts/                    # Automation scripts
 ├── tools/                      # Data processing tools
 ├── config/                     # Configuration files
-├── data/                       # Real data (31 candidates)
-├── resume/                     # Resume files (31 files)
+├── data/                       # Real data (8 candidates)
+├── resume/                     # Resume files (29 files)
 ├── docker-compose.production.yml
 ├── PROJECT_STRUCTURE.md
 ├── DEPLOYMENT_STATUS.md
@@ -326,7 +327,7 @@ bhiv-hr-platform/
 ### **Services Directory**
 ```
 services/
-├── gateway/                    # API Gateway (48 endpoints)
+├── gateway/                    # API Gateway (49 endpoints)
 │   ├── app/
 │   │   ├── main.py            # FastAPI application (2,000+ lines)
 │   │   ├── monitoring.py      # Advanced monitoring system
@@ -334,7 +335,7 @@ services/
 │   ├── logs/                  # Application logs
 │   ├── Dockerfile
 │   └── requirements.txt       # FastAPI 0.115.6 + dependencies
-├── agent/                     # AI Matching Engine (5 endpoints)
+├── agent/                     # AI Matching Engine (6 endpoints)
 │   ├── app.py                 # FastAPI AI service (600+ lines)
 │   ├── Dockerfile
 │   └── requirements.txt       # AI/ML stack
@@ -466,7 +467,7 @@ python-dotenv: 1.0.0
 
 ---
 
-**BHIV HR Platform v3.1.0** - Enterprise recruiting solution with comprehensive microservices architecture, advanced security, and production-ready deployment.
+**BHIV HR Platform v3.1.1** - Enterprise recruiting solution with comprehensive microservices architecture, advanced security, and production-ready deployment.
 
 *Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
 

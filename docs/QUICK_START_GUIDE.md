@@ -210,7 +210,7 @@ docker exec bhivhraiplatform-db-1 psql -U bhiv_user -d bhiv_hr -c "SELECT COUNT(
 ## 🎯 Key Features to Try
 
 ### **✅ Must-Try Features**
-1. **Batch Resume Upload**: ✅ Upload multiple resumes and see extraction (31 files processed)
+1. **Batch Resume Upload**: ✅ Upload multiple resumes and see extraction (29 files available)
 2. **AI Matching**: ✅ Generate AI-powered candidate shortlists with differentiated scores
 3. **Real-time Sync**: ✅ Post job in Client Portal, see in HR Portal instantly
 4. **Values Assessment**: ✅ Complete 5-point values evaluation
@@ -218,11 +218,11 @@ docker exec bhivhraiplatform-db-1 psql -U bhiv_user -d bhiv_hr -c "SELECT COUNT(
 6. **Dynamic Dashboard**: ✅ Live data from database, no hardcoded values
 
 ### **🔍 Advanced Features**
-1. **API Integration**: ✅ Test all 46 API endpoints
+1. **API Integration**: ✅ Test all 55 API endpoints (49 Gateway + 6 Agent)
 2. **Security Features**: ✅ Try 2FA setup and rate limiting
 3. **Monitoring Dashboard**: ✅ View Prometheus metrics
 4. **Search & Filter**: ✅ Advanced candidate search capabilities
-5. **Real Data**: ✅ 31 candidates from actual resume files
+5. **Real Data**: ✅ 8 candidates from actual resume files
 6. **Error Handling**: ✅ Fixed skills match TypeError and batch upload paths
 
 ---
@@ -256,4 +256,4 @@ curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr
 
 **🎯 Ready to Start!** Choose your preferred option above and begin exploring the BHIV HR Platform's comprehensive recruiting capabilities.
 
-**Last Updated**: January 2025 | **Platform Version**: 3.1.0
+**Last Updated**: January 2025 | **Platform Version**: 3.1.1 | **Deployment**: Render Cloud

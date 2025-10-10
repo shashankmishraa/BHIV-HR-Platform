@@ -5,7 +5,7 @@
 **Last Updated**: January 3, 2025  
 **Status**: 🟢 ALL SERVICES OPERATIONAL  
 **Python Version**: 3.12.7  
-**Total Endpoints**: 53 (48 Gateway + 5 Agent)  
+**Total Endpoints**: 55 (49 Gateway + 6 Agent)  
 **Uptime**: 99.9%  
 **Cost**: $0/month (Free tier)
 
@@ -15,15 +15,15 @@
 
 | Service | URL | Technology | Status | Endpoints | Response Time |
 |---------|-----|------------|--------|-----------|---------------|
-| **API Gateway** | [bhiv-hr-gateway-46pz.onrender.com](https://bhiv-hr-gateway-46pz.onrender.com/docs) | FastAPI 0.115.6 + Python 3.12.7 | 🟢 Live | 48 | <100ms |
-| **AI Agent** | [bhiv-hr-agent-m1me.onrender.com](https://bhiv-hr-agent-m1me.onrender.com/docs) | FastAPI 0.115.6 + Python 3.12.7 | 🟢 Live | 5 | <50ms |
+| **API Gateway** | [bhiv-hr-gateway-46pz.onrender.com](https://bhiv-hr-gateway-46pz.onrender.com/docs) | FastAPI 0.115.6 + Python 3.12.7 | 🟢 Live | 49 | <100ms |
+| **AI Agent** | [bhiv-hr-agent-m1me.onrender.com](https://bhiv-hr-agent-m1me.onrender.com/docs) | FastAPI 0.115.6 + Python 3.12.7 | 🟢 Live | 6 | <50ms |
 | **HR Portal** | [bhiv-hr-portal-cead.onrender.com](https://bhiv-hr-portal-cead.onrender.com/) | Streamlit 1.41.1 + Python 3.12.7 | 🟢 Live | Web UI | <200ms |
 | **Client Portal** | [bhiv-hr-client-portal-5g33.onrender.com](https://bhiv-hr-client-portal-5g33.onrender.com/) | Streamlit 1.41.1 + Python 3.12.7 | 🟢 Live | Web UI | <200ms |
 | **Database** | PostgreSQL 17 | PostgreSQL 17 | 🟢 Live | - | <20ms |
 
 ---
 
-## 🔧 Gateway Service Endpoints (48 Total)
+## 🔧 Gateway Service Endpoints (49 Total)
 
 ### Core API (7 endpoints)
 - `GET /` - Service information
@@ -95,7 +95,7 @@
 
 ---
 
-## 🤖 Agent Service Endpoints (5 Total)
+## 🤖 Agent Service Endpoints (6 Total)
 
 ### Core (2 endpoints)
 - `GET /` - Service information
@@ -170,7 +170,7 @@ curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr
 ```
 
 ### Test Suite Results
-- ✅ All 53 endpoints functional
+- ✅ All 55 endpoints functional
 - ✅ Database connectivity verified
 - ✅ Authentication working
 - ✅ Rate limiting active
@@ -190,7 +190,7 @@ curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr
 - **Real Data**: 31 candidates from actual resume processing
 
 ### Recent Deployments
-- **Latest**: January 3, 2025 - 53 endpoints verified (48 Gateway + 5 Agent)
+- **Latest**: January 3, 2025 - 55 endpoints verified (49 Gateway + 6 Agent)
 - **Previous**: January 2, 2025 - Security enhancements and database consolidation
 - **Database Schema**: Consolidated to 11 tables with comprehensive indexing
 - **Real Data**: 31 candidates from processed resumes (30 PDF + 1 DOCX)
@@ -215,6 +215,6 @@ curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr
 
 ---
 
-**BHIV HR Platform v3.1.0** - Enterprise recruiting solution with 53 endpoints, advanced security, and global deployment.
+**BHIV HR Platform v3.1.0** - Enterprise recruiting solution with 55 endpoints, advanced security, and global deployment.
 
 *Status: 🟢 All Systems Operational | Cost: $0/month | Uptime: 99.9%*

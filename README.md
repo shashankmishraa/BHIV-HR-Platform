@@ -5,13 +5,13 @@
 ## 🌐 Live Production Platform
 
 ### **✅ Currently Deployed on Render**
-- **API Gateway**: bhiv-hr-gateway-46pz.onrender.com/docs ✅ (48 endpoints)
-- **AI Matching Engine**: bhiv-hr-agent-m1me.onrender.com/docs ✅ (5 endpoints)
+- **API Gateway**: bhiv-hr-gateway-46pz.onrender.com/docs ✅ (49 endpoints)
+- **AI Matching Engine**: bhiv-hr-agent-m1me.onrender.com/docs ✅ (6 endpoints)
 - **HR Portal**: bhiv-hr-portal-cead.onrender.com/ ✅
 - **Client Portal**: bhiv-hr-client-portal-5g33.onrender.com/ ✅
 - **Database**: PostgreSQL 17 on Render ✅
 - **Status**: 🟢 **ALL SERVICES OPERATIONAL** | **Cost**: $0/month (Free tier)
-- **Total Endpoints**: 53 (48 Gateway + 5 Agent) | **Updated**: January 2025
+- **Total Endpoints**: 55 (49 Gateway + 6 Agent) | **Updated**: January 2025
 - **Python Version**: 3.12.7 | **FastAPI**: 0.115.6 | **Streamlit**: 1.41.1
 
 ### **🔑 Demo Access**
@@ -74,9 +74,9 @@ docker-compose -f docker-compose.production.yml up -d
 | **Client Portal** | Client Interface | Streamlit 1.41.1 + Python 3.12.7 | 8502 | ✅ Live | bhiv-hr-client-portal-5g33.onrender.com |
 | **Database** | Data Storage | PostgreSQL 17 | 5432 | ✅ Live | Internal Render URL |
 
-### **API Endpoints (53 Total)**
+### **API Endpoints (55 Total)**
 ```
-Gateway Service (48 endpoints):
+Gateway Service (49 endpoints):
   Core API (7):           GET /, /health, /test-candidates, /metrics, /health/detailed, /metrics/dashboard, /candidates/stats
   Job Management (2):     GET /v1/jobs, POST /v1/jobs
   Candidate Mgmt (5):     GET /v1/candidates, GET /v1/candidates/{id}, GET /v1/candidates/search, POST /v1/candidates/bulk, GET /v1/candidates/job/{job_id}
@@ -89,9 +89,9 @@ Gateway Service (48 endpoints):
   Client Portal (1):      POST /v1/client/login
   Reports (1):           GET /v1/reports/job/{job_id}/export.csv
 
-Agent Service (5 endpoints):
+Agent Service (6 endpoints):
   Core (2):              GET /, GET /health
-  AI Processing (2):     POST /match, GET /analyze/{candidate_id}
+  AI Processing (3):     POST /match, POST /batch-match, GET /analyze/{candidate_id}
   Diagnostics (1):       GET /test-db
 ```
 
@@ -140,7 +140,7 @@ Agent Service (5 endpoints):
 ```
 bhiv-hr-platform/
 ├── services/                    # Microservices
-│   ├── gateway/                # API Gateway (48 endpoints)
+│   ├── gateway/                # API Gateway (49 endpoints)
 │   │   ├── app/               # Application code
 │   │   │   ├── main.py        # FastAPI application
 │   │   │   ├── monitoring.py  # Advanced monitoring system
@@ -148,7 +148,7 @@ bhiv-hr-platform/
 │   │   ├── logs/              # Application logs
 │   │   ├── Dockerfile         # Container configuration
 │   │   └── requirements.txt   # Dependencies
-│   ├── agent/                  # AI Matching Engine (5 endpoints)
+│   ├── agent/                  # AI Matching Engine (6 endpoints)
 │   ├── portal/                 # HR Dashboard
 │   ├── client_portal/          # Client Interface
 │   └── db/                     # Database Schema
@@ -344,9 +344,9 @@ python tools/auto_sync_watcher.py
 
 ### **📈 System Metrics**
 - **Total Services**: 5 (Database + 4 Web Services)
-- **API Endpoints**: 53 interactive endpoints (100% functional)
-- **Real Candidates**: ✅ 31 from actual resume files
-- **Resume Files**: ✅ 31 successfully processed
+- **API Endpoints**: 55 interactive endpoints (100% functional)
+- **Real Candidates**: ✅ 8 from actual resume files
+- **Resume Files**: ✅ 8 successfully processed
 - **Code Quality**: ✅ Production-ready with comprehensive error handling
 - **Test Coverage**: ✅ Complete test suite covering all functionality
 - **Documentation**: ✅ 100% complete and current
@@ -358,8 +358,8 @@ python tools/auto_sync_watcher.py
 ### **🔄 Recent Updates (October 2025)**
 - ✅ **Codebase Restructure**: Eliminated 55+ redundant files, organized professional structure
 - ✅ **Enhanced AI Matching**: Differentiated scoring algorithm with optimized performance
-- ✅ **53 API Endpoints**: All endpoints functional with comprehensive documentation (48 Gateway + 5 Agent)
-- ✅ **Real Data Integration**: 31 candidates from actual resume files
+- ✅ **55 API Endpoints**: All endpoints functional with comprehensive documentation (49 Gateway + 6 Agent)
+- ✅ **Real Data Integration**: 8 candidates from actual resume files
 - ✅ **Advanced Security**: 2FA, rate limiting, CSP policies, input validation
 - ✅ **Portal Integration**: Real-time sync between HR and Client portals
 - ✅ **Performance Optimizations**: Connection pooling (pool_size=10), Pydantic validation, timeout optimization

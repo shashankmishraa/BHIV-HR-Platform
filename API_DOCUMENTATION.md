@@ -9,7 +9,7 @@
 
 ## 📊 API Overview
 
-### **Total Endpoints**: 46
+### **Total Endpoints**: 55 (49 Gateway + 6 Agent)
 ### **Authentication**: Bearer Token
 ### **Rate Limiting**: 60 requests/minute (default), granular limits by endpoint
 ### **Response Format**: JSON
@@ -45,7 +45,7 @@ curl https://bhiv-hr-gateway-46pz.onrender.com/
   "message": "BHIV HR Platform API Gateway",
   "version": "3.1.0",
   "status": "healthy",
-  "endpoints": 46,
+  "endpoints": 55,
   "documentation": "/docs",
   "monitoring": "/metrics"
 }
@@ -84,7 +84,7 @@ curl -H "Authorization: Bearer YOUR_TOKEN" \
 ```json
 {
   "database_status": "connected",
-  "total_candidates": 68,
+  "total_candidates": 31,
   "test_timestamp": "2025-01-02T10:30:00Z"
 }
 ```
@@ -547,4 +547,4 @@ ReDoc format available at:
 
 **Last Updated**: January 2025  
 **API Version**: 3.1.0  
-**Status**: 🟢 All 46 Endpoints Operational
+**Status**: 🟢 All 55 Endpoints Operational (49 Gateway + 6 Agent)

@@ -1,10 +1,10 @@
 # 🎯 BHIV HR Platform - Current Features & Capabilities
 
-**Version**: 3.1.0 | **Updated**: January 2025 | **Status**: 🟢 Production Ready
+**Version**: 3.1.1 | **Updated**: January 2025 | **Status**: 🟢 Production Ready
 
 ## 📋 Feature Overview
 
-BHIV HR Platform is a comprehensive enterprise recruiting solution with 53 functional endpoints, 5 microservices, and real-time AI-powered candidate matching. All features are production-ready and operational.
+BHIV HR Platform is a comprehensive enterprise recruiting solution with 55 functional endpoints, 5 microservices, and real-time AI-powered candidate matching. All features are production-ready and operational.
 
 ---
 
@@ -12,7 +12,7 @@ BHIV HR Platform is a comprehensive enterprise recruiting solution with 53 funct
 
 ### **Microservices Architecture** ✅
 - **5 Services**: API Gateway, AI Agent, HR Portal, Client Portal, Database
-- **53 Endpoints**: 48 Gateway + 5 Agent endpoints
+- **55 Endpoints**: 49 Gateway + 6 Agent endpoints
 - **Production Deployment**: Render Cloud (Oregon, US West)
 - **Zero Cost**: $0/month operation on free tier
 - **High Availability**: 99.9% uptime with auto-recovery
@@ -21,12 +21,12 @@ BHIV HR Platform is a comprehensive enterprise recruiting solution with 53 funct
 - **PostgreSQL 17**: Latest stable version
 - **11 Tables**: Comprehensive schema with relationships
 - **25+ Indexes**: Performance optimization including GIN for full-text search
-- **Real Data**: 31 candidates from processed resumes
+- **Real Data**: 8 candidates from processed resumes
 - **Audit Logging**: Complete action tracking and compliance
 
 ---
 
-## 🔌 API Gateway Features (48 Endpoints)
+## 🔌 API Gateway Features (49 Endpoints)
 
 ### **Core Infrastructure (7 endpoints)** ✅
 - **Health Monitoring**: Multi-level health checks
@@ -99,13 +99,13 @@ BHIV HR Platform is a comprehensive enterprise recruiting solution with 53 funct
 
 ---
 
-## 🤖 AI Agent Features (5 Endpoints)
+## 🤖 AI Agent Features (6 Endpoints)
 
 ### **Core Services (2 endpoints)** ✅
 - **Health Monitoring**: Service health and status
 - **Service Information**: Version and capability reporting
 
-### **AI Processing (2 endpoints)** ✅
+### **AI Processing (3 endpoints)** ✅
 - **Dynamic Matching**: Advanced candidate-job matching algorithms
 - **Candidate Analysis**: Detailed profile analysis and insights
 - **Semantic Processing**: Natural language processing for skills matching
@@ -129,7 +129,7 @@ BHIV HR Platform is a comprehensive enterprise recruiting solution with 53 funct
 - **Profile Management**: Complete candidate profile handling
 - **Search & Filter**: Advanced candidate search capabilities
 - **Batch Operations**: Bulk candidate upload and processing
-- **Resume Processing**: 31 real resumes processed (30 PDF + 1 DOCX)
+- **Resume Processing**: 29 real resumes processed (28 PDF + 1 DOCX)
 
 ### **Job Management** ✅
 - **Job Creation**: Complete job posting workflow
@@ -218,7 +218,7 @@ BHIV HR Platform is a comprehensive enterprise recruiting solution with 53 funct
 
 ### **Resume Processing** ✅
 - **Multi-format Support**: PDF, DOCX, TXT files
-- **Real Data**: 31 candidates from actual resumes
+- **Real Data**: 8 candidates from actual resumes
 - **High Accuracy**: Structured data extraction
 - **Batch Processing**: Multiple file handling
 - **Error Handling**: Comprehensive error tracking
@@ -318,12 +318,12 @@ BHIV HR Platform is a comprehensive enterprise recruiting solution with 53 funct
 ## 🎯 Feature Status Summary
 
 ### **✅ Fully Implemented & Operational**
-- **Microservices Architecture**: 5 services with 53 endpoints
+- **Microservices Architecture**: 5 services with 55 endpoints
 - **Database Management**: PostgreSQL 17 with 11 tables
 - **Security Implementation**: Comprehensive security suite
 - **AI Matching**: Dynamic candidate matching
 - **Portal Interfaces**: HR and Client portals
-- **Real Data Processing**: 31 candidates from actual resumes
+- **Real Data Processing**: 8 candidates from actual resumes
 - **Production Deployment**: Live on Render Cloud
 - **Testing Suite**: Comprehensive test coverage
 - **Documentation**: Complete technical documentation
@@ -336,16 +336,16 @@ BHIV HR Platform is a comprehensive enterprise recruiting solution with 53 funct
 
 ### **📊 Key Metrics**
 - **Services**: 5 operational
-- **Endpoints**: 53 functional
+- **Endpoints**: 55 functional
 - **Database Tables**: 11 with relationships
-- **Real Candidates**: 31 processed
+- **Real Candidates**: 8 processed
 - **Uptime**: 99.9%
 - **Cost**: $0/month
 - **Response Time**: <100ms average
 
 ---
 
-**BHIV HR Platform v3.1.0** - Complete enterprise recruiting solution with comprehensive features, advanced security, and production-ready deployment.
+**BHIV HR Platform v3.1.1** - Complete enterprise recruiting solution with comprehensive features, advanced security, and production-ready deployment.
 
 *Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
 
