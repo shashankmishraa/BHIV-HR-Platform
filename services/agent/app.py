@@ -11,15 +11,17 @@ import sys
 
 # Add semantic engine to path
 import os, sys
-sys.path.insert(0, os.path.abspath(os.path.join(__file__, "..", "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 try:
-    from services.semantic_engine.job_matcher import SemanticJobMatcher
-    from services.semantic_engine.advanced_matcher import AdvancedSemanticMatcher, BatchMatcher
+    from semantic_engine.job_matcher import SemanticJobMatcher
+    from semantic_engine.advanced_matcher import AdvancedSemanticMatcher, BatchMatcher
     SEMANTIC_ENABLED = True
-except ImportError:
+    print("INFO: Phase 1 - Using fallback matching (real AI in Phase 2)")
+except ImportError as e:
     SEMANTIC_ENABLED = False
-    print("WARNING: Semantic matching not available, using fallback")
+    print(f"WARNING: Semantic engine not available: {e}")
+    print("INFO: Continuing with basic keyword matching only")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -54,16 +56,16 @@ def custom_openapi():
 
 app.openapi = custom_openapi
 
-# Initialize semantic matchers
+# Initialize semantic matchers (Phase 1 - Fallback)
 semantic_matcher = None
 advanced_matcher = None
 if SEMANTIC_ENABLED:
     try:
         semantic_matcher = SemanticJobMatcher()
         advanced_matcher = AdvancedSemanticMatcher()
-        print("SUCCESS: Advanced semantic matching enabled")
+        print("SUCCESS: Phase 1 fallback matchers initialized")
     except Exception as e:
-        print(f"Failed to initialize semantic matcher: {e}")
+        print(f"Failed to initialize matchers: {e}")
         SEMANTIC_ENABLED = False
 
 class MatchRequest(BaseModel):
@@ -314,7 +316,7 @@ async def match_candidates(request: MatchRequest):
                 top_candidates=[],
                 total_candidates=0,
                 processing_time=0.0,
-                algorithm_version="2.0.0-fallback",
+                algorithm_version="2.0.0-phase1-fallback",
                 status="database_error"
             )
         
@@ -334,7 +336,7 @@ async def match_candidates(request: MatchRequest):
                 top_candidates=[],
                 total_candidates=0,
                 processing_time=0.0,
-                algorithm_version="2.0.0-dynamic",
+                algorithm_version="2.0.0-phase1-fallback",
                 status="job_not_found"
             )
         
@@ -359,7 +361,7 @@ async def match_candidates(request: MatchRequest):
                 top_candidates=[],
                 total_candidates=0,
                 processing_time=0.0,
-                algorithm_version="2.0.0-dynamic",
+                algorithm_version="2.0.0-phase1-fallback",
                 status="no_candidates"
             )
         
@@ -537,7 +539,7 @@ async def match_candidates(request: MatchRequest):
             top_candidates=top_candidates,
             total_candidates=len(candidates),
             processing_time=round(processing_time, 3),
-            algorithm_version="2.0.0-dynamic",
+            algorithm_version="2.0.0-phase1-fallback",
             status="success"
         )
         
@@ -548,7 +550,7 @@ async def match_candidates(request: MatchRequest):
             top_candidates=[],
             total_candidates=0,
             processing_time=(datetime.now() - start_time).total_seconds(),
-            algorithm_version="2.0.0-fallback",
+            algorithm_version="2.0.0-phase1-fallback",
             status="error"
         )
     finally:
