@@ -278,7 +278,7 @@ def read_root():
         "message": "BHIV HR Platform API Gateway",
         "version": "3.1.0",
         "status": "healthy",
-        "endpoints": 48,
+        "endpoints": 49,
         "documentation": "/docs",
         "monitoring": "/metrics",
         "live_demo": "https://bhiv-platform.aws.example.com"
@@ -609,13 +609,65 @@ async def bulk_upload_candidates(candidates: CandidateBulk, api_key: str = Depen
             "status": "failed"
         }
 
-# AI Matching Engine (1 endpoint)
+# AI Matching Engine (2 endpoints)
 @app.get("/v1/match/{job_id}/top", tags=["AI Matching Engine"])
 async def get_top_matches(job_id: int, limit: int = 10, api_key: str = Depends(get_api_key)):
-    """Semantic candidate matching and ranking"""
+    """AI-powered semantic candidate matching via Agent Service"""
     if job_id < 1 or limit < 1 or limit > 50:
         raise HTTPException(status_code=400, detail="Invalid parameters")
     
+    try:
+        import httpx
+        agent_url = os.getenv("AGENT_SERVICE_URL", "https://bhiv-hr-agent-m1me.onrender.com")
+        
+        # Call agent service for AI matching
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                f"{agent_url}/match",
+                json={"job_id": job_id},
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                agent_result = response.json()
+                
+                # Transform agent response to gateway format
+                matches = []
+                for candidate in agent_result.get("top_candidates", [])[:limit]:
+                    matches.append({
+                        "candidate_id": candidate.get("candidate_id"),
+                        "name": candidate.get("name"),
+                        "email": candidate.get("email"),
+                        "score": candidate.get("score"),
+                        "skills_match": ", ".join(candidate.get("skills_match", [])),
+                        "experience_match": candidate.get("experience_match"),
+                        "location_match": candidate.get("location_match"),
+                        "reasoning": candidate.get("reasoning"),
+                        "recommendation_strength": "Strong Match" if candidate.get("score", 0) > 80 else "Good Match"
+                    })
+                
+                return {
+                    "matches": matches,
+                    "top_candidates": matches,
+                    "job_id": job_id,
+                    "limit": limit,
+                    "total_candidates": agent_result.get("total_candidates", 0),
+                    "algorithm_version": agent_result.get("algorithm_version", "2.0.0-phase2-ai"),
+                    "processing_time": f"{agent_result.get('processing_time', 0)}s",
+                    "ai_analysis": "Real AI semantic matching via Agent Service",
+                    "agent_status": "connected"
+                }
+            else:
+                # Fallback to database matching if agent service fails
+                return await fallback_matching(job_id, limit)
+                
+    except Exception as e:
+        log_error("agent_service_error", str(e), {"job_id": job_id})
+        # Fallback to database matching
+        return await fallback_matching(job_id, limit)
+
+async def fallback_matching(job_id: int, limit: int):
+    """Fallback matching when agent service is unavailable"""
     try:
         engine = get_db_engine()
         with engine.connect() as connection:
@@ -625,24 +677,56 @@ async def get_top_matches(job_id: int, limit: int = 10, api_key: str = Depends(g
                 "candidate_id": row[0],
                 "name": row[1],
                 "email": row[2],
-                "score": 85.5,
+                "score": 75.0 + (row[0] % 20),  # Varied scores
                 "skills_match": row[3] or "",
-                "experience_match": 80.0,
-                "values_alignment": 4.2,
-                "recommendation_strength": "Strong Match"
+                "experience_match": "Database fallback",
+                "location_match": True,
+                "reasoning": "Fallback database matching",
+                "recommendation_strength": "Database Match"
             } for row in result]
         
         return {
-            "matches": matches, 
+            "matches": matches,
             "top_candidates": matches,
-            "job_id": job_id, 
-            "limit": limit, 
-            "algorithm_version": "v2.0.0-fallback",
+            "job_id": job_id,
+            "limit": limit,
+            "algorithm_version": "2.0.0-gateway-fallback",
             "processing_time": "0.05s",
-            "ai_analysis": "Database fallback matching with sample scoring"
+            "ai_analysis": "Database fallback - Agent service unavailable",
+            "agent_status": "disconnected"
         }
     except Exception as e:
-        return {"matches": [], "job_id": job_id, "limit": limit, "error": str(e)}
+        return {"matches": [], "job_id": job_id, "limit": limit, "error": str(e), "agent_status": "error"}
+
+@app.post("/v1/match/batch", tags=["AI Matching Engine"])
+async def batch_match_jobs(job_ids: List[int], api_key: str = Depends(get_api_key)):
+    """Batch AI matching via Agent Service"""
+    if not job_ids or len(job_ids) == 0:
+        raise HTTPException(status_code=400, detail="At least one job ID is required")
+    
+    if len(job_ids) > 10:
+        raise HTTPException(status_code=400, detail="Maximum 10 jobs can be processed in batch")
+    
+    try:
+        import httpx
+        agent_url = os.getenv("AGENT_SERVICE_URL", "https://bhiv-hr-agent-m1me.onrender.com")
+        
+        # Call agent service for batch AI matching
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(
+                f"{agent_url}/batch-match",
+                json={"job_ids": job_ids},
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                raise HTTPException(status_code=response.status_code, detail="Agent service error")
+                
+    except Exception as e:
+        log_error("batch_matching_error", str(e), {"job_ids": job_ids})
+        raise HTTPException(status_code=500, detail=f"Batch matching failed: {str(e)}")
 
 # Assessment & Workflow (5 endpoints)
 @app.post("/v1/feedback", tags=["Assessment & Workflow"])

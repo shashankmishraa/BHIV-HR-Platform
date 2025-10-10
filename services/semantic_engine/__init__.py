@@ -1,5 +1,5 @@
-# Semantic Engine Package - Phase 1 Fallback Implementation
-# Phase 2 will implement real AI with sentence transformers
+# Semantic Engine Package - Phase 2 Real AI Implementation
+# Powered by sentence transformers and semantic similarity
 
-__version__ = "1.0.0-phase1-fallback"
+__version__ = "2.0.0-phase2-ai"
 __all__ = ["SemanticJobMatcher", "AdvancedSemanticMatcher", "BatchMatcher"]

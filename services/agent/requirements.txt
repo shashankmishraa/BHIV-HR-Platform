@@ -1,11 +1,11 @@
-# Phase 1: Core Dependencies (Production Ready)
+# Phase 1: Core Dependencies
 fastapi==0.115.6
 uvicorn==0.32.1
 pydantic==2.10.3
 psycopg2-binary==2.9.10
 typing-extensions>=4.10.0
 
-# Phase 2: AI Dependencies (Uncomment when ready for real AI)
-# sentence-transformers==3.0.1  # 80MB semantic similarity model
-# numpy==1.26.4                 # Vector operations for embeddings
-# scikit-learn==1.3.2          # Cosine similarity calculations
+# Phase 2: AI Dependencies (ACTIVE)
+sentence-transformers==3.0.1  # 80MB semantic similarity model
+numpy==1.26.4                 # Vector operations for embeddings
+scikit-learn==1.3.2          # Cosine similarity calculations

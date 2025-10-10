@@ -4,24 +4,23 @@ import psycopg2
 from psycopg2 import pool
 import os
 import json
-from typing import List, Dict, Any
-import logging
-from datetime import datetime
 import sys
+import logging
+from typing import List, Dict, Any
+from datetime import datetime
 
 # Add semantic engine to path
-import os, sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 try:
     from semantic_engine.job_matcher import SemanticJobMatcher
     from semantic_engine.advanced_matcher import AdvancedSemanticMatcher, BatchMatcher
     SEMANTIC_ENABLED = True
-    print("INFO: Phase 1 - Using fallback matching (real AI in Phase 2)")
+    print("INFO: Phase 2 - Real AI semantic matching enabled")
 except ImportError as e:
     SEMANTIC_ENABLED = False
     print(f"WARNING: Semantic engine not available: {e}")
-    print("INFO: Continuing with basic keyword matching only")
+    print("INFO: Falling back to keyword matching")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -56,16 +55,18 @@ def custom_openapi():
 
 app.openapi = custom_openapi
 
-# Initialize semantic matchers (Phase 1 - Fallback)
+# Initialize semantic matchers (Phase 2 - Real AI)
 semantic_matcher = None
 advanced_matcher = None
+batch_matcher = None
 if SEMANTIC_ENABLED:
     try:
         semantic_matcher = SemanticJobMatcher()
         advanced_matcher = AdvancedSemanticMatcher()
-        print("SUCCESS: Phase 1 fallback matchers initialized")
+        batch_matcher = BatchMatcher()
+        print("SUCCESS: Phase 2 AI matchers initialized")
     except Exception as e:
-        print(f"Failed to initialize matchers: {e}")
+        print(f"Failed to initialize AI matchers: {e}")
         SEMANTIC_ENABLED = False
 
 class MatchRequest(BaseModel):
@@ -254,12 +255,13 @@ def read_root():
     return {
         "service": "BHIV AI Agent",
         "version": "2.1.0",
-        "endpoints": 5,
+        "endpoints": 6,
         "available_endpoints": {
             "root": "GET / - Service information",
             "health": "GET /health - Service health check", 
             "test_db": "GET /test-db - Database connectivity test",
             "match": "POST /match - AI-powered candidate matching",
+            "batch_match": "POST /batch-match - Batch AI matching for multiple jobs",
             "analyze": "GET /analyze/{candidate_id} - Detailed candidate analysis"
         }
     }
@@ -268,8 +270,8 @@ def read_root():
 def health_check():
     return {
         "status": "healthy",
-        "service": "Talah AI Agent",
-        "version": "1.0.0",
+        "service": "BHIV AI Agent",
+        "version": "2.1.0",
         "timestamp": datetime.now().isoformat()
     }
 
@@ -316,7 +318,7 @@ async def match_candidates(request: MatchRequest):
                 top_candidates=[],
                 total_candidates=0,
                 processing_time=0.0,
-                algorithm_version="2.0.0-phase1-fallback",
+                algorithm_version="2.0.0-phase2-ai",
                 status="database_error"
             )
         
@@ -336,7 +338,7 @@ async def match_candidates(request: MatchRequest):
                 top_candidates=[],
                 total_candidates=0,
                 processing_time=0.0,
-                algorithm_version="2.0.0-phase1-fallback",
+                algorithm_version="2.0.0-phase2-ai",
                 status="job_not_found"
             )
         
@@ -361,17 +363,114 @@ async def match_candidates(request: MatchRequest):
                 top_candidates=[],
                 total_candidates=0,
                 processing_time=0.0,
-                algorithm_version="2.0.0-phase1-fallback",
+                algorithm_version="2.0.0-phase2-ai",
                 status="no_candidates"
             )
         
-        # Dynamic scoring based on job-specific requirements
+        # Phase 2: Real AI Semantic Matching
         scored_candidates = []
         
-        # Extract job-specific keywords for dynamic matching
-        job_text = f"{job_title} {job_desc} {job_requirements}".lower()
+        # Try semantic matching first (Phase 2)
+        if SEMANTIC_ENABLED and advanced_matcher and advanced_matcher.enabled:
+            logger.info("Using Phase 2 AI semantic matching")
+            
+            job_data = {
+                'id': request.job_id,
+                'title': job_title,
+                'description': job_desc,
+                'requirements': job_requirements,
+                'location': job_location,
+                'experience_level': job_level
+            }
+            
+            # Convert candidates to dict format for semantic matching
+            candidates_dict = []
+            for candidate in candidates:
+                cand_id, name, email, phone, location, exp_years, skills, seniority, education = candidate
+                candidates_dict.append({
+                    'id': cand_id,
+                    'name': name,
+                    'email': email,
+                    'phone': phone,
+                    'location': location,
+                    'experience_years': exp_years,
+                    'technical_skills': skills,
+                    'seniority_level': seniority,
+                    'education_level': education
+                })
+            
+            # Use advanced semantic matching
+            semantic_results = advanced_matcher.advanced_match(job_data, candidates_dict)
+            
+            if semantic_results:
+                logger.info(f"Semantic matching found {len(semantic_results)} scored candidates")
+                
+                for result in semantic_results:
+                    candidate_data = result['candidate_data']
+                    score_breakdown = result['score_breakdown']
+                    
+                    # Convert semantic score to 45-95 range for consistency
+                    semantic_score = result['total_score']
+                    display_score = 45 + (semantic_score * 50)  # Scale 0-1 to 45-95
+                    
+                    # Extract matched skills from breakdown
+                    skills_match = []
+                    if candidate_data.get('technical_skills'):
+                        # Use semantic skill extraction
+                        skills_text = candidate_data['technical_skills'].lower()
+                        job_req_lower = (job_requirements or '').lower()
+                        
+                        # Basic skill extraction for display
+                        tech_keywords = ['python', 'java', 'javascript', 'react', 'node', 'sql', 'mongodb', 'aws', 'docker']
+                        for skill in tech_keywords:
+                            if skill in skills_text and skill in job_req_lower:
+                                skills_match.append(skill.title())
+                    
+                    # Create reasoning from semantic breakdown
+                    reasoning_parts = []
+                    if score_breakdown.get('semantic_similarity', 0) > 0.3:
+                        reasoning_parts.append(f"Semantic match: {score_breakdown['semantic_similarity']:.2f}")
+                    if skills_match:
+                        reasoning_parts.append(f"Skills: {', '.join(skills_match[:3])}")
+                    if score_breakdown.get('experience_match', 0) > 0.5:
+                        reasoning_parts.append(f"Experience: {candidate_data.get('experience_years', 0)}y")
+                    if score_breakdown.get('location_match', 0) > 0.5:
+                        reasoning_parts.append(f"Location: {candidate_data.get('location', 'Unknown')}")
+                    
+                    reasoning = "; ".join(reasoning_parts) if reasoning_parts else "AI semantic analysis"
+                    
+                    scored_candidates.append(CandidateScore(
+                        candidate_id=candidate_data['id'],
+                        name=candidate_data['name'],
+                        email=candidate_data['email'],
+                        score=round(display_score, 1),
+                        skills_match=skills_match[:5],
+                        experience_match=f"{candidate_data.get('experience_years', 0)}y - AI matched",
+                        location_match=score_breakdown.get('location_match', 0) > 0.5,
+                        reasoning=reasoning
+                    ))
+                
+                # Sort by score and ensure proper differentiation
+                scored_candidates.sort(key=lambda x: x.score, reverse=True)
+                
+                # Apply score differentiation to prevent clustering
+                for i in range(1, len(scored_candidates)):
+                    if scored_candidates[i].score >= scored_candidates[i-1].score:
+                        scored_candidates[i].score = round(scored_candidates[i-1].score - 0.8, 1)
+                
+                logger.info(f"Phase 2 AI matching completed with {len(scored_candidates)} candidates")
+            
+            else:
+                logger.warning("Semantic matching returned no results, falling back to keyword matching")
         
-        # Dynamic skill extraction based on job requirements
+        # Fallback to keyword matching if semantic matching failed or unavailable
+        if not scored_candidates:
+            logger.info("Using fallback keyword matching")
+            
+            # Extract job-specific keywords for dynamic matching
+            job_text = f"{job_title} {job_desc} {job_requirements}".lower()
+            
+            # Dynamic skill extraction based on job requirements
         tech_skills_map = {
             'python': ['python', 'django', 'flask', 'pandas', 'numpy'],
             'java': ['java', 'spring', 'hibernate', 'maven', 'gradle'],
@@ -514,19 +613,20 @@ async def match_candidates(request: MatchRequest):
                 reasoning=reasoning
             ))
         
-        # Sort by score and get top candidates with enhanced differentiation
-        scored_candidates.sort(key=lambda x: x.score, reverse=True)
+            # Sort by score and get top candidates with enhanced differentiation
+            scored_candidates.sort(key=lambda x: x.score, reverse=True)
+            
+            # Enhanced score differentiation to prevent clustering (fallback only)
+            for i in range(1, len(scored_candidates)):
+                if abs(scored_candidates[i].score - scored_candidates[i-1].score) < 0.5:
+                    scored_candidates[i].score = round(scored_candidates[i].score - (i * 0.7), 1)
+            
+            # Final score adjustment to ensure proper ranking (fallback only)
+            for i, candidate in enumerate(scored_candidates):
+                if i > 0 and candidate.score >= scored_candidates[i-1].score:
+                    candidate.score = round(scored_candidates[i-1].score - 0.8, 1)
         
-        # Enhanced score differentiation to prevent clustering
-        for i in range(1, len(scored_candidates)):
-            if abs(scored_candidates[i].score - scored_candidates[i-1].score) < 0.5:
-                scored_candidates[i].score = round(scored_candidates[i].score - (i * 0.7), 1)
-        
-        # Final score adjustment to ensure proper ranking
-        for i, candidate in enumerate(scored_candidates):
-            if i > 0 and candidate.score >= scored_candidates[i-1].score:
-                candidate.score = round(scored_candidates[i-1].score - 0.8, 1)
-        
+        # Get top candidates
         top_candidates = scored_candidates[:10]
         
         cursor.close()
@@ -539,7 +639,7 @@ async def match_candidates(request: MatchRequest):
             top_candidates=top_candidates,
             total_candidates=len(candidates),
             processing_time=round(processing_time, 3),
-            algorithm_version="2.0.0-phase1-fallback",
+            algorithm_version="2.0.0-phase2-ai",
             status="success"
         )
         
@@ -550,9 +650,103 @@ async def match_candidates(request: MatchRequest):
             top_candidates=[],
             total_candidates=0,
             processing_time=(datetime.now() - start_time).total_seconds(),
-            algorithm_version="2.0.0-phase1-fallback",
+            algorithm_version="2.0.0-phase2-ai",
             status="error"
         )
+    finally:
+        if conn:
+            return_db_connection(conn)
+
+class BatchMatchRequest(BaseModel):
+    job_ids: List[int]
+
+@app.post("/batch-match", tags=["AI Matching Engine"], summary="Batch AI Matching for Multiple Jobs")
+async def batch_match_jobs(request: BatchMatchRequest):
+    """Batch AI matching for multiple jobs using Phase 2 semantic engine"""
+    if not SEMANTIC_ENABLED or not batch_matcher or not batch_matcher.enabled:
+        raise HTTPException(status_code=503, detail="AI batch matching not available")
+    
+    if not request.job_ids or len(request.job_ids) == 0:
+        raise HTTPException(status_code=400, detail="At least one job ID is required")
+    
+    if len(request.job_ids) > 10:
+        raise HTTPException(status_code=400, detail="Maximum 10 jobs can be processed in batch")
+    
+    conn = None
+    try:
+        conn = get_db_connection()
+        if not conn:
+            raise HTTPException(status_code=500, detail="Database connection failed")
+        
+        cursor = conn.cursor()
+        
+        # Get jobs data
+        cursor.execute("""
+            SELECT id, title, description, department, location, experience_level, requirements
+            FROM jobs WHERE id = ANY(%s)
+        """, (request.job_ids,))
+        
+        jobs_data = cursor.fetchall()
+        if not jobs_data:
+            raise HTTPException(status_code=404, detail="No jobs found")
+        
+        # Get all candidates
+        cursor.execute("""
+            SELECT id, name, email, phone, location, experience_years, 
+                   technical_skills, seniority_level, education_level
+            FROM candidates 
+            ORDER BY created_at DESC
+        """)
+        
+        candidates_data = cursor.fetchall()
+        
+        # Format data for batch processing
+        jobs = []
+        for job in jobs_data:
+            job_id, title, desc, dept, location, level, requirements = job
+            jobs.append({
+                'id': job_id,
+                'title': title,
+                'description': desc,
+                'department': dept,
+                'location': location,
+                'experience_level': level,
+                'requirements': requirements
+            })
+        
+        candidates = []
+        for candidate in candidates_data:
+            cand_id, name, email, phone, location, exp_years, skills, seniority, education = candidate
+            candidates.append({
+                'id': cand_id,
+                'name': name,
+                'email': email,
+                'phone': phone,
+                'location': location,
+                'experience_years': exp_years,
+                'technical_skills': skills,
+                'seniority_level': seniority,
+                'education_level': education
+            })
+        
+        # Process batch matching
+        results = batch_matcher.batch_process(jobs, candidates)
+        
+        cursor.close()
+        
+        return {
+            "batch_results": results,
+            "total_jobs_processed": len(jobs),
+            "total_candidates_analyzed": len(candidates),
+            "algorithm_version": "2.0.0-phase2-ai-batch",
+            "status": "success"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Batch matching error: {e}")
+        raise HTTPException(status_code=500, detail=f"Batch matching failed: {str(e)}")
     finally:
         if conn:
             return_db_connection(conn)
@@ -595,6 +789,14 @@ async def analyze_candidate(candidate_id: int):
             if found_skills:
                 categorized_skills[category] = found_skills
         
+        # Phase 2: Add semantic skill extraction if available
+        semantic_skills = []
+        if SEMANTIC_ENABLED and advanced_matcher and advanced_matcher.enabled:
+            try:
+                semantic_skills = advanced_matcher.extract_skills_semantically(skills or "")
+            except Exception as e:
+                logger.error(f"Semantic skill extraction failed: {e}")
+        
         return {
             "candidate_id": candidate_id,
             "name": name,
@@ -604,7 +806,9 @@ async def analyze_candidate(candidate_id: int):
             "education_level": education,
             "location": location,
             "skills_analysis": categorized_skills,
+            "semantic_skills": semantic_skills,
             "total_skills": len(skills.split(',')) if skills else 0,
+            "ai_analysis_enabled": SEMANTIC_ENABLED and advanced_matcher and advanced_matcher.enabled,
             "analysis_timestamp": datetime.now().isoformat()
         }
         cursor.close()
