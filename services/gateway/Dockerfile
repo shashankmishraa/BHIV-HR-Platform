@@ -10,7 +10,7 @@ RUN pip install --no-cache-dir --timeout 300 --retries 3 -r requirements.txt
 COPY app/ ./app/
 
 # Expose port (Render will use PORT env variable)
-EXPOSE 8000
+EXPOSE $PORT
 
 # Important: Use PORT environment variable for Render with tuned timeouts
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --timeout-keep-alive 30"]

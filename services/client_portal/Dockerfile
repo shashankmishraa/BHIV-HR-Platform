@@ -7,6 +7,6 @@ RUN pip install --no-cache-dir --timeout 300 --retries 3 -r requirements.txt
 
 COPY . .
 
-EXPOSE 8502
+EXPOSE $PORT
 
-CMD ["sh", "-c", "streamlit run app.py --server.port ${PORT:-8502} --server.address 0.0.0.0 --server.headless true --server.enableCORS false --server.enableXsrfProtection false"]
+CMD ["sh", "-c", "streamlit run app.py --server.port ${PORT:-8502} --server.address 0.0.0.0 --server.headless true --server.enableCORS false --server.enableXsrfProtection false --browser.gatherUsageStats false"]
