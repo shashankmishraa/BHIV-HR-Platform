@@ -17,7 +17,7 @@ asyncpg==0.30.0
 # Phase 3 AI Dependencies (Required)
 sentence-transformers==5.1.1
 scikit-learn==1.7.2
-numpy==2.3.3
+numpy==1.26.4
 torch>=2.0.0
 transformers>=4.30.0
 
