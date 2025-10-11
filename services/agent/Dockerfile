@@ -3,16 +3,16 @@ FROM python:3.12.7-slim
 WORKDIR /app
 
 # Copy requirements first for better caching
-COPY agent/requirements.txt .
+COPY services/agent/requirements.txt .
 
 # Install dependencies
 RUN pip install --no-cache-dir --timeout 300 --retries 3 -r requirements.txt
 
 # Copy application files
-COPY agent/ .
+COPY services/agent/ .
 
 # Copy shared semantic_engine from services directory
-COPY semantic_engine ./semantic_engine
+COPY services/semantic_engine ./semantic_engine
 
 # Expose port
 EXPOSE $PORT
