@@ -23,7 +23,9 @@ services:
       start_period: 30s
 
   gateway:
-    build: ./services/gateway
+    build:
+      context: ./services
+      dockerfile: gateway/Dockerfile
     ports:
       - "8000:8000"
     environment:
@@ -45,7 +47,9 @@ services:
     # Production URL: bhiv-hr-gateway-46pz.onrender.com
 
   agent:
-    build: ./services/agent
+    build:
+      context: ./services
+      dockerfile: agent/Dockerfile
     ports:
       - "9000:9000"
     environment:
