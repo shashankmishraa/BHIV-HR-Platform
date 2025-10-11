@@ -8,12 +8,12 @@ services:
     environment:
       POSTGRES_DB: bhiv_hr
       POSTGRES_USER: bhiv_user
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-bhiv_pass}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-bhiv_local_password_2025}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./services/db/consolidated_schema.sql:/docker-entrypoint-initdb.d/init.sql
+      - ../../services/db/consolidated_schema.sql:/docker-entrypoint-initdb.d/init.sql
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U bhiv_user -d bhiv_hr"]
@@ -24,16 +24,16 @@ services:
 
   gateway:
     build:
-      context: ./services
+      context: ../../services
       dockerfile: gateway/Dockerfile
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD}@db:5432/bhiv_hr
-      API_KEY_SECRET: ${API_KEY_SECRET}
-      JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD:-bhiv_local_password_2025}@db:5432/bhiv_hr
+      API_KEY_SECRET: ${API_KEY_SECRET:-prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o}
+      JWT_SECRET: ${JWT_SECRET:-prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA}
     volumes:
-      - ./services/gateway/logs:/app/logs
+      - ../../services/gateway/logs:/app/logs
     depends_on:
       db:
         condition: service_healthy
@@ -48,14 +48,14 @@ services:
 
   agent:
     build:
-      context: ./services
+      context: ../../services
       dockerfile: agent/Dockerfile
     ports:
       - "9000:9000"
     environment:
-      DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD}@db:5432/bhiv_hr
-      API_KEY_SECRET: ${API_KEY_SECRET}
-      JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD:-bhiv_local_password_2025}@db:5432/bhiv_hr
+      API_KEY_SECRET: ${API_KEY_SECRET:-prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o}
+      JWT_SECRET: ${JWT_SECRET:-prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA}
     depends_on:
       db:
         condition: service_healthy
@@ -69,13 +69,13 @@ services:
     # Production URL: bhiv-hr-agent-m1me.onrender.com
 
   portal:
-    build: ./services/portal
+    build: ../../services/portal
     ports:
       - "8501:8501"
     environment:
       GATEWAY_URL: http://gateway:8000
-      API_KEY_SECRET: ${API_KEY_SECRET}
-      JWT_SECRET: ${JWT_SECRET}
+      API_KEY_SECRET: ${API_KEY_SECRET:-prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o}
+      JWT_SECRET: ${JWT_SECRET:-prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA}
     depends_on:
       gateway:
         condition: service_healthy
@@ -94,14 +94,14 @@ services:
     # Production URL: bhiv-hr-portal-cead.onrender.com
 
   client_portal:
-    build: ./services/client_portal
+    build: ../../services/client_portal
     ports:
       - "8502:8502"
     environment:
       GATEWAY_URL: http://gateway:8000
-      API_KEY_SECRET: ${API_KEY_SECRET}
-      JWT_SECRET: ${JWT_SECRET}
-      DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD}@db:5432/bhiv_hr
+      API_KEY_SECRET: ${API_KEY_SECRET:-prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o}
+      JWT_SECRET: ${JWT_SECRET:-prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA}
+      DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD:-bhiv_local_password_2025}@db:5432/bhiv_hr
     depends_on:
       gateway:
         condition: service_healthy
