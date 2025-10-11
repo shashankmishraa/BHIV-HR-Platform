@@ -3,14 +3,14 @@ FROM python:3.12.7-slim
 WORKDIR /app
 
 # Copy requirements
-COPY services/gateway/requirements.txt .
+COPY requirements.txt .
 RUN pip install --no-cache-dir --timeout 300 --retries 3 -r requirements.txt
 
 # Copy application code
-COPY services/gateway/app/ ./app/
+COPY app/ ./app/
 
-# Copy shared semantic_engine from services directory
-COPY services/semantic_engine ./semantic_engine
+# Copy shared semantic_engine from parent services directory
+COPY ../semantic_engine ./semantic_engine
 
 # Expose port (Render will use PORT env variable)
 EXPOSE $PORT
