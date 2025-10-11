@@ -3,7 +3,14 @@ File security utilities for safe file handling
 """
 import os
 from pathlib import Path
-from werkzeug.utils import secure_filename
+# from werkzeug.utils import secure_filename
+# Use simple filename sanitization instead
+def secure_filename(filename):
+    """Simple filename sanitization"""
+    import re
+    filename = re.sub(r'[^\w\s.-]', '', filename).strip()
+    filename = re.sub(r'[-\s]+', '-', filename)
+    return filename
 
 ALLOWED_EXTENSIONS = {'.pdf', '.docx', '.doc', '.txt'}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB

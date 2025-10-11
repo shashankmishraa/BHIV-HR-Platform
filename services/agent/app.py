@@ -9,16 +9,32 @@ import logging
 from typing import List, Dict, Any
 from datetime import datetime
 
-# Add semantic engine to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# Import Phase 3 engine using absolute paths
+semantic_engine_path = "/app/services/semantic_engine"
+services_path = "/app/services"
 
-from semantic_engine.phase3_engine import (
-    Phase3SemanticEngine,
-    AdvancedSemanticMatcher,
-    BatchMatcher,
-    LearningEngine,
-    SemanticJobMatcher
-)
+# Add paths for both local and deployment
+sys.path.insert(0, semantic_engine_path)
+sys.path.insert(0, services_path)
+sys.path.insert(0, "/app")
+
+try:
+    from semantic_engine import (
+        Phase3SemanticEngine,
+        AdvancedSemanticMatcher,
+        BatchMatcher,
+        LearningEngine,
+        SemanticJobMatcher
+    )
+except ImportError:
+    # Direct import fallback
+    from phase3_engine import (
+        Phase3SemanticEngine,
+        AdvancedSemanticMatcher,
+        BatchMatcher,
+        LearningEngine,
+        SemanticJobMatcher
+    )
 print("INFO: Phase 3 Production Semantic Engine loaded")
 
 # Configure logging

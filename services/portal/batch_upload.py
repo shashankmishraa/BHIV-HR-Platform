@@ -6,7 +6,14 @@ import tempfile
 import httpx
 import json
 import logging
-from werkzeug.utils import secure_filename
+# from werkzeug.utils import secure_filename
+# Use simple filename sanitization instead
+def secure_filename(filename):
+    """Simple filename sanitization"""
+    import re
+    filename = re.sub(r'[^\w\s-]', '', filename).strip()
+    filename = re.sub(r'[-\s]+', '-', filename)
+    return filename
 import hashlib
 
 # Configure logging
@@ -86,7 +93,8 @@ def process_uploaded_files(uploaded_files):
     
     try:
         # Ensure resume folder exists with proper permissions
-        resume_folder = Path("/app/resume")
+        resume_dir = os.path.join(os.path.dirname(__file__), "..", "..", "resume")
+        resume_folder = Path(resume_dir)
         resume_folder.mkdir(parents=True, exist_ok=True)
         
         for i, uploaded_file in enumerate(uploaded_files):
@@ -159,7 +167,8 @@ def process_zip_file(zip_file):
                 st.success(f"Found {len(resume_files)} resume files in ZIP")
                 
                 # Ensure resume folder exists
-                resume_folder = Path("/app/resume")
+                resume_dir = os.path.join(os.path.dirname(__file__), "..", "..", "resume")
+                resume_folder = Path(resume_dir)
                 resume_folder.mkdir(parents=True, exist_ok=True)
                 
                 # Copy to resume folder
@@ -182,7 +191,8 @@ def process_zip_file(zip_file):
 
 def scan_resume_folder():
     """Scan resume folder for new files"""
-    resume_folder = Path("/app/resume")
+    resume_dir = os.path.join(os.path.dirname(__file__), "..", "..", "resume")
+    resume_folder = Path(resume_dir)
     
     try:
         resume_folder.mkdir(parents=True, exist_ok=True)
@@ -207,19 +217,19 @@ def trigger_resume_processing():
     import httpx
     import os
     
-    API_BASE = os.getenv("GATEWAY_URL", "http://gateway:8000")
-    API_KEY = os.getenv("API_KEY_SECRET", "myverysecureapikey123")
+    API_BASE = os.getenv("GATEWAY_URL", "https://bhiv-hr-gateway-46pz.onrender.com")
+    API_KEY = os.getenv("API_KEY_SECRET", "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o")
     headers = {"Authorization": f"Bearer {API_KEY}"}
     
     with st.spinner("Processing resumes and uploading to database..."):
         try:
             # First run resume extraction
             import subprocess
+            tools_path = os.path.join(os.path.dirname(__file__), "..", "..", "tools", "comprehensive_resume_extractor.py")
             result = subprocess.run(
-                ["python", "/app/tools/comprehensive_resume_extractor.py"],
+                ["python", tools_path],
                 capture_output=True,
-                text=True,
-                cwd="/app"
+                text=True
             )
             
             if result.returncode == 0:
@@ -230,7 +240,8 @@ def trigger_resume_processing():
                 from pathlib import Path
                 
                 # Check if extracted data file exists
-                data_file = Path("/app/data/extracted_candidates.json")
+                data_dir = os.path.join(os.path.dirname(__file__), "..", "..", "data")
+                data_file = Path(data_dir) / "extracted_candidates.json"
                 if data_file.exists():
                     with open(data_file, 'r') as f:
                         candidates_data = json.load(f)

@@ -12,11 +12,20 @@ from typing import Optional, Dict, Any
 # Add semantic engine to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
+# Add absolute paths for deployment
+sys.path.insert(0, "/app/services")
+sys.path.insert(0, "/app/services/semantic_engine")
+sys.path.insert(0, "/app")
+
 try:
-    from semantic_engine.phase3_engine import Phase3SemanticEngine
+    from semantic_engine import Phase3SemanticEngine
     PHASE3_AVAILABLE = True
 except ImportError:
-    PHASE3_AVAILABLE = False
+    try:
+        from phase3_engine import Phase3SemanticEngine
+        PHASE3_AVAILABLE = True
+    except ImportError:
+        PHASE3_AVAILABLE = False
 
 class Phase3GatewayIntegration:
     """Integration layer for Phase 3 features in gateway"""
