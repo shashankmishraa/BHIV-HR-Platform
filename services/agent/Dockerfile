@@ -8,8 +8,9 @@ COPY requirements.txt .
 # Install dependencies
 RUN pip install --no-cache-dir --timeout 300 --retries 3 -r requirements.txt
 
-# Copy all application files
+# Copy application files and shared semantic_engine
 COPY . .
+COPY ../semantic_engine ./semantic_engine
 
 # Expose port
 EXPOSE $PORT

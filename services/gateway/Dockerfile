@@ -6,9 +6,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir --timeout 300 --retries 3 -r requirements.txt
 
-# Copy application code
+# Copy application code and shared semantic_engine
 COPY app/ ./app/
-COPY phase3_engine.py ./
+COPY ../semantic_engine ./semantic_engine
 
 # Expose port (Render will use PORT env variable)
 EXPOSE $PORT

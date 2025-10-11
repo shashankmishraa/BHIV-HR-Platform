@@ -9,25 +9,7 @@ import logging
 from typing import List, Dict, Any
 from datetime import datetime
 
-# Import Phase 3 engine with proper fallback handling
-semantic_engine_path = "/app/services/semantic_engine"
-services_path = "/app/services"
-local_semantic_path = os.path.join(os.path.dirname(__file__), '..', 'semantic_engine')
-
-# Add paths for both local and deployment
-sys.path.insert(0, semantic_engine_path)
-sys.path.insert(0, services_path)
-sys.path.insert(0, local_semantic_path)
-sys.path.insert(0, "/app")
-
-# Try multiple import strategies
-PHASE3_AVAILABLE = False
-Phase3SemanticEngine = None
-AdvancedSemanticMatcher = None
-BatchMatcher = None
-LearningEngine = None
-SemanticJobMatcher = None
-
+# Import Phase 3 engine from shared semantic_engine module
 try:
     from semantic_engine.phase3_engine import (
         Phase3SemanticEngine,
@@ -38,33 +20,12 @@ try:
     )
     PHASE3_AVAILABLE = True
 except ImportError:
-    try:
-        from phase3_engine import (
-            Phase3SemanticEngine,
-            AdvancedSemanticMatcher,
-            BatchMatcher,
-            LearningEngine,
-            SemanticJobMatcher
-        )
-        PHASE3_AVAILABLE = True
-    except ImportError:
-        try:
-            # Try direct file import
-            import importlib.util
-            phase3_file = os.path.join(semantic_engine_path, 'phase3_engine.py')
-            if os.path.exists(phase3_file):
-                spec = importlib.util.spec_from_file_location("phase3_engine", phase3_file)
-                phase3_module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(phase3_module)
-                
-                Phase3SemanticEngine = phase3_module.Phase3SemanticEngine
-                AdvancedSemanticMatcher = phase3_module.AdvancedSemanticMatcher
-                BatchMatcher = phase3_module.BatchMatcher
-                LearningEngine = phase3_module.LearningEngine
-                SemanticJobMatcher = phase3_module.SemanticJobMatcher
-                PHASE3_AVAILABLE = True
-        except Exception as e:
-            PHASE3_AVAILABLE = False
+    PHASE3_AVAILABLE = False
+    Phase3SemanticEngine = None
+    AdvancedSemanticMatcher = None
+    BatchMatcher = None
+    LearningEngine = None
+    SemanticJobMatcher = None
             
 # Configure logging
 logging.basicConfig(level=logging.INFO)
