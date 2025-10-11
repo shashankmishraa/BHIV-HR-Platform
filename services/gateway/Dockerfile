@@ -9,8 +9,8 @@ RUN pip install --no-cache-dir --timeout 300 --retries 3 -r requirements.txt
 # Copy application code
 COPY app/ ./app/
 
-# Copy shared semantic_engine from parent services directory
-COPY ../semantic_engine ./semantic_engine
+# Copy shared semantic_engine from services directory
+COPY semantic_engine ./semantic_engine
 
 # Expose port (Render will use PORT env variable)
 EXPOSE $PORT
