@@ -1,8 +1,8 @@
-# Portal Service Requirements
-streamlit==1.41.1
-httpx==0.28.1
-pandas==2.1.4
-plotly==5.17.0
-numpy==2.3.3
-python-dotenv==1.0.0
-requests==2.32.3
+# Portal Service - Streamlit Dependencies - Python 3.12.7 Compatible
+streamlit>=1.28.0,<2.0.0
+httpx>=0.25.2,<0.28.0
+pandas>=2.1.4,<3.0.0
+plotly>=5.17.0,<6.0.0
+numpy>=1.24.4,<2.0.0
+python-dotenv>=1.0.0,<2.0.0
+requests>=2.31.0,<3.0.0

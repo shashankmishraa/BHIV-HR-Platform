@@ -1,12 +1,12 @@
-# Client Portal Service Requirements
-streamlit==1.41.1
-requests==2.32.3
-httpx==0.28.1
-pandas==2.1.4
-python-dotenv==1.0.0
+# Client Portal - Streamlit & Auth - Python 3.12.7 Compatible
+streamlit>=1.28.0,<2.0.0
+requests>=2.31.0,<3.0.0
+httpx>=0.25.2,<0.28.0
+pandas>=2.1.4,<3.0.0
+python-dotenv>=1.0.0,<2.0.0
 
-# Authentication Dependencies
-bcrypt==4.1.2
-PyJWT==2.8.0
-sqlalchemy==2.0.23
-psycopg2-binary==2.9.10
+# Authentication Dependencies - Compatible versions
+bcrypt>=4.0.1,<5.0.0
+PyJWT>=2.8.0,<3.0.0
+sqlalchemy>=2.0.23,<2.1.0
+psycopg2-binary>=2.9.7,<3.0.0
