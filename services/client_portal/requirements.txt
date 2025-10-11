@@ -1,27 +1,12 @@
-# Core Streamlit dependencies
+# Client Portal Service Requirements
 streamlit==1.41.1
-
-# HTTP & API dependencies
 requests==2.32.3
 httpx==0.28.1
-urllib3==2.0.7
+pandas==2.1.4
+python-dotenv==1.0.0
 
-# Data processing & visualization
-pandas==2.3.2
-plotly==5.17.0
-numpy==1.26.4
-
-# Database dependencies
-psycopg2-binary==2.9.10
-sqlalchemy==2.0.23
-
-# Authentication & Security
+# Authentication Dependencies
 bcrypt==4.1.2
 PyJWT==2.8.0
-
-# Utilities
-python-dotenv==1.0.0
-Pillow==10.1.0
-
-# Typing extensions
-typing-extensions>=4.10.0
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.10

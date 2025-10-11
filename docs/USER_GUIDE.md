@@ -12,9 +12,17 @@ Welcome to the BHIV HR Platform - an AI-powered recruiting solution that combine
 - **Screen Resolution**: 1280x720 minimum (1920x1080 recommended)
 
 ### Access URLs
+**🌐 Live Production Platform:**
+- **HR Portal**: https://bhiv-hr-portal-cead.onrender.com/ (Internal HR Team)
+- **Client Portal**: https://bhiv-hr-client-portal-5g33.onrender.com/ (External Clients)
+- **API Documentation**: https://bhiv-hr-gateway-46pz.onrender.com/docs (Developers)
+- **AI Agent**: https://bhiv-hr-agent-m1me.onrender.com/docs (AI Matching)
+
+**💻 Local Development:**
 - **HR Portal**: http://localhost:8501 (Internal HR Team)
 - **Client Portal**: http://localhost:8502 (External Clients)
 - **API Documentation**: http://localhost:8000/docs (Developers)
+- **AI Agent**: http://localhost:9000/docs (AI Matching)
 
 ---
 
@@ -24,7 +32,8 @@ Welcome to the BHIV HR Platform - an AI-powered recruiting solution that combine
 
 **Step 1: Access HR Portal**
 ```
-Navigate to: http://localhost:8501
+Production: https://bhiv-hr-portal-cead.onrender.com/
+Local Dev:  http://localhost:8501
 ```
 
 **Visual Reference**: 
@@ -343,7 +352,8 @@ Navigate to: http://localhost:8501
 
 **Step 1: Access Client Portal**
 ```
-Navigate to: http://localhost:8502
+Production: https://bhiv-hr-client-portal-5g33.onrender.com/
+Local Dev:  http://localhost:8502
 ```
 
 **Step 2: Login Process**
@@ -357,9 +367,9 @@ Button: [🔑 Secure Login]
 
 **Default Test Accounts**:
 ```
-TECH001 / google123
-STARTUP01 / startup123  
-ENTERPRISE01 / enterprise123
+TECH001 / demo123 (Production & Local)
+STARTUP01 / startup123 (Local only)
+ENTERPRISE01 / enterprise123 (Local only)
 ```
 
 **New Client Registration**:

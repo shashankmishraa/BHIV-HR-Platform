@@ -1,26 +1,8 @@
-# Core Streamlit dependencies
+# Portal Service Requirements
 streamlit==1.41.1
-
-# HTTP & API dependencies
-requests==2.32.3
 httpx==0.28.1
-
-# Data processing & visualization
-pandas==2.3.2
+pandas==2.1.4
 plotly==5.17.0
-numpy==1.26.4
-
-# File processing for batch upload
-werkzeug==3.0.1
-Pillow==10.1.0
-PyPDF2==3.0.1
-python-docx==0.8.11
-
-# Utilities
+numpy==2.3.3
 python-dotenv==1.0.0
-
-# Standard library modules (included in Python)
-# os, datetime, tempfile, zipfile, hashlib, json, logging, subprocess, pathlib
-
-# Typing extensions
-typing-extensions>=4.10.0
+requests==2.32.3

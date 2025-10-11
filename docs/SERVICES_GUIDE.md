@@ -14,7 +14,7 @@ The BHIV HR Platform consists of 5 core microservices, each with specific respon
 - `client_auth.py` - Client authentication utilities
 - `app/db/schemas.py` - Pydantic models for validation
 
-#### API Endpoints (48 total):
+#### API Endpoints (49 total):
 ```
 Core API (7 endpoints):
 ├── GET  /           - Service information
@@ -105,14 +105,15 @@ Reports (1 endpoint):
 - Real-time candidate ranking
 - Transparent scoring explanations
 
-#### API Endpoints (5 total):
+#### API Endpoints (6 total):
 ```
 Core (2 endpoints):
 ├── GET  /           - Service information
 └── GET  /health     - Health check
 
-AI Processing (2 endpoints):
+AI Processing (3 endpoints):
 ├── POST /match      - AI-powered candidate matching
+├── POST /batch-match - Batch candidate matching
 └── GET  /analyze/{candidate_id} - Detailed candidate analysis
 
 Diagnostics (1 endpoint):

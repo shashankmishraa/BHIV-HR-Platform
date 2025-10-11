@@ -10,6 +10,8 @@
 ## 📊 API Overview
 
 ### **Total Endpoints**: 55 (49 Gateway + 6 Agent)
+### **Algorithm Version**: 3.0.0-phase3-production
+### **AI Engine**: Phase 3 Semantic Matching with Learning
 ### **Authentication**: Bearer Token
 ### **Rate Limiting**: 60 requests/minute (default), granular limits by endpoint
 ### **Response Format**: JSON
