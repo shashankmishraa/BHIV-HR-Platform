@@ -24,7 +24,7 @@ BHIV HR Platform is a production-ready enterprise recruiting platform built with
 - **Services**: 5 (All operational)
 - **Endpoints**: 55 (49 Gateway + 6 Agent)
 - **Database**: PostgreSQL 17 with 11 tables
-- **Data**: 8 real candidates from processed resumes
+- **Data**: 27 real candidates from processed resumes
 - **Cost**: $0/month (Free tier)
 - **Uptime**: 99.9%
 
@@ -91,7 +91,7 @@ graph TD
 - **Functions**: PostgreSQL functions for complex operations
 
 ### **Sample Data**
-- **Candidates**: 8 real profiles from processed resumes
+- **Candidates**: 27 real profiles from processed resumes (26 PDF + 1 DOCX)
 - **Jobs**: 5 sample job postings
 - **Clients**: 3 demo client companies
 - **Users**: 3 HR system users
@@ -293,7 +293,7 @@ Database:
 ### **Local Development**
 ```bash
 # Docker Compose setup
-docker-compose -f docker-compose.production.yml up -d
+docker-compose -f deployment/docker/docker-compose.production.yml up -d
 
 # Services available at:
 # Gateway: http://localhost:8000
@@ -310,15 +310,27 @@ docker-compose -f docker-compose.production.yml up -d
 ### **Root Structure**
 ```
 bhiv-hr-platform/
-├── services/                    # Microservices
-├── docs/                       # Documentation
+├── src/                        # Shared source code
+│   ├── common/                 # Common utilities and constants
+│   ├── models/                 # Shared Pydantic models
+│   └── utils/                  # Utility functions
+├── lib/                        # External libraries
+├── deployment/                 # Deployment configurations
+│   ├── docker/                 # Docker configurations
+│   ├── scripts/                # Deployment scripts
+│   └── render-deployment.yml   # Render platform config
+├── services/                   # Microservices
+├── docs/                       # All documentation
+│   ├── api/                    # API documentation
+│   ├── deployment/             # Deployment guides
+│   ├── security/               # Security documentation
+│   ├── testing/                # Testing documentation
+│   └── guides/                 # User guides
 ├── tests/                      # Test suite
-├── scripts/                    # Automation scripts
 ├── tools/                      # Data processing tools
 ├── config/                     # Configuration files
-├── data/                       # Real data (8 candidates)
-├── resume/                     # Resume files (29 files)
-├── docker-compose.production.yml
+├── data/                       # Real data (27 candidates)
+├── resume/                     # Resume files (27 files)
 ├── PROJECT_STRUCTURE.md
 ├── DEPLOYMENT_STATUS.md
 └── README.md
@@ -351,9 +363,9 @@ services/
 │   └── requirements.txt
 ├── db/                        # Database
 │   └── consolidated_schema.sql # Complete PostgreSQL schema
-└── semantic_engine/           # AI Components
-    ├── advanced_matcher.py    # Advanced matching algorithms
-    └── job_matcher.py         # Job matching logic
+└── semantic_engine/           # Phase 3 AI Engine
+    ├── __init__.py            # Package initialization
+    └── phase3_engine.py       # Production semantic engine
 ```
 
 ### **Documentation Structure**

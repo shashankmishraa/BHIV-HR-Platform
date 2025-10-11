@@ -77,10 +77,12 @@ docker-compose -f docker-compose.production.yml up -d
 ### **API Endpoints (55 Total)**
 ```
 Gateway Service (49 endpoints):
-  Core API (7):           GET /, /health, /test-candidates, /metrics, /health/detailed, /metrics/dashboard, /candidates/stats
+  Core API (3):           GET /, /health, /test-candidates
+  Monitoring (3):         GET /metrics, /health/detailed, /metrics/dashboard
+  Analytics (1):          GET /candidates/stats
   Job Management (2):     GET /v1/jobs, POST /v1/jobs
   Candidate Mgmt (5):     GET /v1/candidates, GET /v1/candidates/{id}, GET /v1/candidates/search, POST /v1/candidates/bulk, GET /v1/candidates/job/{job_id}
-  AI Matching (1):        GET /v1/match/{job_id}/top
+  AI Matching (2):        GET /v1/match/{job_id}/top, POST /v1/match/batch
   Assessment (6):         GET/POST /v1/feedback, GET/POST /v1/interviews, GET/POST /v1/offers
   Security Testing (7):   Rate limiting, input validation, email/phone validation, headers, penetration testing
   CSP Management (4):     Policies, violations, reporting, testing
@@ -100,13 +102,14 @@ Agent Service (6 endpoints):
 ## 🚀 Key Features
 
 ### **🤖 AI-Powered Matching (Phase 3)**
-- **Adaptive Scoring**: Company-specific weight optimization
-- **Cultural Fit Analysis**: Feedback-based alignment scoring
-- **Enhanced Batch Processing**: Async with smart caching
-- **Learning Capabilities**: Historical pattern recognition
-- **Real-time Processing**: <0.02 second response time
-- **Semantic Analysis**: Advanced candidate-job matching
-- **Bias Mitigation**: Comprehensive fairness algorithms
+- **Semantic Engine**: Production Phase 3 implementation with sentence transformers
+- **Adaptive Scoring**: Company-specific weight optimization based on feedback
+- **Cultural Fit Analysis**: Feedback-based alignment scoring (10% bonus)
+- **Enhanced Batch Processing**: Async processing with smart caching (50 candidates/chunk)
+- **Learning Engine**: Company preference tracking and optimization
+- **Real-time Processing**: <0.02 second response time with caching
+- **Multi-Factor Scoring**: Semantic (40%), Experience (30%), Skills (20%), Location (10%)
+- **No Fallbacks**: Production-grade implementation only
 
 ### **🔒 Enterprise Security**
 - **API Authentication**: Bearer token + JWT
@@ -145,16 +148,34 @@ bhiv-hr-platform/
 ├── services/                    # Microservices
 │   ├── gateway/                # API Gateway (49 endpoints)
 │   │   ├── app/               # Application code
-│   │   │   ├── main.py        # FastAPI application
+│   │   │   ├── main.py        # FastAPI application (2000+ lines)
 │   │   │   ├── monitoring.py  # Advanced monitoring system
+│   │   │   ├── client_auth.py # Client authentication
+│   │   │   ├── phase3_integration.py # Phase 3 AI integration
 │   │   │   └── __init__.py    # Package initialization
 │   │   ├── logs/              # Application logs
 │   │   ├── Dockerfile         # Container configuration
 │   │   └── requirements.txt   # Dependencies
 │   ├── agent/                  # AI Matching Engine (6 endpoints)
+│   │   ├── app.py             # FastAPI AI service (600+ lines)
+│   │   ├── Dockerfile         # Container configuration
+│   │   └── requirements.txt   # AI/ML dependencies
 │   ├── portal/                 # HR Dashboard
+│   │   ├── app.py             # Streamlit interface
+│   │   ├── batch_upload.py    # Batch processing
+│   │   ├── config.py          # Configuration
+│   │   └── file_security.py   # File security
 │   ├── client_portal/          # Client Interface
+│   │   ├── app.py             # Client interface
+│   │   ├── auth_service.py    # Enterprise authentication
+│   │   └── config.py          # Configuration
+│   ├── semantic_engine/        # Phase 3 AI Engine
+│   │   ├── __init__.py        # Package initialization
+│   │   └── phase3_engine.py   # Production semantic engine
 │   └── db/                     # Database Schema
+│       ├── consolidated_schema.sql # Complete schema
+│       ├── phase3_schema_updates.sql # Phase 3 updates
+│       └── Dockerfile         # Database container
 ├── docs/                       # Documentation (Organized)
 │   ├── deployment/            # Deployment guides
 │   ├── security/              # Security analysis & bias mitigation
@@ -211,7 +232,7 @@ cp .env.example .env
 # Edit .env with your configuration
 
 # Start All Services
-docker-compose -f docker-compose.production.yml up -d
+docker-compose -f deployment/docker/docker-compose.production.yml up -d
 
 # Health Verification
 curl http://localhost:8000/health    # Gateway
@@ -314,17 +335,17 @@ python tools/auto_sync_watcher.py
 ## 📚 Documentation
 
 ### **Complete Guides**
-- **[LIVE_DEMO.md](LIVE_DEMO.md)** - Live platform access guide
-- **[RENDER_DEPLOYMENT_GUIDE.md](RENDER_DEPLOYMENT_GUIDE.md)** - Complete deployment guide
+- **[LIVE_DEMO.md](docs/guides/LIVE_DEMO.md)** - Live platform access guide
+- **[RENDER_DEPLOYMENT_GUIDE.md](docs/deployment/RENDER_DEPLOYMENT_GUIDE.md)** - Complete deployment guide
 - **[DEPLOYMENT_STATUS.md](DEPLOYMENT_STATUS.md)** - Current deployment status
 
 ### **Technical Documentation**
-- **[REFLECTION.md](REFLECTION.md)** - Daily development reflections with values
+- **[REFLECTION.md](docs/REFLECTION.md)** - Daily development reflections with values
 - **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - Complete architecture guide
-- **[docs/BIAS_ANALYSIS.md](docs/BIAS_ANALYSIS.md)** - AI bias analysis & mitigation
-- **[docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md)** - Security analysis
-- **[docs/USER_GUIDE.md](docs/USER_GUIDE.md)** - Complete user manual
-- **[docs/SERVICES_GUIDE.md](docs/SERVICES_GUIDE.md)** - Service architecture
+- **[BIAS_ANALYSIS.md](docs/security/BIAS_ANALYSIS.md)** - AI bias analysis & mitigation
+- **[SECURITY_AUDIT.md](docs/security/SECURITY_AUDIT.md)** - Security analysis
+- **[USER_GUIDE.md](docs/USER_GUIDE.md)** - Complete user manual
+- **[API_DOCUMENTATION.md](docs/api/API_DOCUMENTATION.md)** - Complete API reference
 
 ---
 
