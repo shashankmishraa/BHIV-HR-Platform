@@ -8,6 +8,7 @@ RUN pip install --no-cache-dir --timeout 300 --retries 3 -r requirements.txt
 
 # Copy application code
 COPY app/ ./app/
+COPY phase3_engine.py ./
 
 # Expose port (Render will use PORT env variable)
 EXPOSE $PORT

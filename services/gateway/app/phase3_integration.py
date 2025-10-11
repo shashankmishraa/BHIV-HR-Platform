@@ -18,14 +18,24 @@ sys.path.insert(0, "/app/services/semantic_engine")
 sys.path.insert(0, "/app")
 
 try:
-    from semantic_engine import Phase3SemanticEngine
+    from semantic_engine.phase3_engine import Phase3SemanticEngine
     PHASE3_AVAILABLE = True
 except ImportError:
     try:
         from phase3_engine import Phase3SemanticEngine
         PHASE3_AVAILABLE = True
     except ImportError:
-        PHASE3_AVAILABLE = False
+        try:
+            import sys
+            import os
+            # Try to import from semantic_engine directory
+            semantic_path = os.path.join(os.path.dirname(__file__), '..', '..', 'semantic_engine')
+            sys.path.insert(0, semantic_path)
+            from phase3_engine import Phase3SemanticEngine
+            PHASE3_AVAILABLE = True
+        except ImportError:
+            PHASE3_AVAILABLE = False
+            Phase3SemanticEngine = None
 
 class Phase3GatewayIntegration:
     """Integration layer for Phase 3 features in gateway"""
