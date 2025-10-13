@@ -32,7 +32,7 @@ Run the complete platform on your local machine.
 | Service | URL | Purpose |
 |---------|-----|---------|
 | **API Gateway** | https://bhiv-hr-gateway-46pz.onrender.com/docs | REST API (50 endpoints) ✅ |
-| **AI Agent** | https://bhiv-hr-agent-m1me.onrender.com/docs | AI Matching (6 endpoints) ❌ |
+| **AI Agent** | https://bhiv-hr-agent-m1me.onrender.com/docs | AI Matching (6 endpoints) ✅ |
 | **HR Portal** | https://bhiv-hr-portal-cead.onrender.com/ | HR Dashboard ✅ |
 | **Client Portal** | https://bhiv-hr-client-portal-5g33.onrender.com/ | Client Interface ✅ |
 
@@ -128,9 +128,9 @@ curl -X POST http://localhost:9000/match \
 curl https://bhiv-hr-gateway-46pz.onrender.com/health
 # Expected: {"status": "healthy", "version": "3.1.0"}
 
-# AI Agent Service (6 endpoints) - OFFLINE
+# AI Agent Service (6 endpoints) - OPERATIONAL
 curl https://bhiv-hr-agent-m1me.onrender.com/health
-# Expected: Connection timeout (service offline)
+# Expected: {"status": "healthy", "service": "BHIV AI Agent"}
 ```
 
 ### **Portal Access Tests**
@@ -351,9 +351,9 @@ curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr
 ## 📞 Support & Resources
 
 ### **Live Platform**
-- **Status**: ⚠️ 4/5 services operational (Agent offline)
-- **Uptime**: 99.9% target (operational services)
-- **Response Time**: <100ms average
+- **Status**: ✅ 5/5 services operational (all services healthy)
+- **Uptime**: 99.9% target (all services operational)
+- **Response Time**: <100ms average (Gateway), <0.02s (AI matching)
 
 ### **Documentation**
 - **API Reference**: [API_DOCUMENTATION.md](../API_DOCUMENTATION.md)

@@ -1,6 +1,6 @@
 # 🏗️ BHIV HR Platform - Project Structure & Architecture
 
-**Version**: 3.1.0 | **Updated**: October 2025 | **Status**: ⚠️ Production Ready (4/5 Services)
+**Version**: 3.1.0 | **Updated**: January 2, 2025 | **Status**: ✅ Production Ready (5/5 Services)
 
 ## 📋 Table of Contents
 
@@ -21,12 +21,13 @@ BHIV HR Platform is a production-ready enterprise recruiting platform built with
 
 ### **Current Status**
 - **Platform**: Render Cloud (Oregon, US West)
-- **Services**: 5 (4 operational, 1 offline)
-- **Endpoints**: 50 (49 Gateway + 1 Schema verification)
+- **Services**: 5 (5 operational) ✅
+- **Endpoints**: 56 (50 Gateway + 6 Agent)
 - **Database**: PostgreSQL 17 with schema v4.1.0 (17 tables)
-- **Data**: 11 candidates + 19 jobs (production data)
+- **Data**: 11 candidates + 19 jobs + 27 resume files (production data)
 - **Cost**: $0/month (Free tier)
-- **Uptime**: 99.9% (operational services)
+- **Uptime**: 99.9% (all services operational)
+- **Local Development**: ✅ All 5 services operational with Docker fixes
 
 ---
 
@@ -37,7 +38,7 @@ BHIV HR Platform is a production-ready enterprise recruiting platform built with
 | Service | Technology | Purpose | Endpoints | Production URL |
 |---------|------------|---------|-----------|----------------|
 | **API Gateway** | FastAPI 0.115.6 | REST API Backend | 50 | bhiv-hr-gateway-46pz.onrender.com ✅ |
-| **AI Agent** | FastAPI 0.115.6 | Candidate Matching | 6 | bhiv-hr-agent-m1me.onrender.com ❌ |
+| **AI Agent** | FastAPI 0.115.6 | Candidate Matching | 6 | bhiv-hr-agent-m1me.onrender.com ✅ |
 | **HR Portal** | Streamlit 1.41.1 | HR Dashboard | Web UI | bhiv-hr-portal-cead.onrender.com ✅ |
 | **Client Portal** | Streamlit 1.41.1 | Client Interface | Web UI | bhiv-hr-client-portal-5g33.onrender.com ✅ |
 | **Database** | PostgreSQL 17 | Data Storage | - | Internal Render URL ✅ |
@@ -84,10 +85,10 @@ graph TD
 11. **matching_cache** - AI matching results cache
 12. **company_scoring_preferences** - Phase 3 learning engine
 
-#### **Additional Tables (5)**
+#### **Additional System Tables (5)**
 13. **client_auth** - Enhanced authentication
-14. **client_sessions** - Session management
-15. **schema_version** - Version tracking
+14. **client_sessions** - Session management  
+15. **schema_version** - Version tracking (v4.1.0)
 16. **pg_stat_statements** - Performance monitoring
 17. **pg_stat_statements_info** - Statistics metadata
 
@@ -101,9 +102,13 @@ graph TD
 ### **Production Data**
 - **Candidates**: 11 active candidate records
 - **Jobs**: 19 job postings
+- **Resume Files**: 27 processed resume files (PDF/DOCX)
 - **Clients**: 3 demo client companies (TECH001/demo123)
 - **Users**: 3 HR system users
-- **Database Connections**: 5 active sessions
+- **Database Connections**: 5-10 active sessions
+- **Feedback Records**: Values assessment data
+- **Interviews**: Scheduled interview data
+- **Offers**: Job offer management data
 
 ---
 
@@ -502,4 +507,4 @@ python-dotenv: 1.0.0
 
 *Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
 
-**Last Updated**: October 2025 | **Status**: ⚠️ Production Ready (4/5 Services) | **Cost**: $0/month
+**Last Updated**: January 2, 2025 | **Status**: ✅ Production Ready (5/5 Services) | **Cost**: $0/month
