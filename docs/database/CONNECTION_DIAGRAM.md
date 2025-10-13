@@ -161,8 +161,10 @@ Port: 5432
 Database: bhiv_hr_jcuu
 Username: bhiv_user
 Password: 3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2
-SSL Mode: require
-SSL Factory: org.postgresql.ssl.DefaultJavaSSLFactory
+SSL Configuration (SSL Tab):
+  SSL Mode: require (dropdown selection)
+  SSL Factory: org.postgresql.ssl.DefaultJavaSSLFactory (dropdown selection)
+  Certificates: Leave empty (CA, Client, Private Key)
 Application Name: DBeaver-BHIV-Production
 Connection Timeout: 30 seconds
 Socket Timeout: 30 seconds

@@ -123,24 +123,24 @@ Connection Settings:
 ```
 
 ### Step 3: SSL Configuration (Required for Render)
-1. **Click** "SSL" tab
+1. **Click** "SSL" tab (next to Driver properties)
 2. **Configure SSL settings**:
    ```
-   Use SSL: ☑ Enabled
-   SSL Mode: require
-   SSL Factory: org.postgresql.ssl.DefaultJavaSSLFactory
+   SSL mode: require (from dropdown)
+   SSL Factory: org.postgresql.ssl.DefaultJavaSSLFactory (from dropdown)
    ```
+3. **Leave certificate fields empty** (CA Certificate, Client Certificate, Client Private Key)
+4. **Note**: All SSL parameters are optional for Render PostgreSQL
 
-### Step 4: Advanced Properties
+### Step 4: Advanced Properties (Optional)
 1. **Click** "Driver properties" tab
-2. **Set** these properties:
+2. **Optionally set** these properties:
    ```
-   ssl: true
-   sslmode: require
    ApplicationName: DBeaver-BHIV-Production
    connectTimeout: 30
    socketTimeout: 30
    ```
+3. **Note**: SSL properties are configured in the SSL tab, not here
 
 ### Step 5: Test Production Connection
 1. **Click** "Test Connection"
@@ -365,9 +365,11 @@ docker logs bhiv-hr-platform-db-1
 #### 2. Production SSL Connection Errors
 ```
 Error: SSL connection required
-Solution: Enable SSL in DBeaver connection settings
-- SSL tab → Use SSL: ☑
-- SSL Mode: require
+Solution: Configure SSL in DBeaver connection settings
+- Click SSL tab (next to Driver properties)
+- SSL mode: require (from dropdown)
+- SSL Factory: org.postgresql.ssl.DefaultJavaSSLFactory
+- Leave certificate fields empty
 ```
 
 #### 3. Authentication Failed
@@ -510,9 +512,9 @@ GROUP BY c.id, c.name, c.email, c.location, c.experience_years, c.average_score;
 ## 🔐 Security Best Practices
 
 ### 1. Connection Security
-- ✅ Use SSL for production connections
+- ✅ Configure SSL for production connections (SSL tab → SSL mode: require)
 - ✅ Store credentials securely in DBeaver
-- ✅ Enable connection encryption
+- ✅ Enable connection encryption via SSL settings
 - ✅ Use read-only users when possible
 
 ### 2. Query Safety

@@ -278,7 +278,7 @@ def read_root():
         "message": "BHIV HR Platform API Gateway",
         "version": "3.1.0",
         "status": "healthy",
-        "endpoints": 49,
+        "endpoints": 50,
         "documentation": "/docs",
         "monitoring": "/metrics",
         "live_demo": "https://bhiv-platform.aws.example.com"
