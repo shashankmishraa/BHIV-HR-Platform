@@ -24,8 +24,8 @@ services:
 
   gateway:
     build:
-      context: ../../services
-      dockerfile: gateway/Dockerfile
+      context: ../../services/gateway
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     environment:
@@ -48,8 +48,8 @@ services:
 
   agent:
     build:
-      context: ../../services
-      dockerfile: agent/Dockerfile
+      context: ../../services/agent
+      dockerfile: Dockerfile
     ports:
       - "9000:9000"
     environment:
@@ -69,7 +69,9 @@ services:
     # Production URL: bhiv-hr-agent-m1me.onrender.com
 
   portal:
-    build: ../../services/portal
+    build:
+      context: ../../services/portal
+      dockerfile: Dockerfile
     ports:
       - "8501:8501"
     environment:
@@ -94,7 +96,9 @@ services:
     # Production URL: bhiv-hr-portal-cead.onrender.com
 
   client_portal:
-    build: ../../services/client_portal
+    build:
+      context: ../../services/client_portal
+      dockerfile: Dockerfile
     ports:
       - "8502:8502"
     environment:
