@@ -12,8 +12,8 @@ COPY app/ ./app/
 # Copy local semantic_engine
 COPY semantic_engine ./semantic_engine
 
-# Expose port (Render will use PORT env variable)
+# Expose port
 EXPOSE 8000
 
-# Important: Use PORT environment variable for Render with tuned timeouts
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --timeout-keep-alive 30"]
+# Start application on fixed port 8000
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--timeout-keep-alive", "30"]
