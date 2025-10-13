@@ -1,6 +1,16 @@
 """
 BHIV HR Platform - Utility Functions
 Common utility functions used across services
+Version: 3.1.0 with Phase 3 Features
+Updated: October 13, 2025
+Status: Production Ready
+
+Provides standardized utilities for:
+- Environment variable management
+- Logging configuration
+- API key validation
+- Response formatting
+- Timestamp handling
 """
 
 import os
@@ -58,3 +68,7 @@ def format_success_response(data: Any, message: str = "Operation completed succe
         "data": data,
         "timestamp": get_current_timestamp()
     }
+
+__version__ = "3.1.0"
+__updated__ = "2025-10-13"
+__status__ = "Production Ready"

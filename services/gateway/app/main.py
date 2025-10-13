@@ -952,7 +952,7 @@ async def get_all_offers(api_key: str = Depends(get_api_key)):
     except Exception as e:
         return {"offers": [], "count": 0, "error": str(e)}
 
-# Analytics & Statistics (2 endpoints)
+# Analytics & Statistics (3 endpoints)
 @app.get("/candidates/stats", tags=["Analytics & Statistics"])
 async def get_candidate_stats(api_key: str = Depends(get_api_key)):
     """Candidate Statistics"""
@@ -977,6 +977,58 @@ async def get_candidate_stats(api_key: str = Depends(get_api_key)):
             "recent_matches": 0,
             "pending_interviews": 0,
             "error": str(e)
+        }
+
+@app.get("/v1/database/schema", tags=["Analytics & Statistics"])
+async def get_database_schema(api_key: str = Depends(get_api_key)):
+    """Get Database Schema Information"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            # Get table list
+            tables_query = text("""
+                SELECT table_name FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                ORDER BY table_name
+            """)
+            tables_result = connection.execute(tables_query)
+            tables = [row[0] for row in tables_result]
+            
+            # Get schema version
+            try:
+                version_query = text("SELECT version, applied_at FROM schema_version ORDER BY applied_at DESC LIMIT 1")
+                version_result = connection.execute(version_query)
+                version_row = version_result.fetchone()
+                schema_version = version_row[0] if version_row else "unknown"
+                applied_at = version_row[1].isoformat() if version_row and version_row[1] else None
+            except:
+                schema_version = "unknown"
+                applied_at = None
+            
+            # Check for Phase 3 table
+            phase3_exists = "company_scoring_preferences" in tables
+            
+            return {
+                "schema_version": schema_version,
+                "applied_at": applied_at,
+                "total_tables": len(tables),
+                "tables": tables,
+                "phase3_enabled": phase3_exists,
+                "core_tables": [
+                    "candidates", "jobs", "feedback", "interviews", "offers", 
+                    "users", "clients", "matching_cache", "audit_logs", 
+                    "rate_limits", "csp_violations", "company_scoring_preferences"
+                ],
+                "checked_at": datetime.now(timezone.utc).isoformat()
+            }
+    except Exception as e:
+        return {
+            "schema_version": "error",
+            "total_tables": 0,
+            "tables": [],
+            "phase3_enabled": False,
+            "error": str(e),
+            "checked_at": datetime.now(timezone.utc).isoformat()
         }
 
 @app.get("/v1/reports/job/{job_id}/export.csv", tags=["Analytics & Statistics"])

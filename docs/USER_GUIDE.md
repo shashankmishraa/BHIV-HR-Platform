@@ -15,14 +15,14 @@ Welcome to the BHIV HR Platform - an AI-powered recruiting solution that combine
 **🌐 Live Production Platform:**
 - **HR Portal**: https://bhiv-hr-portal-cead.onrender.com/ (Internal HR Team)
 - **Client Portal**: https://bhiv-hr-client-portal-5g33.onrender.com/ (External Clients)
-- **API Documentation**: https://bhiv-hr-gateway-46pz.onrender.com/docs (Developers)
-- **AI Agent**: https://bhiv-hr-agent-m1me.onrender.com/docs (AI Matching)
+- **API Documentation**: https://bhiv-hr-gateway-46pz.onrender.com/docs (Developers) ✅
+- **AI Agent**: https://bhiv-hr-agent-m1me.onrender.com/docs (AI Matching) ❌
 
 **💻 Local Development:**
 - **HR Portal**: http://localhost:8501 (Internal HR Team)
 - **Client Portal**: http://localhost:8502 (External Clients)
-- **API Documentation**: http://localhost:8000/docs (Developers)
-- **AI Agent**: http://localhost:9000/docs (AI Matching)
+- **API Documentation**: http://localhost:8000/docs (Developers) ✅
+- **AI Agent**: http://localhost:9000/docs (AI Matching) ✅
 
 ---
 
@@ -731,12 +731,12 @@ Client Portal:
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: January 2025  
+**Document Version**: 1.1  
+**Last Updated**: October 2025  
 **Total Pages**: 47 pages  
 **Screenshots**: 25+ visual references  
 **Video Tutorials**: 4 comprehensive guides
-**Deployment**: Render Cloud with 55 endpoints (49 Gateway + 6 Agent)
+**Deployment**: Render Cloud with 50 endpoints (49 Gateway + 1 Schema) - 4/5 services operational
 
 *Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
 

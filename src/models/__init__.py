@@ -1,6 +1,15 @@
 """
 BHIV HR Platform - Shared Data Models
 Common Pydantic models used across services
+Version: 3.1.0 with Phase 3 Features
+Updated: October 13, 2025
+Status: Production Ready
+
+Provides standardized data models for:
+- API responses and error handling
+- Health checks and service information
+- Pagination and data validation
+- Cross-service communication
 """
 
 from pydantic import BaseModel, Field
@@ -42,3 +51,8 @@ class ServiceInfo(BaseModel):
     endpoints: int
     status: str = "operational"
     url: Optional[str] = None
+    updated: Optional[str] = "2025-10-13"
+
+__version__ = "3.1.0"
+__updated__ = "2025-10-13"
+__status__ = "Production Ready"

@@ -31,10 +31,10 @@ Run the complete platform on your local machine.
 
 | Service | URL | Purpose |
 |---------|-----|---------|
-| **API Gateway** | https://bhiv-hr-gateway-46pz.onrender.com/docs | REST API (49 endpoints) |
-| **AI Agent** | https://bhiv-hr-agent-m1me.onrender.com/docs | AI Matching (6 endpoints) |
-| **HR Portal** | https://bhiv-hr-portal-cead.onrender.com/ | HR Dashboard |
-| **Client Portal** | https://bhiv-hr-client-portal-5g33.onrender.com/ | Client Interface |
+| **API Gateway** | https://bhiv-hr-gateway-46pz.onrender.com/docs | REST API (50 endpoints) ✅ |
+| **AI Agent** | https://bhiv-hr-agent-m1me.onrender.com/docs | AI Matching (6 endpoints) ❌ |
+| **HR Portal** | https://bhiv-hr-portal-cead.onrender.com/ | HR Dashboard ✅ |
+| **Client Portal** | https://bhiv-hr-client-portal-5g33.onrender.com/ | Client Interface ✅ |
 
 ### **Step 2: Test API Access**
 
@@ -124,13 +124,13 @@ curl -X POST http://localhost:9000/match \
 ### **API Health Checks**
 
 ```bash
-# Gateway Service (49 endpoints)
+# Gateway Service (50 endpoints)
 curl https://bhiv-hr-gateway-46pz.onrender.com/health
 # Expected: {"status": "healthy", "version": "3.1.0"}
 
-# AI Agent Service (6 endpoints)  
+# AI Agent Service (6 endpoints) - OFFLINE
 curl https://bhiv-hr-agent-m1me.onrender.com/health
-# Expected: {"status": "healthy", "version": "3.0.0"}
+# Expected: Connection timeout (service offline)
 ```
 
 ### **Portal Access Tests**
@@ -151,7 +151,7 @@ curl -I https://bhiv-hr-client-portal-5g33.onrender.com/
 # Test database connection
 curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
      https://bhiv-hr-gateway-46pz.onrender.com/test-candidates
-# Expected: {"database_status": "connected", "total_candidates": 31}
+# Expected: {"database_status": "connected", "total_candidates": 11}
 ```
 
 ---
@@ -325,7 +325,7 @@ curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr
 ### **Integration Options**
 
 1. **API Integration**
-   - REST API with 55 endpoints
+   - REST API with 50 endpoints
    - Webhook support
    - Real-time notifications
 
@@ -351,8 +351,8 @@ curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr
 ## 📞 Support & Resources
 
 ### **Live Platform**
-- **Status**: 🟢 All services operational
-- **Uptime**: 99.9% target
+- **Status**: ⚠️ 4/5 services operational (Agent offline)
+- **Uptime**: 99.9% target (operational services)
 - **Response Time**: <100ms average
 
 ### **Documentation**

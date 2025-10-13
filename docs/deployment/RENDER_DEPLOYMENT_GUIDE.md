@@ -6,8 +6,8 @@
 
 | Service | URL | Status |
 |---------|-----|--------|
-| **API Gateway** | https://bhiv-hr-gateway-46pz.onrender.com/docs | ✅ Live (49 endpoints) |
-| **AI Matching Engine** | https://bhiv-hr-agent-m1me.onrender.com/docs | ✅ Live (6 endpoints) |
+| **API Gateway** | https://bhiv-hr-gateway-46pz.onrender.com/docs | ✅ Live (50 endpoints) |
+| **AI Matching Engine** | https://bhiv-hr-agent-m1me.onrender.com/docs | ❌ Offline (6 endpoints) |
 | **HR Portal** | https://bhiv-hr-portal-cead.onrender.com/ | ✅ Live |
 | **Client Portal** | https://bhiv-hr-client-portal-5g33.onrender.com/ | ✅ Live |
 | **Database** | PostgreSQL 17 (Internal) | ✅ Live |
@@ -30,8 +30,9 @@ curl https://bhiv-hr-gateway-46pz.onrender.com/health
 curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
      https://bhiv-hr-gateway-46pz.onrender.com/v1/jobs
 
-# AI Matching Test
+# AI Matching Test (OFFLINE)
 curl https://bhiv-hr-agent-m1me.onrender.com/health
+# Expected: Connection timeout (service offline)
 ```
 
 ## 📊 Deployment Architecture
@@ -307,11 +308,11 @@ open https://bhiv-hr-gateway-46pz.onrender.com/docs
 
 ## 🎉 Deployment Success Summary
 
-✅ **All 5 services successfully deployed on Render**
+✅ **4/5 services successfully deployed on Render (Agent offline)**
 ✅ **Zero monthly cost (Free tier)**
 ✅ **Production-ready with 99.9% uptime target**
-✅ **Comprehensive API with 55 endpoints (49 Gateway + 6 Agent) including advanced monitoring**
-✅ **AI-powered candidate matching active**
+✅ **Comprehensive API with 50 endpoints (49 Gateway + 1 Schema) including advanced monitoring**
+⚠️ **AI-powered candidate matching (fallback mode active)**
 ✅ **Dual portal system operational**
 ✅ **Enterprise-grade security features**
 

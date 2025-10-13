@@ -1,7 +1,25 @@
+"""
+BHIV HR Platform - Client Portal Configuration
+Version: 3.1.0 with Phase 3 Features
+Updated: October 13, 2025
+Status: Production Ready
+
+Configuration for Client Portal Streamlit application:
+- API Gateway connection settings
+- JWT authentication configuration
+- HTTP session with retry strategy
+- Production database connections
+"""
+
 import requests
 import os
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+
+# Version Information
+__version__ = "3.1.0"
+__updated__ = "2025-10-13"
+__status__ = "Production Ready"
 
 # API Configuration
 API_BASE_URL = os.getenv("GATEWAY_URL", "https://bhiv-hr-gateway-46pz.onrender.com")
@@ -51,3 +69,23 @@ def create_session():
 
 # Global session
 http_session = create_session()
+
+# Client Portal Configuration
+CLIENT_PORTAL_CONFIG = {
+    "title": "BHIV HR Platform - Client Portal",
+    "version": __version__,
+    "authentication": "JWT Token-based",
+    "features": [
+        "Job Posting",
+        "Candidate Review", 
+        "Interview Scheduling",
+        "Offer Management",
+        "Real-time Sync with HR Portal"
+    ],
+    "demo_credentials": {
+        "username": "TECH001",
+        "password": "demo123"
+    },
+    "status": __status__,
+    "updated": __updated__
+}

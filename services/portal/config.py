@@ -1,5 +1,23 @@
+"""
+BHIV HR Platform - HR Portal Configuration
+Version: 3.1.0 with Phase 3 Features
+Updated: October 13, 2025
+Status: Production Ready
+
+Configuration for HR Portal Streamlit application:
+- API Gateway connection settings
+- HTTP client with connection pooling
+- Timeout and retry configurations
+- Production-ready defaults
+"""
+
 import httpx
 import os
+
+# Version Information
+__version__ = "3.1.0"
+__updated__ = "2025-10-13"
+__status__ = "Production Ready"
 
 # API Configuration
 API_BASE = os.getenv("GATEWAY_URL", "https://bhiv-hr-gateway-46pz.onrender.com")
@@ -28,3 +46,20 @@ http_client = httpx.Client(
     headers=headers,
     follow_redirects=True
 )
+
+# Portal Configuration
+PORTAL_CONFIG = {
+    "title": "BHIV HR Platform - Dashboard",
+    "version": __version__,
+    "api_endpoints": 50,
+    "features": [
+        "Candidate Management",
+        "Job Posting", 
+        "AI Matching",
+        "Values Assessment",
+        "Interview Scheduling",
+        "Offer Management"
+    ],
+    "status": __status__,
+    "updated": __updated__
+}

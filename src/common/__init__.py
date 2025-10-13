@@ -1,10 +1,15 @@
 """
 BHIV HR Platform - Common Utilities
 Shared utilities and constants across all services
+Version: 3.1.0 with Phase 3 Features
+Updated: October 13, 2025
+Status: Production Ready
 """
 
 __version__ = "3.1.0"
 __author__ = "BHIV HR Platform Team"
+__updated__ = "2025-10-13"
+__status__ = "Production Ready"
 
 # Common constants
 API_VERSION = "v1"

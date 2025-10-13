@@ -1,6 +1,6 @@
 # 🏗️ BHIV HR Platform - Project Structure & Architecture
 
-**Version**: 3.1.1 | **Updated**: January 2025 | **Status**: 🟢 Production Ready
+**Version**: 3.1.0 | **Updated**: October 2025 | **Status**: ⚠️ Production Ready (4/5 Services)
 
 ## 📋 Table of Contents
 
@@ -21,12 +21,12 @@ BHIV HR Platform is a production-ready enterprise recruiting platform built with
 
 ### **Current Status**
 - **Platform**: Render Cloud (Oregon, US West)
-- **Services**: 5 (All operational)
-- **Endpoints**: 55 (49 Gateway + 6 Agent)
-- **Database**: PostgreSQL 17 with 11 tables
-- **Data**: 27 real candidates from processed resumes
+- **Services**: 5 (4 operational, 1 offline)
+- **Endpoints**: 50 (49 Gateway + 1 Schema verification)
+- **Database**: PostgreSQL 17 with schema v4.1.0 (17 tables)
+- **Data**: 11 candidates + 19 jobs (production data)
 - **Cost**: $0/month (Free tier)
-- **Uptime**: 99.9%
+- **Uptime**: 99.9% (operational services)
 
 ---
 
@@ -36,11 +36,11 @@ BHIV HR Platform is a production-ready enterprise recruiting platform built with
 
 | Service | Technology | Purpose | Endpoints | Production URL |
 |---------|------------|---------|-----------|----------------|
-| **API Gateway** | FastAPI 0.115.6 | REST API Backend | 49 | bhiv-hr-gateway-46pz.onrender.com |
-| **AI Agent** | FastAPI 0.115.6 | Candidate Matching | 6 | bhiv-hr-agent-m1me.onrender.com |
-| **HR Portal** | Streamlit 1.41.1 | HR Dashboard | Web UI | bhiv-hr-portal-cead.onrender.com |
-| **Client Portal** | Streamlit 1.41.1 | Client Interface | Web UI | bhiv-hr-client-portal-5g33.onrender.com |
-| **Database** | PostgreSQL 17 | Data Storage | - | Internal Render URL |
+| **API Gateway** | FastAPI 0.115.6 | REST API Backend | 50 | bhiv-hr-gateway-46pz.onrender.com ✅ |
+| **AI Agent** | FastAPI 0.115.6 | Candidate Matching | 6 | bhiv-hr-agent-m1me.onrender.com ❌ |
+| **HR Portal** | Streamlit 1.41.1 | HR Dashboard | Web UI | bhiv-hr-portal-cead.onrender.com ✅ |
+| **Client Portal** | Streamlit 1.41.1 | Client Interface | Web UI | bhiv-hr-client-portal-5g33.onrender.com ✅ |
+| **Database** | PostgreSQL 17 | Data Storage | - | Internal Render URL ✅ |
 
 ### **Service Dependencies**
 
@@ -64,7 +64,7 @@ graph TD
 
 ## 🗄️ Database Schema
 
-### **PostgreSQL 17 Schema (11 Tables)**
+### **PostgreSQL 17 Schema v4.1.0 (17 Tables)**
 
 #### **Core Tables**
 1. **candidates** - Candidate profiles and data
@@ -82,6 +82,14 @@ graph TD
 
 #### **AI & Performance**
 11. **matching_cache** - AI matching results cache
+12. **company_scoring_preferences** - Phase 3 learning engine
+
+#### **Additional Tables (5)**
+13. **client_auth** - Enhanced authentication
+14. **client_sessions** - Session management
+15. **schema_version** - Version tracking
+16. **pg_stat_statements** - Performance monitoring
+17. **pg_stat_statements_info** - Statistics metadata
 
 ### **Key Schema Features**
 - **Constraints**: CHECK constraints for data validation
@@ -90,27 +98,38 @@ graph TD
 - **Views**: Candidate summary and job analytics views
 - **Functions**: PostgreSQL functions for complex operations
 
-### **Sample Data**
-- **Candidates**: 27 real profiles from processed resumes (26 PDF + 1 DOCX)
-- **Jobs**: 5 sample job postings
-- **Clients**: 3 demo client companies
+### **Production Data**
+- **Candidates**: 11 active candidate records
+- **Jobs**: 19 job postings
+- **Clients**: 3 demo client companies (TECH001/demo123)
 - **Users**: 3 HR system users
+- **Database Connections**: 5 active sessions
 
 ---
 
 ## 🔌 API Endpoints
 
-### **Gateway Service (49 Endpoints)**
+### **Gateway Service (50 Endpoints)**
 
-#### **Core API (7 endpoints)**
+#### **Core API (3 endpoints)**
 ```
 GET /                    - Service information
 GET /health             - Health check
 GET /test-candidates    - Database connectivity test
+```
+
+#### **Monitoring (3 endpoints)**
+```
 GET /metrics            - Prometheus metrics
 GET /health/detailed    - Detailed health check
 GET /metrics/dashboard  - Metrics dashboard
+```
+
+#### **Analytics (3 endpoints)**
+```
 GET /candidates/stats   - Candidate statistics
+GET /v1/database/schema - Database schema verification (NEW)
+GET /v1/reports/job/{job_id}/export.csv - Export job report
 ```
 
 #### **Job Management (2 endpoints)**
@@ -128,9 +147,10 @@ POST /v1/candidates/bulk         - Bulk upload candidates
 GET /v1/candidates/job/{job_id}  - Get candidates for specific job
 ```
 
-#### **AI Matching (1 endpoint)**
+#### **AI Matching (2 endpoints)**
 ```
 GET /v1/match/{job_id}/top       - Get top candidate matches for job
+POST /v1/match/batch             - Batch AI matching
 ```
 
 #### **Assessment & Workflow (6 endpoints)**
@@ -184,13 +204,12 @@ GET /v1/password/strength-test    - Password strength testing tool
 GET /v1/password/security-tips    - Password security best practices
 ```
 
-#### **Client Portal & Reports (2 endpoints)**
+#### **Client Portal (1 endpoint)**
 ```
 POST /v1/client/login                    - Client authentication
-GET /v1/reports/job/{job_id}/export.csv - Export job report
 ```
 
-### **Agent Service (6 Endpoints)**
+### **Agent Service (6 Endpoints) - ❌ OFFLINE**
 
 #### **Core (2 endpoints)**
 ```
@@ -483,4 +502,4 @@ python-dotenv: 1.0.0
 
 *Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
 
-**Last Updated**: January 2025 | **Status**: 🟢 Production Ready | **Cost**: $0/month
+**Last Updated**: October 2025 | **Status**: ⚠️ Production Ready (4/5 Services) | **Cost**: $0/month
