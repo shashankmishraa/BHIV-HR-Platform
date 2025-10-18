@@ -1,7 +1,5 @@
 import streamlit as st
 import requests
-import qrcode
-from PIL import Image
 import io
 import base64
 
@@ -37,10 +35,16 @@ def show_2fa_setup():
                 # Display QR code
                 qr_code_data = data.get("qr_code", "")
                 if qr_code_data:
-                    # Decode base64 QR code
-                    qr_data = qr_code_data.split(",")[1]  # Remove data:image/png;base64,
-                    qr_bytes = base64.b64decode(qr_data)
-                    qr_image = Image.open(io.BytesIO(qr_bytes))
+                    try:
+                        import qrcode
+                        from PIL import Image
+                        # Decode base64 QR code
+                        qr_data = qr_code_data.split(",")[1]  # Remove data:image/png;base64,
+                        qr_bytes = base64.b64decode(qr_data)
+                        qr_image = Image.open(io.BytesIO(qr_bytes))
+                    except ImportError:
+                        st.error("❌ QR code libraries not available")
+                        return
                     
                     col1, col2 = st.columns(2)
                     
