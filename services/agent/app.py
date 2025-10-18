@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, Security
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 import psycopg2
 from psycopg2 import pool
@@ -6,6 +7,7 @@ import os
 import json
 import sys
 import logging
+import jwt
 from typing import List, Dict, Any
 from datetime import datetime
 
@@ -42,13 +44,40 @@ else:
 
 from fastapi.openapi.utils import get_openapi
 
+# Security setup
+security = HTTPBearer()
+
+def validate_api_key(api_key: str) -> bool:
+    """Validate API key against environment variable"""
+    expected_key = os.getenv("API_KEY_SECRET", "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o")
+    return api_key == expected_key
+
+def auth_dependency(credentials: HTTPAuthorizationCredentials = Security(security)):
+    """Authentication dependency mirroring Gateway"""
+    if not credentials:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    # Try API key first
+    if validate_api_key(credentials.credentials):
+        return {"type": "api_key", "credentials": credentials.credentials}
+    
+    # Try client JWT token
+    try:
+        jwt_secret = os.getenv("JWT_SECRET", "fallback_jwt_secret_key_for_client_auth_2025")
+        payload = jwt.decode(credentials.credentials, jwt_secret, algorithms=["HS256"])
+        return {"type": "client_token", "client_id": payload.get("client_id")}
+    except:
+        pass
+    
+    raise HTTPException(status_code=401, detail="Invalid authentication")
+
 app = FastAPI(
     title="BHIV AI Matching Engine",
     description="Advanced AI-Powered Semantic Candidate Matching Service",
     version="3.0.0"
 )
 
-# Custom OpenAPI schema with organized tags
+# Custom OpenAPI schema with organized tags and security
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
@@ -64,6 +93,19 @@ def custom_openapi():
         {"name": "Candidate Analysis", "description": "Detailed candidate profile analysis"},
         {"name": "System Diagnostics", "description": "Database connectivity and testing"}
     ]
+    # Add Bearer token security scheme
+    openapi_schema["components"]["securitySchemes"] = {
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT"
+        }
+    }
+    # Apply security to all endpoints except health
+    for path in openapi_schema["paths"]:
+        for method in openapi_schema["paths"][path]:
+            if path not in ["/", "/health"]:
+                openapi_schema["paths"][path][method]["security"] = [{"BearerAuth": []}]
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
@@ -176,7 +218,7 @@ def health_check():
     }
 
 @app.get("/test-db", tags=["System Diagnostics"], summary="Database Connectivity Test")
-def test_database():
+def test_database(auth = Depends(auth_dependency)):
     conn = None
     try:
         conn = get_db_connection()
@@ -203,7 +245,7 @@ def test_database():
             return_db_connection(conn)
 
 @app.post("/match", response_model=MatchResponse, tags=["AI Matching Engine"], summary="AI-Powered Candidate Matching")
-async def match_candidates(request: MatchRequest):
+async def match_candidates(request: MatchRequest, auth = Depends(auth_dependency)):
     """Phase 3 AI-powered candidate matching"""
     start_time = datetime.now()
     logger.info(f"Starting Phase 3 match for job_id: {request.job_id}")
@@ -425,7 +467,7 @@ class BatchMatchRequest(BaseModel):
     job_ids: List[int]
 
 @app.post("/batch-match", tags=["AI Matching Engine"], summary="Batch AI Matching for Multiple Jobs")
-async def batch_match_jobs(request: BatchMatchRequest):
+async def batch_match_jobs(request: BatchMatchRequest, auth = Depends(auth_dependency)):
     """Batch AI matching for multiple jobs using Phase 3 semantic engine"""
     
     if not request.job_ids or len(request.job_ids) == 0:
@@ -537,7 +579,7 @@ async def batch_match_jobs(request: BatchMatchRequest):
             return_db_connection(conn)
 
 @app.get("/analyze/{candidate_id}", tags=["Candidate Analysis"], summary="Detailed Candidate Analysis")
-async def analyze_candidate(candidate_id: int):
+async def analyze_candidate(candidate_id: int, auth = Depends(auth_dependency)):
     """Detailed candidate analysis"""
     conn = None
     try:

@@ -5,6 +5,14 @@ from datetime import datetime
 import numpy as np
 import os
 from config import API_BASE, API_KEY, headers, http_client
+import os
+
+# Unified Bearer authentication
+API_KEY_SECRET = os.getenv("API_KEY_SECRET", "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o")
+UNIFIED_HEADERS = {
+    "Authorization": f"Bearer {API_KEY_SECRET}",
+    "Content-Type": "application/json"
+}
 
 st.set_page_config(page_title="BHIV HR Platform v2.0", page_icon="🎯", layout="wide")
 
@@ -115,7 +123,7 @@ if menu == "🏢 Step 1: Create Job Positions":
             try:
                 response = httpx.post(f"{API_BASE}/v1/jobs", 
                                     json=job_data, 
-                                    headers=headers, timeout=10.0)
+                                    headers=UNIFIED_HEADERS, timeout=10.0)
                 if response.status_code == 200:
                     result = response.json()
                     job_id = result.get("job_id", "Unknown")
@@ -226,7 +234,7 @@ elif menu == "🔍 Step 3: Search & Filter Candidates":
                     # Make API call
                     response = httpx.get(f"{API_BASE}/v1/candidates/search", 
                                        params=params, 
-                                       headers={"Authorization": f"Bearer {API_KEY}"}, 
+                                       headers=UNIFIED_HEADERS, 
                                        timeout=10.0)
                     
                     if response.status_code == 200:

@@ -18,6 +18,7 @@ from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, field_validator
 import time
 import psutil
+from routes.auth import router as auth_router
 try:
     from .monitoring import monitor, log_resume_processing, log_matching_performance, log_user_activity, log_error
 except ImportError:
@@ -50,6 +51,9 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
+
+# Include auth routes
+app.include_router(auth_router)
 
 # Add monitoring endpoints
 @app.get("/metrics", tags=["Monitoring"])

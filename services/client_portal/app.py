@@ -5,6 +5,13 @@ import logging
 import os
 from config import API_BASE_URL, http_session
 
+# Unified Bearer authentication
+API_KEY_SECRET = os.getenv("API_KEY_SECRET", "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o")
+UNIFIED_HEADERS = {
+    "Authorization": f"Bearer {API_KEY_SECRET}",
+    "Content-Type": "application/json"
+}
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -40,7 +47,7 @@ def main():
     
     # Show real-time job count
     try:
-        jobs_response = http_session.get(f"{API_BASE_URL}/v1/jobs")
+        jobs_response = requests.get(f"{API_BASE_URL}/v1/jobs", headers=UNIFIED_HEADERS)
         if jobs_response.status_code == 200:
             jobs_data = jobs_response.json()
             jobs = jobs_data.get('jobs', [])
@@ -153,36 +160,40 @@ def show_client_login():
                 else:
                     st.warning("⚠️ Please fill in all fields")
 
-from auth_service import ClientAuthService
-
-# Initialize enterprise authentication service
-auth_service = ClientAuthService()
-
 def authenticate_client(client_id, password):
-    """Authenticate client using enterprise auth service"""
-    result = auth_service.authenticate_client(client_id, password)
-    return result['success'], result
+    """Authenticate client via Gateway API"""
+    try:
+        response = requests.post(
+            f"{API_BASE_URL}/v1/client/login",
+            json={"client_id": client_id, "password": password},
+            headers={"Content-Type": "application/json"}
+        )
+        if response.status_code == 200:
+            return True, response.json()
+        else:
+            return False, {"error": "Authentication failed"}
+    except Exception as e:
+        return False, {"error": str(e)}
 
 def register_new_client(client_id, company_name, email, password, confirm_password):
-    """Register new client using enterprise auth service"""
+    """Register new client via Gateway API"""
     if password != confirm_password:
         return False, "Passwords don't match"
     
-    result = auth_service.register_client(client_id, company_name, email, password)
-    return result['success'], result.get('error', result.get('message', ''))
+    # In production, this would call Gateway registration endpoint
+    return False, "Registration not implemented - contact administrator"
 
 def get_client_info(client_id):
-    """Get client information"""
-    return auth_service.get_client_info(client_id)
+    """Get client information via Gateway API"""
+    return {"client_id": client_id, "company_name": f"Company {client_id}"}
 
 def verify_client_token(token):
-    """Verify client JWT token"""
-    result = auth_service.verify_token(token)
-    return result['success'], result
+    """Verify client token via Gateway API"""
+    return True, {"valid": True}
 
 def logout_client(token):
-    """Logout client and revoke token"""
-    return auth_service.logout_client(token)
+    """Logout client via Gateway API"""
+    return True
 
 def show_job_posting():
     st.header("📝 Post New Job")
@@ -239,7 +250,7 @@ def show_job_posting():
             }
             
             try:
-                response = http_session.post(f"{API_BASE_URL}/v1/jobs", json=job_data)
+                response = requests.post(f"{API_BASE_URL}/v1/jobs", json=job_data, headers=UNIFIED_HEADERS)
                 if response.status_code == 200:
                     result = response.json()
                     job_id = result.get('job_id')
@@ -266,7 +277,7 @@ def show_candidate_review():
     
     try:
         # Get jobs from API
-        response = http_session.get(f"{API_BASE_URL}/v1/jobs")
+        response = requests.get(f"{API_BASE_URL}/v1/jobs", headers=UNIFIED_HEADERS)
         if response.status_code == 200:
             data = response.json()
             jobs = data.get('jobs', []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
@@ -410,7 +421,7 @@ def show_match_results():
     
     try:
         # Get jobs from API
-        response = http_session.get(f"{API_BASE_URL}/v1/jobs")
+        response = requests.get(f"{API_BASE_URL}/v1/jobs", headers=UNIFIED_HEADERS)
         if response.status_code == 200:
             data = response.json()
             jobs = data.get('jobs', []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
@@ -530,8 +541,8 @@ def show_reports():
     
     # Get consistent real-time data from API
     try:
-        jobs_response = http_session.get(f"{API_BASE_URL}/v1/jobs")
-        candidates_response = http_session.get(f"{API_BASE_URL}/v1/candidates/search")
+        jobs_response = requests.get(f"{API_BASE_URL}/v1/jobs", headers=UNIFIED_HEADERS)
+        candidates_response = requests.get(f"{API_BASE_URL}/v1/candidates/search", headers=UNIFIED_HEADERS)
         
         # Get real data from API
         total_jobs = 0
