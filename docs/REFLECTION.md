@@ -2,7 +2,7 @@
 
 *Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
 
-## Day 1 - Semantic Resume Enrichment (January 1, 2025)
+## Day 1 - Semantic Resume Enrichment (October 1, 2025)
 
 ### Humility
 Today I learned that regex parsing completely missed contextual skills like "led a team of 5 developers" - it could only extract "developers" but missed the leadership context. SBERT embeddings solved this by understanding semantic relationships, capturing that "led team" implies management skills. The comprehensive_resume_extractor.py initially had performance issues with multiple regex operations on the same text without compilation, causing overhead in name extraction processing.
@@ -15,7 +15,7 @@ I noticed the SBERT model shows bias toward certain job titles - it rates "Senio
 
 ---
 
-## Day 2 - Portal Development & UI/UX (January 2, 2025)
+## Day 2 - Portal Development & UI/UX (October 2, 2025)
 
 ### Humility
 The Streamlit interfaces aren't as polished as I initially envisioned. File upload handling in batch_upload.py performs synchronously without buffering, causing UI blocking with large files. The client portal authentication is basic compared to enterprise-grade solutions, and responsive design on mobile devices needs significant improvement.
@@ -28,7 +28,7 @@ I took several shortcuts: hardcoded client credentials in the gateway (TECH001/d
 
 ---
 
-## Day 3 - AI Matching Engine & Backend Integration (January 3, 2025)
+## Day 3 - AI Matching Engine & Backend Integration (October 3, 2025)
 
 ### Humility
 The AI matching algorithm in services/agent/app.py has inefficient nested loops that could cause performance degradation with large candidate datasets. I initially underestimated the complexity of bias mitigation in semantic matching - the model favors tech industry keywords and formal language over casual descriptions.
@@ -41,7 +41,7 @@ The tech_keywords dictionary is recreated on every function call instead of bein
 
 ---
 
-## Day 4 - Production Deployment & Security Hardening (January 4, 2025)
+## Day 4 - Production Deployment & Security Hardening (October 4, 2025)
 
 ### Humility
 Deployment revealed several security vulnerabilities I hadn't considered: hardcoded credentials across multiple files, log injection possibilities in the agent service, and path traversal risks in the auto-sync watcher. The rate limiting implementation uses in-memory storage that doesn't scale and causes memory leaks.
@@ -56,7 +56,7 @@ I deployed with known security issues that need immediate attention: hardcoded A
 
 ---
 
-## Day 5 - Real Data Integration & Error Resolution (January 5, 2025)
+## Day 5 - Real Data Integration & Error Resolution (October 5, 2025)
 
 ### Humility
 Replacing mock data with real resume extractions revealed numerous data type inconsistencies I hadn't anticipated. The skills_match field contained both string arrays and numeric percentages, causing TypeErrors in Streamlit displays. My initial assumption that all extracted data would be uniform was incorrect - real-world resume parsing produces mixed data types that require careful handling.
@@ -69,7 +69,7 @@ I initially used hardcoded candidate data in dashboards rather than implementing
 
 ---
 
-## Day 6 - Project Organization & Documentation (January 6, 2025)
+## Day 6 - Project Organization & Documentation (October 6, 2025)
 
 ### Humility
 Analyzing the project structure revealed significant redundancy I hadn't noticed during development. The auth_service.py file contained 300+ lines for authentication that was ultimately handled by 2 lines of hardcoded credentials. The semantic_engine service was built but never integrated into the actual workflow, representing wasted development effort.

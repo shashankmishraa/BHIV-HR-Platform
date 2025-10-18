@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [3.1.1] - 2025-01-03
+## [3.1.1] - 2025-10-03
 
 ### 🔄 Changed
 - **File Management**: Removed 45+ redundant files (~15-20MB space saved)
@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [3.1.0] - 2025-01-02
+## [3.1.0] - 2025-10-02
 
 ### 🆕 Added
 - **Complete Codebase Audit**: Comprehensive analysis of all 150+ files
@@ -55,7 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [3.0.0] - 2025-01-01
+## [3.0.0] - 2025-10-01
 
 ### 🆕 Added
 - **Production Deployment**: All 5 services live on Render
@@ -176,9 +176,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Release Date | Features Added | Bugs Fixed | API Endpoints | Services |
 |---------|--------------|----------------|------------|---------------|----------|
-| 3.1.1   | 2025-01-03   | 1              | 0          | 55            | 5        |
-| 3.1.0   | 2025-01-02   | 8              | 5          | 55            | 5        |
-| 3.0.0   | 2025-01-01   | 6              | 3          | 48            | 5        |
+| 3.1.1   | 2025-10-03   | 1              | 0          | 55            | 5        |
+| 3.1.0   | 2025-10-02   | 8              | 5          | 55            | 5        |
+| 3.0.0   | 2025-10-01   | 6              | 3          | 48            | 5        |
 | 2.1.0   | 2024-12-30   | 4              | 3          | 25            | 4        |
 | 2.0.0   | 2024-12-25   | 4              | 3          | 15            | 4        |
 | 1.5.0   | 2024-12-20   | 4              | 3          | 10            | 2        |
@@ -262,5 +262,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 **Changelog Maintained By**: BHIV Development Team  
-**Last Updated**: January 2025  
+**Last Updated**: October 2025  
 **Current Version**: 3.1.1
