@@ -18,7 +18,12 @@ from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, field_validator
 import time
 import psutil
-from routes.auth import router as auth_router
+try:
+    from routes.auth import router as auth_router
+except ImportError:
+    # Fallback if auth routes not available
+    from fastapi import APIRouter
+    auth_router = APIRouter()
 try:
     from .monitoring import monitor, log_resume_processing, log_matching_performance, log_user_activity, log_error
 except ImportError:
