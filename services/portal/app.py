@@ -106,7 +106,7 @@ if menu == "🏢 Step 1: Create Job Positions":
         description = st.text_area("Job Description", placeholder="Describe the role, responsibilities, and requirements...")
         requirements = st.text_area("Key Requirements", placeholder="List the essential skills, experience, and qualifications...")
         
-        submitted = st.form_submit_button("🚀 Create Job", use_container_width=True)
+        submitted = st.form_submit_button("🚀 Create Job", width='stretch')
         
         if submitted and title and description:
             # Actually create job via API
@@ -191,7 +191,7 @@ elif menu == "🔍 Step 3: Search & Filter Candidates":
         st.session_state.search_clicked = False
     
     # Search button
-    if st.button("🔍 Search Candidates", use_container_width=True):
+    if st.button("🔍 Search Candidates", width='stretch'):
         st.session_state.search_clicked = True
     
     # Show default message when page loads
@@ -328,7 +328,7 @@ elif menu == "📊 Step 6: Submit Values Assessment":
         overall_recommendation = st.selectbox("Overall Recommendation", 
             ["Strongly Recommend", "Recommend", "Neutral", "Do Not Recommend", "Strongly Do Not Recommend"])
         
-        submitted = st.form_submit_button("📤 Submit Assessment", use_container_width=True)
+        submitted = st.form_submit_button("📤 Submit Assessment", width='stretch')
         
         if submitted and reviewer_name and candidate_name and feedback_text:
             # Calculate metrics
@@ -443,7 +443,7 @@ elif menu == "📈 Dashboard Overview":
         
         # Enhanced pipeline table with insights
         pipeline_data['Success Rate'] = pipeline_data['Conversion Rate'].astype(str) + '%'
-        st.dataframe(pipeline_data[['Stage', 'Count', 'Success Rate']], use_container_width=True)
+        st.dataframe(pipeline_data[['Stage', 'Count', 'Success Rate']], width='stretch')
     
     with col2:
         st.subheader("🏆 Values Assessment Distribution")
@@ -456,7 +456,7 @@ elif menu == "📈 Dashboard Overview":
         
         # Create values chart
         st.bar_chart(values_data.set_index('Value')['Average Score'])
-        st.dataframe(values_data, use_container_width=True)
+        st.dataframe(values_data, width='stretch')
     
     # Enhanced Skills Analysis with Real Data
     st.subheader("💻 Technical Skills Analysis (31 Candidates)")
@@ -500,7 +500,7 @@ elif menu == "📈 Dashboard Overview":
             'Last Week': [0, 0, 0, 0, 0],
             'Trend': ['↗️' if total_jobs > 0 else '→', '↗️' if total_candidates > 0 else '→', '↗️' if total_candidates > 0 else '→', '→', '↗️' if total_candidates >= 3 else '→']
         })
-        st.dataframe(activity_data, use_container_width=True)
+        st.dataframe(activity_data, width='stretch')
     
     with col2:
         # Candidate quality metrics
@@ -512,7 +512,7 @@ elif menu == "📈 Dashboard Overview":
             'Score': [f'{avg_ai_score}/100', f'{avg_values}/5', '80%' if total_candidates > 0 else '0%', '85%' if total_candidates > 0 else '0%', 'Good' if total_candidates > 0 else 'No Data'],
             'Benchmark': ['85+', '4.0+', '80%+', '85%+', 'Good+']
         })
-        st.dataframe(quality_data, use_container_width=True)
+        st.dataframe(quality_data, width='stretch')
     
     # Seniority and Education Distribution
     st.subheader("👥 Candidate Demographics (31 Total)")
@@ -569,7 +569,7 @@ elif menu == "📈 Dashboard Overview":
     export_col1, export_col2, export_col3 = st.columns(3)
     
     with export_col1:
-        if st.button("📥 Export All Candidates Report", use_container_width=True):
+        if st.button("📥 Export All Candidates Report", width='stretch'):
             try:
                 # Get comprehensive candidate data with assessments
                 candidates_response = httpx.get(f"{API_BASE}/v1/candidates/search", headers=headers, timeout=10.0)
@@ -629,7 +629,7 @@ elif menu == "📈 Dashboard Overview":
     
     with export_col2:
         job_id_export = st.number_input("Job ID for Export", min_value=1, value=1, key="export_job_id")
-        if st.button("📥 Export Job-Specific Report", use_container_width=True):
+        if st.button("📥 Export Job-Specific Report", width='stretch'):
             try:
                 # Get AI match data and assessments for specific job
                 agent_url = os.getenv("AGENT_SERVICE_URL", "https://bhiv-hr-agent-m1me.onrender.com")
@@ -686,7 +686,7 @@ elif menu == "📈 Dashboard Overview":
                 st.error(f"Export failed: {str(e)}")
     
     with export_col3:
-        if st.button("📥 Export Assessment Summary", use_container_width=True):
+        if st.button("📥 Export Assessment Summary", width='stretch'):
             try:
                 # Get all assessment and feedback data
                 candidates_response = httpx.get(f"{API_BASE}/v1/candidates/search", headers=headers, timeout=10.0)
@@ -764,7 +764,7 @@ elif menu == "🎯 Step 4: AI Shortlist & Matching":
         if 'get_shortlist' not in st.session_state:
             st.session_state.get_shortlist = False
         
-        if st.button("🤖 Generate AI Shortlist", use_container_width=True):
+        if st.button("🤖 Generate AI Shortlist", width='stretch'):
             st.session_state.get_shortlist = True
     
     with col3:
@@ -772,7 +772,7 @@ elif menu == "🎯 Step 4: AI Shortlist & Matching":
         if 'refresh_data' not in st.session_state:
             st.session_state.refresh_data = False
         
-        if st.button("🔄 Refresh Data", use_container_width=True):
+        if st.button("🔄 Refresh Data", width='stretch'):
             st.session_state.refresh_data = True
     
     if st.session_state.get_shortlist or st.session_state.refresh_data:
@@ -898,11 +898,11 @@ elif menu == "🎯 Step 4: AI Shortlist & Matching":
                 bulk_col1, bulk_col2, bulk_col3 = st.columns(3)
                 
                 with bulk_col1:
-                    if st.button("📧 Email All Top Candidates", use_container_width=True):
+                    if st.button("📧 Email All Top Candidates", width='stretch'):
                         st.success(f"📧 Emails sent to top {len(candidates)} candidates with interview invitations")
                 
                 with bulk_col2:
-                    if st.button("📊 Export Shortlist Report", use_container_width=True):
+                    if st.button("📊 Export Shortlist Report", width='stretch'):
                         try:
                             # Get comprehensive shortlist data with assessments and feedback
                             interviews_response = httpx.get(f"{API_BASE}/v1/interviews", headers=headers, timeout=10.0)
@@ -968,7 +968,7 @@ elif menu == "🎯 Step 4: AI Shortlist & Matching":
                             st.error(f"Export failed: {str(e)}")
                 
                 with bulk_col3:
-                    if st.button("🔄 Re-run AI Analysis", use_container_width=True):
+                    if st.button("🔄 Re-run AI Analysis", width='stretch'):
                         st.info("🔄 Re-running AI analysis with latest data...")
                         st.rerun()
             else:
@@ -1098,7 +1098,7 @@ elif menu == "🏆 Step 7: Export Assessment Reports":
     with export_col1:
         st.write("**📥 Complete Candidate Report**")
         st.caption("All candidates with assessments, interviews, and shortlist status")
-        if st.button("📥 Export All Candidates with Assessments", use_container_width=True):
+        if st.button("📥 Export All Candidates with Assessments", width='stretch'):
             try:
                 # Get comprehensive data
                 candidates_response = httpx.get(f"{API_BASE}/v1/candidates/search", headers=headers, timeout=10.0)
@@ -1170,7 +1170,7 @@ elif menu == "🏆 Step 7: Export Assessment Reports":
     with export_col2:
         st.write("**🏆 Values Assessment Summary**")
         st.caption("Detailed values breakdown for all assessed candidates")
-        if st.button("📥 Export Values Assessment Report", use_container_width=True):
+        if st.button("📥 Export Values Assessment Report", width='stretch'):
             try:
                 candidates_response = httpx.get(f"{API_BASE}/v1/candidates/search", headers=headers, timeout=10.0)
                 interviews_response = httpx.get(f"{API_BASE}/v1/interviews", headers=headers, timeout=10.0)
@@ -1250,7 +1250,7 @@ elif menu == "🏆 Step 7: Export Assessment Reports":
         st.write("**📊 Shortlist Analysis Report**")
         st.caption("AI matching scores with assessment data for shortlisted candidates")
         job_id_shortlist = st.number_input("Job ID for Shortlist Export", min_value=1, value=1, key="shortlist_export_job_id")
-        if st.button("📥 Export Shortlist with Assessments", use_container_width=True):
+        if st.button("📥 Export Shortlist with Assessments", width='stretch'):
             try:
                 # Get AI shortlist data
                 agent_url = os.getenv("AGENT_SERVICE_URL", "https://bhiv-hr-agent-m1me.onrender.com")
@@ -1340,17 +1340,17 @@ elif menu == "🏆 Step 7: Export Assessment Reports":
     action_col1, action_col2, action_col3 = st.columns(3)
     
     with action_col1:
-        if st.button("📊 Generate Assessment Summary", use_container_width=True):
+        if st.button("📊 Generate Assessment Summary", width='stretch'):
             st.info("🔄 Generating comprehensive assessment summary...")
             st.success("✅ Assessment summary generated! Use export buttons above to download.")
     
     with action_col2:
-        if st.button("🏆 Update Values Scores", use_container_width=True):
+        if st.button("🏆 Update Values Scores", width='stretch'):
             st.info("🔄 Updating values assessment scores from latest feedback...")
             st.success("✅ Values scores updated! Latest assessments are now available.")
     
     with action_col3:
-        if st.button("📊 Refresh All Data", use_container_width=True):
+        if st.button("📊 Refresh All Data", width='stretch'):
             st.info("🔄 Refreshing all assessment and candidate data...")
             st.rerun()
 
@@ -1376,7 +1376,7 @@ elif menu == "📅 Step 5: Schedule Interviews":
                 interview_time = st.time_input("Interview Time")
                 interviewer = st.text_input("Interviewer Name")
             
-            submitted = st.form_submit_button("📅 Schedule Interview", use_container_width=True)
+            submitted = st.form_submit_button("📅 Schedule Interview", width='stretch')
             
             if submitted and candidate_name and interviewer:
                 interview_data = {
@@ -1453,7 +1453,7 @@ elif menu == "📤 Step 2: Upload Candidates":
         'experience_years': [5, 3, 7],
         'status': ['applied', 'applied', 'applied']
     })
-    st.dataframe(example_df, use_container_width=True)
+    st.dataframe(example_df, width='stretch')
     
     # File upload
     uploaded_file = st.file_uploader("Choose CSV file", type="csv")
@@ -1462,9 +1462,9 @@ elif menu == "📤 Step 2: Upload Candidates":
         try:
             df = pd.read_csv(uploaded_file)
             st.write("**Preview of uploaded data:**")
-            st.dataframe(df, use_container_width=True)
+            st.dataframe(df, width='stretch')
             
-            if st.button("📤 Upload Candidates", use_container_width=True):
+            if st.button("📤 Upload Candidates", width='stretch'):
                 # Process and upload to API with enhanced data
                 candidates = []
                 for _, row in df.iterrows():

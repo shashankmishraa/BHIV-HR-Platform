@@ -118,7 +118,7 @@ def show_client_login():
             client_id = st.text_input("Client ID", placeholder="e.g., TECH001")
             password = st.text_input("Password", type="password", placeholder="Enter your secure password")
             
-            if st.form_submit_button("🔑 Secure Login", use_container_width=True):
+            if st.form_submit_button("🔑 Secure Login", width='stretch'):
                 if client_id and password:
                     with st.spinner("Authenticating..."):
                         success, result = authenticate_client(client_id, password)
@@ -147,7 +147,7 @@ def show_client_login():
             
             st.info("🔒 **Security Features:**\\n- Passwords are encrypted with bcrypt\\n- JWT token authentication\\n- Account lockout protection\\n- Session management")
             
-            if st.form_submit_button("📝 Secure Registration", use_container_width=True):
+            if st.form_submit_button("📝 Secure Registration", width='stretch'):
                 if all([new_client_id, company_name, contact_email, new_password, confirm_password]):
                     with st.spinner("Creating secure account..."):
                         success, message = register_new_client(new_client_id, company_name, contact_email, new_password, confirm_password)
@@ -228,7 +228,7 @@ def show_job_posting():
                 st.write(f"**Salary:** {salary_range}")
             st.write(f"**Description:** {job_description[:200]}...")
         
-        if st.form_submit_button("🚀 Post Job", use_container_width=True):
+        if st.form_submit_button("🚀 Post Job", width='stretch'):
             if not all([job_title, department, location, experience_level, employment_type, job_description, required_skills]):
                 st.error("❌ All fields are required")
                 return
@@ -445,7 +445,7 @@ def show_match_results():
                     if 'ai_match_clicked' not in st.session_state:
                         st.session_state.ai_match_clicked = False
                     
-                    if st.button("🤖 Get AI Matches", use_container_width=True):
+                    if st.button("🤖 Get AI Matches", width='stretch'):
                         st.session_state.ai_match_clicked = True
                         job_id = job_map[selected_job]
                         

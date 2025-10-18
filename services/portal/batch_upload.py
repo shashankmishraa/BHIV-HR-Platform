@@ -132,7 +132,7 @@ def process_uploaded_files(uploaded_files):
         st.success(f"Uploaded {len(uploaded_files)} files to resume folder")
         
         # Auto-trigger processing
-        if st.button("Extract Data and Upload to Database", use_container_width=True):
+        if st.button("Extract Data and Upload to Database", width='stretch'):
             trigger_resume_processing()
             
     except Exception as e:
@@ -181,7 +181,7 @@ def process_zip_file(zip_file):
                 
                 st.success(f"Extracted {len(resume_files)} files to resume folder")
                 
-                if st.button("Extract Data and Upload to Database", use_container_width=True):
+                if st.button("Extract Data and Upload to Database", width='stretch'):
                     trigger_resume_processing()
             else:
                 st.error("No resume files found in ZIP archive")
@@ -206,7 +206,7 @@ def scan_resume_folder():
         if len(resume_files) > 10:
             st.write(f"... and {len(resume_files) - 10} more files")
         
-        if st.button("Extract Data and Upload All Files", use_container_width=True):
+        if st.button("Extract Data and Upload All Files", width='stretch'):
             trigger_resume_processing()
             
     except Exception as e:
