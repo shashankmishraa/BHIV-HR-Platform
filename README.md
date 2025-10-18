@@ -12,7 +12,7 @@
 - **Database**: PostgreSQL 17 on Render ✅
 - **Status**: ✅ **5/5 SERVICES OPERATIONAL** | **Cost**: $0/month (Free tier)
 - **Total Endpoints**: 56 (50 Gateway + 6 Agent) | **Updated**: January 2, 2025
-- **Python Version**: 3.12.7 | **FastAPI**: 0.115.6 | **Streamlit**: 1.41.1
+- **Python Version**: 3.12.7 | **FastAPI**: >=0.104.0,<0.120.0 | **Streamlit**: >=1.28.0,<2.0.0
 
 ### **🔑 Demo Access**
 ```bash
@@ -75,11 +75,11 @@ docker-compose -f deployment/docker/docker-compose.production.yml up -d
 ### **Microservices Architecture**
 | Service | Purpose | Technology | Port | Status | Production URL |
 |---------|---------|------------|------|--------|----------------|
-| **API Gateway** | REST API Backend | FastAPI 0.115.6 + Python 3.12.7 | 8000 | ✅ Live | bhiv-hr-gateway-46pz.onrender.com |
-| **AI Agent** | Candidate Matching | FastAPI 0.115.6 + Python 3.12.7 | 9000 | ✅ Live | bhiv-hr-agent-m1me.onrender.com |
-| **HR Portal** | HR Dashboard | Streamlit 1.41.1 + Python 3.12.7 | 8501 | ✅ Live | bhiv-hr-portal-cead.onrender.com |
-| **Client Portal** | Client Interface | Streamlit 1.41.1 + Python 3.12.7 | 8502 | ✅ Live | bhiv-hr-client-portal-5g33.onrender.com |
-| **Database** | Data Storage | PostgreSQL 17 | 5432 | ✅ Live | Internal Render URL |
+| **API Gateway** | REST API Backend | FastAPI + Python 3.12.7-slim | 8000 | ✅ Live | bhiv-hr-gateway-46pz.onrender.com |
+| **AI Agent** | Candidate Matching | FastAPI + Python 3.12.7-slim | 9000 | ✅ Live | bhiv-hr-agent-m1me.onrender.com |
+| **HR Portal** | HR Dashboard | Streamlit + Python 3.12.7-slim | 8501 | ✅ Live | bhiv-hr-portal-cead.onrender.com |
+| **Client Portal** | Client Interface | Streamlit + Python 3.12.7-slim | 8502 | ✅ Live | bhiv-hr-client-portal-5g33.onrender.com |
+| **Database** | Data Storage | PostgreSQL 15-alpine | 5432 | ✅ Live | Internal Render URL |
 
 ### **API Endpoints (56 Total)**
 ```

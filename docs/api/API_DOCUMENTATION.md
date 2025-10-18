@@ -634,6 +634,6 @@ ReDoc format available at:
 
 ---
 
-**Last Updated**: October 18, 2025  
+**Last Updated**: January 2, 2025  
 **API Version**: 3.1.0-phase3-production  
-**Status**: 🟢 All 60 Endpoints Operational (54 Gateway + 6 Agent) | **AI Engine**: Phase 3 Operational | **Database**: v4.1.0 (17 tables)
+**Status**: 🟢 All 56 Endpoints Operational (50 Gateway + 6 Agent) | **AI Engine**: Phase 3 Operational | **Database**: v4.1.0 (17 tables) | **Python**: 3.12.7-slim | **FastAPI**: >=0.104.0,<0.120.0 | **Streamlit**: >=1.28.0,<2.0.0
