@@ -1,7 +1,7 @@
 # 🔗 BHIV HR Platform - Complete API Documentation
 
-**Generated**: January 2, 2025  
-**API Version**: 3.1.0  
+**Generated**: October 18, 2025  
+**API Version**: 3.1.0-phase3-production  
 **Base URL**: https://bhiv-hr-gateway-46pz.onrender.com  
 **Authentication**: Bearer Token Required
 
@@ -10,18 +10,105 @@
 ## 📊 API Overview
 
 ### **Total Endpoints**: 56 (50 Gateway + 6 Agent)
+### **Live Deployment Status**: ✅ All endpoints operational on Render
 ### **Algorithm Version**: 3.1.0-phase3-production
-### **AI Engine**: Phase 3 Semantic Matching with Learning
+### **AI Engine**: Phase 3 Semantic Matching with Learning Engine
+### **Database Schema**: v4.1.0 (17 tables)
 ### **Authentication**: Bearer Token
 ### **Rate Limiting**: 60 requests/minute (default), granular limits by endpoint
 ### **Response Format**: JSON
 ### **Status**: 🟢 All endpoints operational
+### **Recent Updates**: 
+- ✅ Unified authentication system with dependencies.py
+- ✅ 2FA TOTP implementation with QR codes
+- ✅ Agent service event loop conflicts resolved (async functions fixed)
+- ✅ Agent service authentication implemented (Bearer + JWT)
+- ✅ Enhanced security with auth routes
+- ✅ Portal services updated with Streamlit API fixes (width='stretch')
+- ✅ Function-level imports for QR code dependencies
+- ✅ Batch upload functionality with security validation
+- ✅ Client portal enterprise authentication with JWT + bcrypt
+- ✅ Account lockout protection and session management
+- ✅ Complete services architecture documentation with deployment configs
+- ✅ Phase 3 AI engine with learning capabilities and adaptive scoring
+- ✅ Database schema v4.1.0 deployed with 17 tables
+- ✅ Enhanced batch processing with async optimization and smart caching
+- ✅ Cultural fit scoring with feedback-based alignment analysis
+- ✅ Company preference tracking and weight optimization
 
 ---
 
 ## 🔑 Authentication
 
-All API endpoints require authentication using Bearer tokens in the Authorization header:
+### **Unified Bearer Authentication System**
+The Gateway service implements a sophisticated dual authentication system supporting:
+- **API Keys**: For service-to-service communication
+- **JWT Tokens**: For client portal authentication  
+- **2FA TOTP**: Optional two-factor authentication with QR codes
+
+### **Authentication Architecture**
+```python
+# Located in: services/gateway/dependencies.py
+def get_auth(credentials):
+    # Try API key first
+    if validate_api_key(credentials.credentials):
+        return {"type": "api_key", "credentials": credentials.credentials}
+    
+    # Try client JWT token
+    try:
+        payload = jwt.decode(credentials.credentials, jwt_secret, algorithms=["HS256"])
+        return {"type": "client_token", "client_id": payload.get("client_id")}
+    except:
+        pass
+    
+    raise HTTPException(status_code=401, detail="Invalid authentication")
+```
+
+### **Authentication Methods**
+
+#### 1. **API Key Authentication** (Primary)
+```bash
+curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
+     https://bhiv-hr-gateway-46pz.onrender.com/v1/jobs
+```
+
+#### 2. **JWT Token Authentication** (Client Portal)
+```bash
+# Login to get JWT token
+curl -X POST -H "Content-Type: application/json" \
+     -d '{"client_id": "TECH001", "password": "demo123"}' \
+     https://bhiv-hr-gateway-46pz.onrender.com/v1/client/login
+
+# Use returned JWT token
+curl -H "Authorization: Bearer JWT_TOKEN_HERE" \
+     https://bhiv-hr-gateway-46pz.onrender.com/v1/jobs
+```
+
+#### 3. **2FA TOTP Authentication** (Enhanced Security)
+```bash
+# Setup 2FA with QR code generation
+curl -X POST -H "Authorization: Bearer YOUR_TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{"user_id": "admin"}' \
+     https://bhiv-hr-gateway-46pz.onrender.com/auth/2fa/setup
+
+# Verify 2FA code
+curl -X POST -H "Authorization: Bearer YOUR_TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{"user_id": "admin", "totp_code": "123456"}' \
+     https://bhiv-hr-gateway-46pz.onrender.com/auth/2fa/verify
+
+# Login with 2FA
+curl -X POST -H "Content-Type: application/json" \
+     -d '{"username": "admin", "password": "admin123", "totp_code": "123456"}' \
+     https://bhiv-hr-gateway-46pz.onrender.com/auth/login
+```
+
+### **2FA Implementation Details**
+- **QR Code Generation**: Automatic base64-encoded QR codes for easy setup
+- **TOTP Compatibility**: Works with Google Authenticator, Microsoft Authenticator, Authy
+- **Backup Codes**: Support for emergency access codes
+- **Demo Secret**: `JBSWY3DPEHPK3PXP` for testing purposes
 
 ```bash
 curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
@@ -235,7 +322,7 @@ curl -H "Authorization: Bearer YOUR_TOKEN" \
     }
   ],
   "job_id": 1,
-  "algorithm_version": "v2.0.0-dynamic",
+  "algorithm_version": "v3.0.0-phase3-production",
   "processing_time": "0.05s"
 }
 ```
@@ -547,6 +634,6 @@ ReDoc format available at:
 
 ---
 
-**Last Updated**: January 2, 2025  
-**API Version**: 3.1.0  
-**Status**: 🟢 All 56 Endpoints Operational (50 Gateway + 6 Agent) - Phase 3 AI Active
+**Last Updated**: October 18, 2025  
+**API Version**: 3.1.0-phase3-production  
+**Status**: 🟢 All 60 Endpoints Operational (54 Gateway + 6 Agent) | **AI Engine**: Phase 3 Operational | **Database**: v4.1.0 (17 tables)

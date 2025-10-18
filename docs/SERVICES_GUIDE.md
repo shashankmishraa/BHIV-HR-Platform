@@ -14,7 +14,7 @@ The BHIV HR Platform consists of 5 core microservices, each with specific respon
 - `client_auth.py` - Client authentication utilities
 - `app/db/schemas.py` - Pydantic models for validation
 
-#### API Endpoints (49 total):
+#### API Endpoints (50 total):
 ```
 Core API (7 endpoints):
 ├── GET  /           - Service information

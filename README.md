@@ -11,7 +11,7 @@
 - **Client Portal**: bhiv-hr-client-portal-5g33.onrender.com/ ✅
 - **Database**: PostgreSQL 17 on Render ✅
 - **Status**: ✅ **5/5 SERVICES OPERATIONAL** | **Cost**: $0/month (Free tier)
-- **Total Endpoints**: 56 (50 Gateway + 6 Agent) | **Updated**: October 2, 2025
+- **Total Endpoints**: 56 (50 Gateway + 6 Agent) | **Updated**: January 2, 2025
 - **Python Version**: 3.12.7 | **FastAPI**: 0.115.6 | **Streamlit**: 1.41.1
 
 ### **🔑 Demo Access**
@@ -32,6 +32,9 @@ curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr
 - **[📋 PROJECT_STRUCTURE.md](docs/architecture/PROJECT_STRUCTURE.md)** - ✅ Complete architecture and folder organization
 - **[🚀 DEPLOYMENT_STATUS.md](docs/architecture/DEPLOYMENT_STATUS.md)** - ✅ Current deployment status and health metrics
 - **[📊 PRODUCTION_READINESS_REPORT.md](docs/reports/PRODUCTION_READINESS_REPORT.md)** - ✅ Complete production verification report
+- **[🖥️ docs/architecture/PORTAL_SERVICES_SUMMARY.md](docs/architecture/PORTAL_SERVICES_SUMMARY.md)** - ✅ Portal services documentation with recent fixes
+- **[🏢 docs/architecture/CLIENT_PORTAL_SERVICE_SUMMARY.md](docs/architecture/CLIENT_PORTAL_SERVICE_SUMMARY.md)** - ✅ Client portal service documentation with enterprise auth
+- **[🏗️ docs/architecture/SERVICES_ARCHITECTURE_SUMMARY.md](docs/architecture/SERVICES_ARCHITECTURE_SUMMARY.md)** - ✅ Complete services architecture documentation
 - **[📝 CHANGES_LOG.md](CHANGES_LOG.md)** - ✅ Detailed log of all changes made
 - **[⚡ docs/QUICK_START_GUIDE.md](docs/QUICK_START_GUIDE.md)** - ✅ Get started in 5 minutes
 - **[🎯 docs/CURRENT_FEATURES.md](docs/CURRENT_FEATURES.md)** - ✅ Complete feature list and capabilities
@@ -43,6 +46,7 @@ curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr
 - **[👥 docs/USER_GUIDE.md](docs/USER_GUIDE.md)** - Complete user manual
 - **[📝 docs/REFLECTION.md](docs/REFLECTION.md)** - ✅ Daily development reflections
 - **[🔍 SCHEMA_COMPARISON_REPORT.md](docs/reports/SCHEMA_COMPARISON_REPORT.md)** - ✅ Database schema analysis
+- **[🖥️ docs/architecture/PORTAL_SERVICES_SUMMARY.md](docs/architecture/PORTAL_SERVICES_SUMMARY.md)** - ✅ Complete portal services documentation
 
 ## ⚡ Quick Start
 
@@ -60,7 +64,7 @@ Credentials: TECH001 / demo123
 # Local Development - Docker Required
 git clone https://github.com/shashankmishraa/BHIV-HR-Platform.git
 cd BHIV-HR-Platform
-docker-compose -f docker-compose.production.yml up -d
+docker-compose -f deployment/docker/docker-compose.production.yml up -d
 # Access: http://localhost:8501
 ```
 
@@ -81,6 +85,7 @@ docker-compose -f docker-compose.production.yml up -d
 ```
 Gateway Service (50 endpoints):
   Core API (3):           GET /, /health, /test-candidates
+
   Monitoring (3):         GET /metrics, /health/detailed, /metrics/dashboard
   Analytics (3):          GET /candidates/stats, GET /v1/database/schema, GET /v1/reports/job/{job_id}/export.csv
   Job Management (2):     GET /v1/jobs, POST /v1/jobs
@@ -114,18 +119,20 @@ Agent Service (6 endpoints):
 - **No Fallbacks**: Production-grade implementation only
 
 ### **🔒 Enterprise Security**
-- **API Authentication**: Bearer token + JWT
-- **Rate Limiting**: 60 requests/minute with DoS protection
-- **2FA Support**: TOTP compatible (Google/Microsoft/Authy)
+- **Unified Authentication**: Dual Bearer token + JWT system with `dependencies.py`
+- **Dynamic Rate Limiting**: CPU-based adjustment (60-500 requests/minute)
+- **2FA TOTP**: Complete implementation with QR code generation
 - **Security Headers**: CSP, XSS protection, Frame Options
-- **Input Validation**: XSS/SQL injection protection
-- **Password Policies**: Enterprise-grade validation
+- **Input Validation**: XSS/SQL injection protection with testing endpoints
+- **Password Policies**: Enterprise-grade validation with strength testing
 
 ### **📊 Dual Portal System**
-- **HR Portal**: Dashboard, candidate search, job management, AI matching
-- **Client Portal**: Enterprise authentication, job posting, candidate review
+- **HR Portal**: Dashboard, candidate search, job management, AI matching with Streamlit 1.41.1 fixes
+- **Client Portal**: Enterprise authentication, job posting, candidate review with security enhancements
 - **Real-time Analytics**: Performance metrics and insights
 - **Values Assessment**: 5-point evaluation system
+- **Batch Upload**: Secure file processing with path traversal protection
+- **2FA Integration**: QR code generation with function-level imports
 
 ### **📈 Resume Processing**
 - **Multi-format Support**: PDF, DOCX, TXT files
@@ -365,12 +372,14 @@ python tools/auto_sync_watcher.py
 - **Learning Engine**: ✅ Company preference tracking and optimization
 - **Cultural Fit Scoring**: ✅ Feedback-based alignment analysis
 - **Real Data Integration**: ✅ 11 candidates + 19 jobs from production database
-- **Skills Match Fix**: ✅ Resolved TypeError in portal displays
-- **Batch Upload**: ✅ Fixed container paths and processing
+- **Portal Services**: ✅ Streamlit API fixes, function-level imports, security enhancements
+- **Client Authentication**: ✅ Enterprise JWT + bcrypt system with account lockout protection
+- **Services Architecture**: ✅ Complete microservices documentation with unified auth
+- **Batch Upload**: ✅ Secure file processing with path traversal protection
 - **Client-HR Sync**: ✅ Real-time job sharing between portals
-- **Dynamic Dashboards**: ✅ Live data from database
+- **Dynamic Dashboards**: ✅ Live data from database with updated UI components
 - **Security**: ✅ Enterprise-grade authentication, 2FA, rate limiting
-- **Dual Portals**: ✅ HR dashboard and client interface
+- **Dual Portals**: ✅ HR dashboard and client interface with recent fixes
 - **Advanced Monitoring**: ✅ Prometheus metrics, health checks, performance tracking
 - **Documentation**: ✅ Complete guides, daily reflections, bias analysis
 - **Testing**: ✅ Comprehensive test suite with security validation
@@ -385,9 +394,10 @@ python tools/auto_sync_watcher.py
 - **AI Algorithm**: Phase 3 - v3.0.0-phase3-production (fully operational)
 - **Learning Engine**: Company preference optimization (schema v4.1.0 deployed)
 - **Batch Processing**: Enhanced with async and caching
-- **Real Candidates**: ✅ 11 from production database
+- **Real Candidates**: ✅ 31 from production database
 - **Real Jobs**: ✅ 19 active job postings
 - **Resume Files**: ✅ 27 resume files processed
+- **Portal Services**: ✅ Streamlit 1.41.1 with API fixes and security enhancements
 - **Code Quality**: ✅ Production-ready with comprehensive error handling
 - **Test Coverage**: ✅ Complete test suite covering all functionality
 - **Documentation**: ✅ 100% complete and current with latest changes
@@ -398,7 +408,13 @@ python tools/auto_sync_watcher.py
 - **Database Schema**: v4.1.0 with 17 tables (12 core + 5 additional)
 - **Local Environment**: ✅ Fully operational - all 5 services healthy with v4.1.0 schema
 
-### **🔄 Recent Updates (October 2, 2025)**
+### **🔄 Recent Updates (October 15, 2025)**
+- ✅ **Portal Services Enhancement**: Streamlit API fixes, function-level imports, security improvements
+- ✅ **Client Portal Authentication**: Enterprise JWT + bcrypt system with account lockout and session management
+- ✅ **Services Architecture Documentation**: Complete microservices documentation with deployment configurations
+- ✅ **Streamlit Compatibility**: Fixed deprecated `use_container_width` → `width='stretch'`
+- ✅ **2FA Integration**: QR code generation with function-level imports to prevent crashes
+- ✅ **Batch Upload Security**: Enhanced file validation and path traversal protection
 - ✅ **Phase 3 Implementation**: Advanced semantic engine with learning capabilities
 - ✅ **Learning Engine**: Company preference tracking and weight optimization
 - ✅ **Enhanced Batch Processing**: Async optimization with smart caching (50 candidates/chunk)
@@ -411,10 +427,10 @@ python tools/auto_sync_watcher.py
 - ✅ **Agent Service Diagnosis**: ML dependency issues causing production service failure
 - ✅ **Fallback Matching**: Robust database-based matching when agent service unavailable
 - ✅ **Production Verification**: Comprehensive schema compatibility testing completed
-- ✅ **50 API Endpoints**: All endpoints functional (50 Gateway endpoints verified)
-- ✅ **Real Data Integration**: 8 candidates from actual resume files
+- ✅ **56 API Endpoints**: All endpoints functional (50 Gateway + 6 Agent endpoints verified)
+- ✅ **Real Data Integration**: 31 candidates from actual resume files
 - ✅ **Advanced Security**: 2FA, rate limiting, CSP policies, input validation
-- ✅ **Portal Integration**: Real-time sync between HR and Client portals
+- ✅ **Portal Integration**: Real-time sync between HR and Client portals with UI fixes
 - ✅ **Performance Optimizations**: Connection pooling (pool_size=10), Pydantic validation, timeout optimization
 - ✅ **Search Endpoint Fix**: Resolved HTTP 422 validation errors with Optional parameters
 - ✅ **Professional Structure**: Organized docs/, tests/, scripts/ with clear categorization
@@ -440,7 +456,7 @@ python tools/auto_sync_watcher.py
 ### **💻 For Developers**
 1. **Clone Repository**: `git clone https://github.com/shashankmishraa/BHIV-HR-Platform.git`
 2. **Setup Environment**: Copy `.env.example` to `.env`
-3. **Start Services**: `docker-compose -f docker-compose.production.yml up -d`
+3. **Start Services**: `docker-compose -f deployment/docker/docker-compose.production.yml up -d`
 4. **Run Tests**: `python tests/test_endpoints.py`
 
 ### **🚀 For Deployment**
@@ -469,4 +485,4 @@ python tools/auto_sync_watcher.py
 
 *Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
 
-**Last Updated**: October 2, 2025 | **Production**: ✅ 5/5 Services Live | **Local**: ✅ 5/5 Services Operational | **AI Version**: Phase 3 Advanced (Operational) | **Cost**: $0/month | **Uptime**: 100%
+**Last Updated**: October 15, 2025 | **Production**: ✅ 5/5 Services Live | **Local**: ✅ 5/5 Services Operational | **AI Version**: Phase 3 Advanced (Operational) | **Cost**: $0/month | **Uptime**: 100%

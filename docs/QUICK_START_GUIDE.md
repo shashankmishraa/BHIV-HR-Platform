@@ -88,7 +88,7 @@ cp .env.example .env
 
 ```bash
 # Start complete platform with Docker Compose
-docker-compose -f docker-compose.production.yml up -d
+docker-compose -f deployment/docker/docker-compose.production.yml up -d
 
 # Wait for services to initialize (30-60 seconds)
 ```
@@ -124,7 +124,7 @@ curl -X POST http://localhost:9000/match \
 ### **API Health Checks**
 
 ```bash
-# Gateway Service (50 endpoints)
+# Gateway Service (54 endpoints)
 curl https://bhiv-hr-gateway-46pz.onrender.com/health
 # Expected: {"status": "healthy", "version": "3.1.0"}
 
@@ -151,7 +151,7 @@ curl -I https://bhiv-hr-client-portal-5g33.onrender.com/
 # Test database connection
 curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o" \
      https://bhiv-hr-gateway-46pz.onrender.com/test-candidates
-# Expected: {"database_status": "connected", "total_candidates": 11}
+# Expected: {"database_status": "connected", "total_candidates": 31}
 ```
 
 ---

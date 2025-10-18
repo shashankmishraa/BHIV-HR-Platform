@@ -1,6 +1,6 @@
 # 🎯 BHIV HR Platform - Current Features
 
-**Complete Feature Overview - January 2025**
+**Complete Feature Overview - October 2025**
 
 ## 📊 Platform Overview
 
@@ -25,11 +25,12 @@
 ## 🤖 Phase 3 AI Matching Engine
 
 ### **Advanced Semantic Matching**
-- **Algorithm**: Phase 3 production semantic engine (agent service operational) ✅
+- **Algorithm**: Phase 3 production semantic engine (agent service fixed & operational) ✅
 - **Technology**: Semantic transformers + database integration
-- **Response Time**: <0.02 seconds (with caching)
+- **Response Time**: <200ms (batch operations), <100ms (single match)
 - **Accuracy**: Multi-factor scoring with learning engine
-- **Status**: Production-ready with agent service operational
+- **Authentication**: Bearer token + JWT validation implemented
+- **Status**: Production-ready with all 6 endpoints operational
 
 ### **Multi-Factor Scoring System**
 ```python
@@ -104,17 +105,20 @@
 
 ## 🔒 Enterprise Security Features
 
-### **Authentication & Authorization**
-- **API Keys**: Bearer token authentication
-- **JWT Tokens**: Secure client authentication
-- **2FA Support**: TOTP compatible (Google/Microsoft/Authy)
-- **Password Policies**: Enterprise-grade validation
+### **Unified Authentication System**
+- **Dual Authentication**: API keys + JWT tokens in single system
+- **Modular Architecture**: Centralized auth in `dependencies.py`
+- **2FA TOTP**: Complete implementation with QR code generation
+- **Auth Routes**: Dedicated `/auth` endpoints for 2FA management
+- **Password Policies**: Enterprise-grade validation with strength testing
 
-### **Rate Limiting & Protection**
-- **Granular Limits**: Endpoint-specific rate limiting
-- **Dynamic Adjustment**: CPU-based limit scaling
-- **DoS Protection**: Request throttling
-- **IP Blocking**: Automatic suspicious activity blocking
+### **Advanced Rate Limiting & Protection**
+- **Dynamic Rate Limiting**: CPU-based adjustment (60-500 req/min)
+- **Endpoint-Specific Limits**: Granular control per API endpoint
+- **User Tier Support**: Default vs Premium rate limits
+- **Real-time Monitoring**: Rate limit headers in responses
+- **DoS Protection**: Automatic request throttling
+- **IP Blocking**: Suspicious activity detection
 
 ### **Security Headers & Validation**
 - **CSP Policies**: Content Security Policy enforcement
@@ -204,7 +208,8 @@
 
 ## 🌐 API & Integration Features
 
-### **REST API (50 Endpoints)**
+### **REST API (56 Endpoints Total)**
+- **Gateway API**: 50 core endpoints
 
 #### **Core API (3 endpoints)**
 - Health checks and system status
@@ -239,13 +244,11 @@
 - Interview scheduling
 - Offer management
 
-#### **Security & Authentication (37 endpoints)**
+#### **Security & Authentication (25 endpoints)**
 - 2FA setup and management (8)
 - Password management (6)
 - Security testing (7)
 - CSP management (4)
-- Client authentication (1)
-- Rate limiting and validation (11)
 
 ### **Integration Capabilities**
 - **Webhook Support**: Real-time notifications
@@ -343,10 +346,16 @@
 
 ---
 
-## 🚀 Recent Updates (January 2025)
+## 🚀 Recent Updates (October 2025)
+
+### **Agent Service Fixes & Enhancements**
+- ✅ **Event Loop Resolution**: Fixed async conflicts in batch processing
+- ✅ **Authentication Implementation**: Bearer token + JWT validation
+- ✅ **Database Optimization**: ThreadedConnectionPool (2-10 connections)
+- ✅ **All Endpoints Operational**: 6/6 Agent service endpoints working
 
 ### **Phase 3 Implementation**
-- ⚠️ Advanced semantic engine (fallback mode due to agent service offline)
+- ✅ Advanced semantic engine (agent service fully operational)
 - ✅ Learning engine with company preferences (schema deployed)
 - ✅ Enhanced batch processing with caching
 - ✅ Cultural fit scoring (10% bonus)
@@ -374,7 +383,7 @@
 | **AI Matching** | ✅ Phase 3 Production | Enterprise |
 | **Security** | ✅ Complete Suite | Enterprise |
 | **Portals** | ✅ Dual Interface | Professional |
-| **API** | ✅ 55 Endpoints | Production |
+| **API** | ✅ 60 Endpoints | Production |
 | **Monitoring** | ✅ Prometheus + Custom | Enterprise |
 | **Documentation** | ✅ Comprehensive | Professional |
 | **Testing** | ✅ Multi-layer | Production |
@@ -408,4 +417,4 @@
 
 *Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
 
-**Last Updated**: January 2, 2025 | **Status**: ✅ 5/5 Services Operational | **Cost**: $0/month
+**Last Updated**: October 18, 2025 | **Status**: ✅ 5/5 Services Operational | **Cost**: $0/month

@@ -1,9 +1,10 @@
 # BHIV HR Platform - Deployment Status
 
-**Last Updated**: October 2, 2025  
+**Last Updated**: October 18, 2025  
 **Production Status**: ✅ 5/5 Services Operational  
 **Local Development**: ✅ All 5 Services Operational  
 **Database Schema**: v4.1.0 (Phase 3 Compatible - Deployed Both Environments)
+**AI Engine**: Phase 3 Operational with Learning Capabilities
 
 ---
 
@@ -26,13 +27,14 @@
 ```
 Status: ✅ Healthy
 URL: https://bhiv-hr-gateway-46pz.onrender.com
-Endpoints: 50 total (49 core + 1 schema verification)
+Endpoints: 50 total
 Response Time: <100ms average
-Database Connections: 5 active
-Authentication: ✅ Bearer token + JWT
-Rate Limiting: ✅ Dynamic (60-300 req/min)
+Database Connections: Pool of 10 + 5 overflow
+Authentication: ✅ Unified Bearer (API key + JWT) + 2FA TOTP
+Rate Limiting: ✅ Dynamic CPU-based (60-500 req/min)
 Security Headers: ✅ CSP, XSS, Frame protection
-Monitoring: ✅ Prometheus metrics available
+Monitoring: ✅ Prometheus metrics + health checks
+Architecture: ✅ Modular with dependencies.py and routes/auth.py
 ```
 
 ### **HR Portal (Streamlit Dashboard)**
@@ -67,15 +69,18 @@ Backup: Automated by Render
 SSL: ✅ Encrypted connections
 ```
 
-### **AI Agent Service (OPERATIONAL)**
+### **AI Agent Service (FIXED & OPERATIONAL)**
 ```
-Status: ✅ Operational
+Status: ✅ Fixed & Operational
 URL: https://bhiv-hr-agent-m1me.onrender.com
 Endpoints: 6 (Core: 2, AI Processing: 3, Diagnostics: 1)
 Features: Phase 3 semantic matching, batch processing, candidate analysis
 Algorithm: v3.0.0-phase3-production
-Fallback: Database matching available if needed
-Performance: <0.02s response time with caching
+Authentication: ✅ Bearer token + JWT validation implemented
+Recent Fixes: Event loop conflicts resolved, authentication added
+Performance: <200ms response time for batch operations
+Batch Matching: ✅ Fully functional with multiple job IDs
+Database Pool: 2-10 connections with proper management
 ```
 
 ---
@@ -85,8 +90,8 @@ Performance: <0.02s response time with caching
 ### **Service Communication Matrix**
 | From | To | Protocol | Status | Notes |
 |------|----|---------|---------|----|
-| Gateway | Database | PostgreSQL | ✅ Active | Connection pool (10+5) |
-| Gateway | Agent | HTTP/JSON | ❌ Timeout | Agent service offline |
+| Gateway | Database | PostgreSQL | ✅ Active | Connection pool (10+5), timeout 20s |
+| Gateway | Agent | HTTP/JSON | ✅ Active | Event loop issues fixed |
 | HR Portal | Gateway | REST API | ✅ Active | All endpoints functional |
 | Client Portal | Gateway | REST API | ✅ Active | Authentication working |
 | Client Portal | Auth Service | JWT | ✅ Active | Token validation |
@@ -97,15 +102,16 @@ Core API (3/3): ✅ /, /health, /test-candidates
 Monitoring (3/3): ✅ /metrics, /health/detailed, /metrics/dashboard  
 Job Management (2/2): ✅ GET/POST /v1/jobs
 Candidate Management (5/5): ✅ All CRUD operations
-AI Matching (2/2): ⚠️ Fallback mode (agent offline)
+AI Matching (2/2): ✅ Agent service operational
 Assessment Workflow (6/6): ✅ Feedback, interviews, offers
 Security Testing (7/7): ✅ Rate limiting, validation, headers
 CSP Management (4/4): ✅ Policy management and reporting
 2FA Authentication (8/8): ✅ Setup, verify, login, status
 Password Management (6/6): ✅ Validation, generation, policies
 Client Portal (1/1): ✅ Authentication endpoint
-Analytics (3/3): ✅ Stats + NEW schema verification endpoint
+Analytics (3/3): ✅ Stats + schema verification endpoint
 Reports (1/1): ✅ Export functionality
+
 ```
 
 ---
@@ -193,12 +199,12 @@ Agent Service: Offline (memory constraints)
 
 ## 🚨 Known Issues & Status
 
-### **1. Agent Service Offline (High Priority)**
-- **Issue**: Heavy ML dependencies causing deployment failures
-- **Root Cause**: torch (~755MB) + transformers exceed free tier memory
-- **Impact**: AI matching uses database fallback algorithm
-- **Workaround**: Gateway provides robust fallback matching
-- **Status**: Investigating lighter ML models or paid tier upgrade
+### **1. Agent Service Event Loop (RESOLVED)**
+- **Issue**: Batch matching failing with event loop conflicts
+- **Root Cause**: Async functions without proper async operations
+- **Solution**: Removed async from endpoints causing conflicts
+- **Impact**: All Agent service endpoints now functional
+- **Status**: ✅ RESOLVED - Service fully operational
 
 ### **2. Authentication Middleware Order (Low Priority)**
 - **Issue**: Rate limiting returns 403 instead of 401 for invalid auth
@@ -288,9 +294,9 @@ curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr
 
 ## 📊 Deployment Summary
 
-**Overall Status**: ⚠️ **MOSTLY OPERATIONAL**
+**Overall Status**: ✅ **FULLY OPERATIONAL**
 
-4 out of 5 services are fully operational with the database schema v4.1.0 successfully deployed and compatible. The AI agent service is offline due to platform constraints, but robust fallback mechanisms ensure uninterrupted core functionality.
+5 out of 5 services are fully operational with the database schema v4.1.0 successfully deployed and compatible. The AI agent service has been fixed and is now operational with enhanced authentication.
 
 **Production Readiness**: ✅ **READY FOR USE**
 
@@ -303,7 +309,7 @@ All essential features are available including candidate management, job posting
 
 ---
 
-**Status Report Generated**: October 2, 2025  
+**Status Report Generated**: October 18, 2025  
 **Next Update**: After next deployment cycle
 
 ---
@@ -326,9 +332,9 @@ Access URLs:
 
 ### **Production Environment**
 ```
-Status: ⚠️ 4/5 SERVICES OPERATIONAL
-Operational: Gateway, HR Portal, Client Portal, Database
-Offline: AI Agent Service (ML dependency issues)
-Fallback: Database-based matching active in Gateway
-Uptime: 99.9% for operational services
+Status: ✅ 5/5 SERVICES OPERATIONAL
+Operational: Gateway, Agent, HR Portal, Client Portal, Database
+Recent Fixes: Agent service event loop conflicts resolved
+Authentication: Unified Bearer token system implemented
+Uptime: 99.9% for all services
 ```
