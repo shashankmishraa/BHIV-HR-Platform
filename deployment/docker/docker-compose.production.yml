@@ -135,5 +135,33 @@ services:
           cpus: '0.5'
     # Production URL: bhiv-hr-client-portal-5g33.onrender.com (✅ Healthy)
 
+  candidate_portal:
+    build:
+      context: ../../services/candidate_portal
+      dockerfile: Dockerfile
+    ports:
+      - "8503:8503"
+    environment:
+      GATEWAY_URL: http://gateway:8000
+      API_KEY_SECRET: ${API_KEY_SECRET:-prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o}
+      CANDIDATE_JWT_SECRET: ${CANDIDATE_JWT_SECRET:-candidate_jwt_secret_key_2025}
+      DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD:-bhiv_local_password_2025}@db:5432/bhiv_hr
+    depends_on:
+      gateway:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8503/_stcore/health')"]
+      interval: 600s
+      timeout: 30s
+      retries: 3
+      start_period: 120s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+    # New service: Candidate Portal for job seekers
+
 volumes:
   postgres_data:

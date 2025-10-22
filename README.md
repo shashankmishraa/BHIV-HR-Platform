@@ -79,11 +79,12 @@ docker-compose -f deployment/docker/docker-compose.production.yml up -d
 | **AI Agent** | Candidate Matching | FastAPI + Python 3.12.7-slim | 9000 | ✅ Live | bhiv-hr-agent-m1me.onrender.com |
 | **HR Portal** | HR Dashboard | Streamlit + Python 3.12.7-slim | 8501 | ✅ Live | bhiv-hr-portal-cead.onrender.com |
 | **Client Portal** | Client Interface | Streamlit + Python 3.12.7-slim | 8502 | ✅ Live | bhiv-hr-client-portal-5g33.onrender.com |
+| **Candidate Portal** | Job Seeker Interface | Streamlit + Python 3.12.7-slim | 8503 | ✅ Ready | Local Development |
 | **Database** | Data Storage | PostgreSQL 15-alpine | 5432 | ✅ Live | Internal Render URL |
 
-### **API Endpoints (56 Total)**
+### **API Endpoints (61 Total)**
 ```
-Gateway Service (50 endpoints):
+Gateway Service (55 endpoints):
   Core API (3):           GET /, /health, /test-candidates
 
   Monitoring (3):         GET /metrics, /health/detailed, /metrics/dashboard
@@ -97,6 +98,7 @@ Gateway Service (50 endpoints):
   2FA Authentication (8): Setup, verify, login, status, disable, backup codes, token testing
   Password Mgmt (6):      Validate, generate, policy, change, strength test, security tips
   Client Portal (1):      POST /v1/client/login
+  Candidate Portal (5):   POST /v1/candidate/register, POST /v1/candidate/login, PUT /v1/candidate/profile/{id}, POST /v1/candidate/apply, GET /v1/candidate/applications/{id}
 
 Agent Service (6 endpoints):
   Core (2):              GET /, GET /health
@@ -126,10 +128,11 @@ Agent Service (6 endpoints):
 - **Input Validation**: XSS/SQL injection protection with testing endpoints
 - **Password Policies**: Enterprise-grade validation with strength testing
 
-### **📊 Dual Portal System**
+### **📊 Triple Portal System**
 - **HR Portal**: Dashboard, candidate search, job management, AI matching with Streamlit 1.41.1 fixes
 - **Client Portal**: Enterprise authentication, job posting, candidate review with security enhancements
-- **Real-time Analytics**: Performance metrics and insights
+- **Candidate Portal**: Job seeker interface, profile management, application tracking, job search
+- **Real-time Analytics**: Performance metrics and insights across all portals
 - **Values Assessment**: 5-point evaluation system
 - **Batch Upload**: Secure file processing with path traversal protection
 - **2FA Integration**: QR code generation with function-level imports
@@ -179,6 +182,11 @@ bhiv-hr-platform/
 │   ├── client_portal/          # Client Interface
 │   │   ├── app.py             # Client interface
 │   │   ├── auth_service.py    # Enterprise authentication
+│   │   ├── config.py          # Configuration
+│   │   ├── Dockerfile         # Container configuration
+│   │   └── requirements.txt   # Streamlit dependencies
+│   ├── candidate_portal/       # Candidate Interface
+│   │   ├── app.py             # Job seeker interface
 │   │   ├── config.py          # Configuration
 │   │   ├── Dockerfile         # Container configuration
 │   │   └── requirements.txt   # Streamlit dependencies
@@ -365,8 +373,9 @@ python tools/auto_sync_watcher.py
 
 ### **✅ Completed Features**
 - **Production Deployment**: ✅ 5/5 services live on Render
-- **Local Development**: ✅ 5/5 services fully operational with Docker fixes applied
-- **API Gateway**: ✅ 50 endpoints with comprehensive functionality
+- **Local Development**: ✅ 6/6 services fully operational with Docker fixes applied
+- **API Gateway**: ✅ 55 endpoints with comprehensive functionality
+- **Candidate Portal**: ✅ Complete Phase 1 implementation with backend integration
 - **AI Matching (Phase 3)**: ✅ Advanced semantic engine with fallback support
 - **Enhanced Batch Processing**: ✅ Async optimization with smart caching
 - **Learning Engine**: ✅ Company preference tracking and optimization
@@ -389,8 +398,8 @@ python tools/auto_sync_watcher.py
 - **Schema Verification**: ✅ New endpoint added for real-time database inspection
 
 ### **📈 System Metrics (Phase 3)**
-- **Total Services**: 5 (Database + 4 Web Services) - 5 healthy
-- **API Endpoints**: 56 interactive endpoints (50 Gateway + 6 Agent)
+- **Total Services**: 6 (Database + 5 Web Services) - 6 healthy
+- **API Endpoints**: 61 interactive endpoints (55 Gateway + 6 Agent)
 - **AI Algorithm**: Phase 3 - v3.0.0-phase3-production (fully operational)
 - **Learning Engine**: Company preference optimization (schema v4.1.0 deployed)
 - **Batch Processing**: Enhanced with async and caching
@@ -406,7 +415,8 @@ python tools/auto_sync_watcher.py
 - **Auto-Deploy**: GitHub integration enabled
 - **Uptime Target**: 99.9% (achieved for all services)
 - **Database Schema**: v4.1.0 with 17 tables (12 core + 5 additional)
-- **Local Environment**: ✅ Fully operational - all 5 services healthy with v4.1.0 schema
+- **Local Environment**: ✅ Fully operational - all 6 services healthy with v4.1.0 schema
+- **Candidate Portal**: ✅ Phase 1 complete - registration, authentication, profile management, job applications
 
 ### **🔄 Recent Updates (October 15, 2025)**
 - ✅ **Portal Services Enhancement**: Streamlit API fixes, function-level imports, security improvements
@@ -451,13 +461,14 @@ python tools/auto_sync_watcher.py
 1. **Visit Live Platform**: bhiv-hr-gateway-46pz.onrender.com/docs
 2. **Access HR Portal**: bhiv-hr-portal-cead.onrender.com/
 3. **Login to Client Portal**: bhiv-hr-client-portal-5g33.onrender.com/ (TECH001/demo123)
-4. **Test API**: Use Bearer token `prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o`
+4. **Use Candidate Portal**: http://localhost:8503 (Local development)
+5. **Test API**: Use Bearer token `prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o`
 
 ### **💻 For Developers**
 1. **Clone Repository**: `git clone https://github.com/shashankmishraa/BHIV-HR-Platform.git`
 2. **Setup Environment**: Copy `.env.example` to `.env`
 3. **Start Services**: `docker-compose -f deployment/docker/docker-compose.production.yml up -d`
-4. **Run Tests**: `python tests/test_endpoints.py`
+4. **Run Tests**: `python tests/test_endpoints.py` and `python tests/test_candidate_portal.py`
 
 ### **🚀 For Deployment**
 1. **Read Guide**: [RENDER_DEPLOYMENT_GUIDE.md](RENDER_DEPLOYMENT_GUIDE.md)
@@ -477,6 +488,7 @@ python tools/auto_sync_watcher.py
 - **🔗 Live API**: bhiv-hr-gateway-46pz.onrender.com/docs
 - **🔗 HR Dashboard**: bhiv-hr-portal-cead.onrender.com/
 - **🔗 Client Portal**: bhiv-hr-client-portal-5g33.onrender.com/
+- **🔗 Candidate Portal**: http://localhost:8503 (Local development)
 - **🔗 AI Agent**: bhiv-hr-agent-m1me.onrender.com/docs
 
 ---

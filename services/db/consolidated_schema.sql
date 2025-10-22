@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS candidates (
     seniority_level VARCHAR(100),
     education_level VARCHAR(255),
     resume_path VARCHAR(500),
+    password_hash VARCHAR(255),
     average_score DECIMAL(3,2) DEFAULT 0.0 CHECK (average_score >= 0 AND average_score <= 5),
     status VARCHAR(50) DEFAULT 'applied' CHECK (status IN ('applied', 'screened', 'interviewed', 'offered', 'hired', 'rejected')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

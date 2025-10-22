@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends, Security, Response, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import os
 import secrets
 import pyotp
@@ -12,6 +12,7 @@ import re
 import string
 import random
 import jwt
+import bcrypt
 from collections import defaultdict
 from sqlalchemy import create_engine, text
 from typing import Optional, List, Dict, Any
@@ -239,6 +240,36 @@ class CandidateSearch(BaseModel):
     def validate_location(cls, v):
         return v[:100] if v else None
 
+# Candidate Portal Models
+class CandidateRegister(BaseModel):
+    name: str
+    email: str
+    password: str
+    phone: Optional[str] = None
+    location: Optional[str] = None
+    experience_years: Optional[int] = 0
+    technical_skills: Optional[str] = None
+    education_level: Optional[str] = None
+    seniority_level: Optional[str] = None
+
+class CandidateLogin(BaseModel):
+    email: str
+    password: str
+
+class CandidateProfileUpdate(BaseModel):
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    location: Optional[str] = None
+    experience_years: Optional[int] = None
+    technical_skills: Optional[str] = None
+    education_level: Optional[str] = None
+    seniority_level: Optional[str] = None
+
+class JobApplication(BaseModel):
+    candidate_id: int
+    job_id: int
+    cover_letter: Optional[str] = None
+
 def get_db_engine():
     database_url = os.getenv("DATABASE_URL", "postgresql://bhiv_user:3CvUtwqULlIcQujUzJ3SNzhStTGbRbU2@dpg-d3bfmj8dl3ps739blqt0-a.oregon-postgres.render.com/bhiv_hr_jcuu")
     return create_engine(
@@ -274,6 +305,14 @@ def get_auth(credentials: HTTPAuthorizationCredentials = Security(security)):
         jwt_secret = os.getenv("JWT_SECRET", "fallback_jwt_secret_key_for_client_auth_2025")
         payload = jwt.decode(credentials.credentials, jwt_secret, algorithms=["HS256"])
         return {"type": "client_token", "client_id": payload.get("client_id")}
+    except:
+        pass
+    
+    # Try candidate JWT token
+    try:
+        candidate_jwt_secret = os.getenv("CANDIDATE_JWT_SECRET", "candidate_jwt_secret_key_2025")
+        payload = jwt.decode(credentials.credentials, candidate_jwt_secret, algorithms=["HS256"])
+        return {"type": "candidate_token", "candidate_id": payload.get("candidate_id")}
     except:
         pass
     
@@ -1054,43 +1093,87 @@ async def export_job_report(job_id: int, api_key: str = Depends(get_api_key)):
 # Client Portal API (1 endpoint)
 @app.post("/v1/client/login", tags=["Client Portal API"])
 async def client_login(login_data: ClientLogin):
-    """Client Authentication with Auth Service Integration"""
+    """Client Authentication with Database Integration"""
     try:
-        # Import auth service
-        import sys
-        import os
-        auth_service_path = os.path.join(os.path.dirname(__file__), '..', '..', 'client_portal')
-        sys.path.append(auth_service_path)
-        
-        from auth_service import ClientAuthService  # type: ignore
-        
-        # Initialize auth service
-        auth_service = ClientAuthService()
-        
-        # Authenticate using auth service
-        auth_result = auth_service.authenticate_client(login_data.client_id, login_data.password)
-        
-        if auth_result.get('success'):
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            # Get client by client_id from clients table
+            query = text("""
+                SELECT client_id, company_name, password_hash, status, failed_login_attempts, locked_until
+                FROM clients WHERE client_id = :client_id
+            """)
+            result = connection.execute(query, {"client_id": login_data.client_id})
+            client = result.fetchone()
+            
+            if not client:
+                return {"success": False, "error": "Invalid credentials"}
+            
+            # Check if account is locked
+            if client[5] and client[5] > datetime.now(timezone.utc):
+                return {"success": False, "error": "Account temporarily locked"}
+            
+            # Check if account is active
+            if client[3] != 'active':
+                return {"success": False, "error": "Account is inactive"}
+            
+            # Verify password
+            if client[2]:  # password_hash exists
+                if not bcrypt.checkpw(login_data.password.encode('utf-8'), client[2].encode('utf-8')):
+                    # Increment failed attempts
+                    new_attempts = (client[4] or 0) + 1
+                    locked_until = None
+                    if new_attempts >= 5:
+                        locked_until = datetime.now(timezone.utc) + timedelta(minutes=30)
+                    
+                    with engine.begin() as conn:
+                        conn.execute(text("""
+                            UPDATE clients 
+                            SET failed_login_attempts = :attempts, locked_until = :locked_until
+                            WHERE client_id = :client_id
+                        """), {
+                            "attempts": new_attempts,
+                            "locked_until": locked_until,
+                            "client_id": login_data.client_id
+                        })
+                    
+                    return {"success": False, "error": "Invalid credentials"}
+            else:
+                # For demo purposes, accept demo123 for clients without password hash
+                if login_data.password != "demo123":
+                    return {"success": False, "error": "Invalid credentials"}
+            
+            # Generate JWT token
+            jwt_secret = os.getenv("JWT_SECRET", "fallback_jwt_secret_key_for_client_auth_2025")
+            token_payload = {
+                "client_id": client[0],
+                "company_name": client[1],
+                "exp": int(datetime.now(timezone.utc).timestamp()) + 86400  # 24 hours
+            }
+            access_token = jwt.encode(token_payload, jwt_secret, algorithm="HS256")
+            
+            # Reset failed attempts and update last login
+            with engine.begin() as conn:
+                conn.execute(text("""
+                    UPDATE clients 
+                    SET failed_login_attempts = 0, locked_until = NULL
+                    WHERE client_id = :client_id
+                """), {"client_id": login_data.client_id})
+            
             return {
                 "success": True,
                 "message": "Authentication successful",
-                "client_id": auth_result.get('client_id'),
-                "company_name": auth_result.get('company_name'),
-                "token": auth_result.get('token'),
+                "client_id": client[0],
+                "company_name": client[1],
+                "access_token": access_token,
                 "token_type": "bearer",
                 "expires_in": 86400,  # 24 hours
                 "permissions": ["view_jobs", "create_jobs", "view_candidates", "schedule_interviews"]
-            }
-        else:
-            return {
-                "success": False,
-                "error": auth_result.get('error', 'Authentication failed')
             }
             
     except Exception as e:
         return {
             "success": False,
-            "error": f"Authentication service error: {str(e)}"
+            "error": f"Authentication error: {str(e)}"
         }
 
 # Security Testing (7 endpoints)
@@ -1510,3 +1593,262 @@ async def password_security_best_practices(api_key: str = Depends(get_api_key)):
             "avoid": ["dictionary words", "personal info", "common patterns"]
         }
     }
+
+# Candidate Portal APIs (5 endpoints)
+@app.post("/v1/candidate/register", tags=["Candidate Portal"])
+async def candidate_register(candidate_data: CandidateRegister):
+    """Candidate Registration"""
+    try:
+        engine = get_db_engine()
+        with engine.begin() as connection:
+            # Check if email already exists
+            check_query = text("SELECT COUNT(*) FROM candidates WHERE email = :email")
+            result = connection.execute(check_query, {"email": candidate_data.email})
+            if result.fetchone()[0] > 0:
+                return {"success": False, "error": "Email already registered"}
+            
+            # Hash password
+            password_hash = bcrypt.hashpw(candidate_data.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            
+            # Insert candidate with password hash
+            insert_query = text("""
+                INSERT INTO candidates (name, email, phone, location, experience_years, technical_skills, 
+                                      education_level, seniority_level, password_hash, status, created_at)
+                VALUES (:name, :email, :phone, :location, :experience_years, :technical_skills, 
+                        :education_level, :seniority_level, :password_hash, 'applied', NOW())
+                RETURNING id
+            """)
+            result = connection.execute(insert_query, {
+                "name": candidate_data.name,
+                "email": candidate_data.email,
+                "phone": candidate_data.phone,
+                "location": candidate_data.location,
+                "experience_years": candidate_data.experience_years or 0,
+                "technical_skills": candidate_data.technical_skills,
+                "education_level": candidate_data.education_level,
+                "seniority_level": candidate_data.seniority_level,
+                "password_hash": password_hash
+            })
+            candidate_id = result.fetchone()[0]
+            
+            # Password hash already stored during insertion
+            
+            return {
+                "success": True,
+                "message": "Registration successful",
+                "candidate_id": candidate_id
+            }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+@app.post("/v1/candidate/login", tags=["Candidate Portal"])
+async def candidate_login(login_data: CandidateLogin):
+    """Candidate Login"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            # Get candidate by email
+            query = text("""
+                SELECT id, name, email, phone, location, experience_years, technical_skills, 
+                       seniority_level, education_level, status
+                FROM candidates WHERE email = :email
+            """)
+            result = connection.execute(query, {"email": login_data.email})
+            candidate = result.fetchone()
+            
+            if not candidate:
+                return {"success": False, "error": "Invalid credentials"}
+            
+            # Verify password hash
+            password_query = text("SELECT password_hash FROM candidates WHERE id = :candidate_id")
+            password_result = connection.execute(password_query, {"candidate_id": candidate[0]})
+            stored_hash = password_result.fetchone()
+            
+            if stored_hash and stored_hash[0]:
+                if not bcrypt.checkpw(login_data.password.encode('utf-8'), stored_hash[0].encode('utf-8')):
+                    return {"success": False, "error": "Invalid credentials"}
+            # If no password hash exists, accept any password (for existing test data)
+            
+            # Generate JWT token
+            jwt_secret = os.getenv("CANDIDATE_JWT_SECRET", "candidate_jwt_secret_key_2025")
+            token_payload = {
+                "candidate_id": candidate[0],
+                "email": candidate[2],
+                "exp": int(datetime.now(timezone.utc).timestamp()) + 86400  # 24 hours
+            }
+            token = jwt.encode(token_payload, jwt_secret, algorithm="HS256")
+            
+            return {
+                "success": True,
+                "message": "Login successful",
+                "token": token,
+                "candidate": {
+                    "id": candidate[0],
+                    "name": candidate[1],
+                    "email": candidate[2],
+                    "phone": candidate[3],
+                    "location": candidate[4],
+                    "experience_years": candidate[5],
+                    "technical_skills": candidate[6],
+                    "seniority_level": candidate[7],
+                    "education_level": candidate[8],
+                    "status": candidate[9]
+                }
+            }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+@app.put("/v1/candidate/profile/{candidate_id}", tags=["Candidate Portal"])
+async def update_candidate_profile(candidate_id: int, profile_data: CandidateProfileUpdate, auth = Depends(get_auth)):
+    """Update Candidate Profile"""
+    try:
+        engine = get_db_engine()
+        with engine.begin() as connection:
+            # Build update query dynamically
+            update_fields = []
+            params = {"candidate_id": candidate_id}
+            
+            if profile_data.name:
+                update_fields.append("name = :name")
+                params["name"] = profile_data.name
+            if profile_data.phone:
+                update_fields.append("phone = :phone")
+                params["phone"] = profile_data.phone
+            if profile_data.location:
+                update_fields.append("location = :location")
+                params["location"] = profile_data.location
+            if profile_data.experience_years is not None:
+                update_fields.append("experience_years = :experience_years")
+                params["experience_years"] = profile_data.experience_years
+            if profile_data.technical_skills:
+                update_fields.append("technical_skills = :technical_skills")
+                params["technical_skills"] = profile_data.technical_skills
+            if profile_data.education_level:
+                update_fields.append("education_level = :education_level")
+                params["education_level"] = profile_data.education_level
+            if profile_data.seniority_level:
+                update_fields.append("seniority_level = :seniority_level")
+                params["seniority_level"] = profile_data.seniority_level
+            
+            if not update_fields:
+                return {"success": False, "error": "No fields to update"}
+            
+            update_fields.append("updated_at = NOW()")
+            
+            query = text(f"""
+                UPDATE candidates 
+                SET {', '.join(update_fields)}
+                WHERE id = :candidate_id
+            """)
+            connection.execute(query, params)
+            
+            return {"success": True, "message": "Profile updated successfully"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+@app.post("/v1/candidate/apply", tags=["Candidate Portal"])
+async def apply_for_job(application: JobApplication, auth = Depends(get_auth)):
+    """Apply for Job"""
+    try:
+        engine = get_db_engine()
+        with engine.begin() as connection:
+            # Check if already applied
+            check_query = text("""
+                SELECT COUNT(*) FROM job_applications 
+                WHERE candidate_id = :candidate_id AND job_id = :job_id
+            """)
+            
+            # Create applications table if not exists (simplified)
+            create_table_query = text("""
+                CREATE TABLE IF NOT EXISTS job_applications (
+                    id SERIAL PRIMARY KEY,
+                    candidate_id INTEGER REFERENCES candidates(id),
+                    job_id INTEGER REFERENCES jobs(id),
+                    cover_letter TEXT,
+                    status VARCHAR(50) DEFAULT 'applied',
+                    applied_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(candidate_id, job_id)
+                )
+            """)
+            connection.execute(create_table_query)
+            
+            result = connection.execute(check_query, {
+                "candidate_id": application.candidate_id,
+                "job_id": application.job_id
+            })
+            
+            if result.fetchone()[0] > 0:
+                return {"success": False, "error": "Already applied for this job"}
+            
+            # Insert application
+            insert_query = text("""
+                INSERT INTO job_applications (candidate_id, job_id, cover_letter, status, applied_date)
+                VALUES (:candidate_id, :job_id, :cover_letter, 'applied', NOW())
+                RETURNING id
+            """)
+            result = connection.execute(insert_query, {
+                "candidate_id": application.candidate_id,
+                "job_id": application.job_id,
+                "cover_letter": application.cover_letter
+            })
+            application_id = result.fetchone()[0]
+            
+            return {
+                "success": True,
+                "message": "Application submitted successfully",
+                "application_id": application_id
+            }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+@app.get("/v1/candidate/applications/{candidate_id}", tags=["Candidate Portal"])
+async def get_candidate_applications(candidate_id: int, auth = Depends(get_auth)):
+    """Get Candidate Applications"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as connection:
+            # Create applications table if not exists
+            create_table_query = text("""
+                CREATE TABLE IF NOT EXISTS job_applications (
+                    id SERIAL PRIMARY KEY,
+                    candidate_id INTEGER REFERENCES candidates(id),
+                    job_id INTEGER REFERENCES jobs(id),
+                    cover_letter TEXT,
+                    status VARCHAR(50) DEFAULT 'applied',
+                    applied_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(candidate_id, job_id)
+                )
+            """)
+            connection.execute(create_table_query)
+            
+            query = text("""
+                SELECT ja.id, ja.job_id, ja.status, ja.applied_date, ja.cover_letter,
+                       j.title as job_title, j.department, j.location, j.experience_level,
+                       c.company_name as company
+                FROM job_applications ja
+                LEFT JOIN jobs j ON ja.job_id = j.id
+                LEFT JOIN clients c ON j.client_id = c.client_id
+                WHERE ja.candidate_id = :candidate_id
+                ORDER BY ja.applied_date DESC
+            """)
+            result = connection.execute(query, {"candidate_id": candidate_id})
+            
+            applications = []
+            for row in result:
+                applications.append({
+                    "id": row[0],
+                    "job_id": row[1],
+                    "status": row[2],
+                    "applied_date": row[3].isoformat() if row[3] else None,
+                    "cover_letter": row[4],
+                    "job_title": row[5],
+                    "department": row[6],
+                    "location": row[7],
+                    "experience_level": row[8],
+                    "company": row[9] or "BHIV Partner",
+                    "updated_at": row[3].isoformat() if row[3] else None
+                })
+            
+            return {"applications": applications, "count": len(applications)}
+    except Exception as e:
+        return {"applications": [], "count": 0, "error": str(e)}
