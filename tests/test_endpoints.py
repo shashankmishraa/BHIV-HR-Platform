@@ -10,9 +10,9 @@ import time
 from datetime import datetime
 
 # Configuration
-API_BASE = "http://localhost:8000"
-AI_BASE = "http://localhost:9000"
-API_KEY = "myverysecureapikey123"
+API_BASE = "https://bhiv-hr-gateway-46pz.onrender.com"
+AI_BASE = "https://bhiv-hr-agent-m1me.onrender.com"
+API_KEY = "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o"
 HEADERS = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
 
 def test_health_endpoints():
@@ -269,6 +269,53 @@ def test_stats_endpoint():
         print(f"  Statistics Endpoint: FAILED - {str(e)}")
         return False
 
+def test_candidate_portal_endpoints():
+    """Test candidate portal endpoints"""
+    print("\nTesting Candidate Portal Endpoints...")
+    
+    # Test candidate registration
+    candidate_data = {
+        "name": "Test Candidate",
+        "email": "testcandidate@example.com",
+        "password": "testpass123",
+        "phone": "+1-555-0199",
+        "location": "San Francisco",
+        "experience_years": 3,
+        "technical_skills": "Python, React, SQL"
+    }
+    
+    try:
+        # POST /v1/candidate/register
+        response = requests.post(f"{API_BASE}/v1/candidate/register", json=candidate_data, timeout=10)
+        if response.status_code == 200:
+            result = response.json()
+            if result.get('success'):
+                print(f"  POST /v1/candidate/register: PASSED - Registered candidate ID {result.get('candidate_id')}")
+                
+                # Test candidate login
+                login_data = {"email": candidate_data["email"], "password": candidate_data["password"]}
+                response = requests.post(f"{API_BASE}/v1/candidate/login", json=login_data, timeout=10)
+                if response.status_code == 200:
+                    login_result = response.json()
+                    if login_result.get('success'):
+                        print(f"  POST /v1/candidate/login: PASSED - Login successful")
+                        return True
+                    else:
+                        print(f"  POST /v1/candidate/login: FAILED - {login_result.get('error')}")
+                        return False
+                else:
+                    print(f"  POST /v1/candidate/login: FAILED - Status {response.status_code}")
+                    return False
+            else:
+                print(f"  POST /v1/candidate/register: FAILED - {result.get('error')}")
+                return False
+        else:
+            print(f"  POST /v1/candidate/register: FAILED - Status {response.status_code}")
+            return False
+    except Exception as e:
+        print(f"  Candidate Portal Endpoints: FAILED - {str(e)}")
+        return False
+
 def main():
     """Run all endpoint tests"""
     print("BHIV HR Platform - Endpoint Testing")
@@ -287,6 +334,7 @@ def main():
     results["Interviews"] = test_interview_endpoint()
     results["Offers"] = test_offer_endpoint()
     results["Statistics"] = test_stats_endpoint()
+    results["Candidate Portal"] = test_candidate_portal_endpoints()
     
     # Summary
     print("\n" + "=" * 50)

@@ -1,6 +1,6 @@
 # BHIV HR Platform - Deployment Status
 
-**Last Updated**: October 18, 2025  
+**Last Updated**: October 22, 2025  
 **Production Status**: ✅ 5/5 Services Operational  
 **Local Development**: ✅ All 5 Services Operational  
 **Database Schema**: v4.1.0 (17 tables - Phase 3 Compatible)  
@@ -15,10 +15,11 @@
 ### **✅ All Services Operational**
 | Service | URL | Status | Endpoints | Health |
 |---------|-----|--------|-----------|--------|
-| **API Gateway** | bhiv-hr-gateway-46pz.onrender.com | ✅ Live | 50 | Healthy |
+| **API Gateway** | bhiv-hr-gateway-46pz.onrender.com | ✅ Live | 55 | Healthy |
 | **AI Agent** | bhiv-hr-agent-m1me.onrender.com | ✅ Live | 6 | Healthy |
 | **HR Portal** | bhiv-hr-portal-cead.onrender.com | ✅ Live | Web UI | Healthy |
 | **Client Portal** | bhiv-hr-client-portal-5g33.onrender.com | ✅ Live | Web UI | Healthy |
+| **Candidate Portal** | bhiv-hr-candidate-portal.onrender.com | ✅ Live | Web UI | Healthy |
 | **Database** | Internal Render PostgreSQL | ✅ Connected | Schema v4.1.0 | 5-10 connections |
 
 ---
@@ -29,7 +30,7 @@
 ```
 Status: ✅ Healthy
 URL: https://bhiv-hr-gateway-46pz.onrender.com
-Endpoints: 50 total
+Endpoints: 55 total
 Response Time: <100ms average
 Database Connections: Pool of 10 + 5 overflow
 Authentication: ✅ Unified Bearer (API key + JWT) + 2FA TOTP
@@ -339,8 +340,8 @@ Access URLs:
 ### **Production Environment**
 ```
 Status: ✅ 5/5 SERVICES OPERATIONAL
-Operational: Gateway, Agent, HR Portal, Client Portal, Database
-Recent Fixes: Agent service event loop conflicts resolved
+Operational: Gateway, Agent, HR Portal, Client Portal, Candidate Portal, Database
+Recent Additions: Candidate Portal deployed and operational
 Authentication: Unified Bearer token system implemented
 Uptime: 99.9% for all services
 ```

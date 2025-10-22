@@ -1,6 +1,6 @@
 # 🏗️ BHIV HR Platform - Project Structure & Architecture
 
-**Version**: 3.1.0-phase3-production | **Updated**: October 18, 2025 | **Status**: ✅ Production Ready (5/5 Services)
+**Version**: 3.1.0-phase3-production | **Updated**: October 22, 2025 | **Status**: ✅ Production Ready (5/5 Services)
 
 ## 📋 Table of Contents
 
@@ -22,7 +22,7 @@ BHIV HR Platform is a production-ready enterprise recruiting platform built with
 ### **Current Status**
 - **Platform**: Render Cloud (Oregon, US West)
 - **Services**: 5 (5 operational) ✅
-- **Endpoints**: 56 (50 Gateway + 6 Agent)
+- **Endpoints**: 61 (55 Gateway + 6 Agent)
 - **Database**: PostgreSQL 17 with schema v4.1.0 (17 tables)
 - **Data**: 11 candidates + 19 jobs + 27 resume files (production data)
 - **Cost**: $0/month (Free tier)
@@ -37,10 +37,11 @@ BHIV HR Platform is a production-ready enterprise recruiting platform built with
 
 | Service | Technology | Purpose | Endpoints | Production URL |
 |---------|------------|---------|-----------|----------------|
-| **API Gateway** | FastAPI 0.115.6 | REST API Backend | 50 | bhiv-hr-gateway-46pz.onrender.com ✅ |
+| **API Gateway** | FastAPI 0.115.6 | REST API Backend | 55 | bhiv-hr-gateway-46pz.onrender.com ✅ |
 | **AI Agent** | FastAPI 0.115.6 | Candidate Matching | 6 | bhiv-hr-agent-m1me.onrender.com ✅ |
 | **HR Portal** | Streamlit 1.41.1 | HR Dashboard | Web UI | bhiv-hr-portal-cead.onrender.com ✅ |
 | **Client Portal** | Streamlit 1.41.1 | Client Interface | Web UI | bhiv-hr-client-portal-5g33.onrender.com ✅ |
+| **Candidate Portal** | Streamlit 1.41.1 | Job Seeker Interface | Web UI | bhiv-hr-candidate-portal.onrender.com ✅ |
 | **Database** | PostgreSQL 17 | Data Storage | - | Internal Render URL ✅ |
 
 ### **Service Dependencies**
@@ -114,7 +115,7 @@ graph TD
 
 ## 🔌 API Endpoints
 
-### **Gateway Service (50 Endpoints)**
+### **Gateway Service (55 Endpoints)**
 
 #### **Core API (3 endpoints)**
 ```
@@ -212,6 +213,15 @@ GET /v1/password/security-tips    - Password security best practices
 #### **Client Portal (1 endpoint)**
 ```
 POST /v1/client/login                    - Client authentication
+```
+
+#### **Candidate Portal (5 endpoints)**
+```
+POST /v1/candidate/register              - Candidate registration
+POST /v1/candidate/login                 - Candidate authentication
+PUT /v1/candidate/profile/{id}           - Update candidate profile
+POST /v1/candidate/apply                 - Apply for job
+GET /v1/candidate/applications/{id}      - Get candidate applications
 ```
 
 ### **Agent Service (6 Endpoints) - ❌ OFFLINE**
@@ -507,4 +517,4 @@ python-dotenv: 1.0.0
 
 *Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
 
-**Last Updated**: October 18, 2025 | **Status**: ✅ Production Ready (5/5 Services) | **AI Engine**: Phase 3 Operational | **Cost**: $0/month
+**Last Updated**: October 22, 2025 | **Status**: ✅ Production Ready (5/5 Services) | **AI Engine**: Phase 3 Operational | **Cost**: $0/month

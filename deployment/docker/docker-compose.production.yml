@@ -4,14 +4,15 @@
 # Status: Production Ready (Local Development)
 #
 # This file is for LOCAL DEVELOPMENT only
-# Production deployment is on Render with 4/5 services operational:
-# - Gateway: bhiv-hr-gateway-46pz.onrender.com (✅ 50 endpoints)
-# - Agent: bhiv-hr-agent-m1me.onrender.com (❌ Offline - ML dependencies)
+# Production deployment is on Render with 5/5 services operational:
+# - Gateway: bhiv-hr-gateway-46pz.onrender.com (✅ 55 endpoints)
+# - Agent: bhiv-hr-agent-m1me.onrender.com (✅ 6 endpoints)
 # - HR Portal: bhiv-hr-portal-cead.onrender.com (✅ Healthy)
 # - Client Portal: bhiv-hr-client-portal-5g33.onrender.com (✅ Healthy)
-# - Database: PostgreSQL 17 on Render (✅ Connected - 5 connections)
+# - Candidate Portal: bhiv-hr-candidate-portal.onrender.com (✅ NEW)
+# - Database: PostgreSQL 17 on Render (✅ Connected)
 #
-# Local Environment: All 5 services operational with Docker fixes applied
+# Local Environment: All 6 services operational with Docker fixes applied
 # Database Schema: v4.1.0 with Phase 3 learning engine (17 tables)
 
 services:
@@ -56,7 +57,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    # Production URL: bhiv-hr-gateway-46pz.onrender.com (✅ 50 endpoints operational)
+    # Production URL: bhiv-hr-gateway-46pz.onrender.com (✅ 55 endpoints operational)
 
   agent:
     build:
@@ -78,7 +79,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    # Production URL: bhiv-hr-agent-m1me.onrender.com (❌ Offline - ML dependencies)
+    # Production URL: bhiv-hr-agent-m1me.onrender.com (✅ 6 endpoints operational)
 
   portal:
     build:
@@ -161,7 +162,7 @@ services:
         limits:
           memory: 512M
           cpus: '0.5'
-    # New service: Candidate Portal for job seekers
+    # Production URL: bhiv-hr-candidate-portal.onrender.com (✅ NEW - Live)
 
 volumes:
   postgres_data:

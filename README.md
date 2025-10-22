@@ -5,13 +5,14 @@
 ## 🌐 Live Production Platform
 
 ### **✅ Currently Deployed on Render**
-- **API Gateway**: bhiv-hr-gateway-46pz.onrender.com/docs ✅ (50 endpoints)
+- **API Gateway**: bhiv-hr-gateway-46pz.onrender.com/docs ✅ (55 endpoints)
 - **AI Matching Engine**: bhiv-hr-agent-m1me.onrender.com/docs ✅ (6 endpoints - LIVE)
 - **HR Portal**: bhiv-hr-portal-cead.onrender.com/ ✅
 - **Client Portal**: bhiv-hr-client-portal-5g33.onrender.com/ ✅
+- **Candidate Portal**: bhiv-hr-candidate-portal.onrender.com/ ✅ **NEW**
 - **Database**: PostgreSQL 17 on Render ✅
 - **Status**: ✅ **5/5 SERVICES OPERATIONAL** | **Cost**: $0/month (Free tier)
-- **Total Endpoints**: 56 (50 Gateway + 6 Agent) | **Updated**: January 2, 2025
+- **Total Endpoints**: 61 (55 Gateway + 6 Agent) | **Updated**: October 22, 2025
 - **Python Version**: 3.12.7 | **FastAPI**: >=0.104.0,<0.120.0 | **Streamlit**: >=1.28.0,<2.0.0
 
 ### **🔑 Demo Access**
@@ -79,7 +80,7 @@ docker-compose -f deployment/docker/docker-compose.production.yml up -d
 | **AI Agent** | Candidate Matching | FastAPI + Python 3.12.7-slim | 9000 | ✅ Live | bhiv-hr-agent-m1me.onrender.com |
 | **HR Portal** | HR Dashboard | Streamlit + Python 3.12.7-slim | 8501 | ✅ Live | bhiv-hr-portal-cead.onrender.com |
 | **Client Portal** | Client Interface | Streamlit + Python 3.12.7-slim | 8502 | ✅ Live | bhiv-hr-client-portal-5g33.onrender.com |
-| **Candidate Portal** | Job Seeker Interface | Streamlit + Python 3.12.7-slim | 8503 | ✅ Ready | Local Development |
+| **Candidate Portal** | Job Seeker Interface | Streamlit + Python 3.12.7-slim | 8503 | ✅ Live | bhiv-hr-candidate-portal.onrender.com |
 | **Database** | Data Storage | PostgreSQL 15-alpine | 5432 | ✅ Live | Internal Render URL |
 
 ### **API Endpoints (61 Total)**
@@ -488,7 +489,7 @@ python tools/auto_sync_watcher.py
 - **🔗 Live API**: bhiv-hr-gateway-46pz.onrender.com/docs
 - **🔗 HR Dashboard**: bhiv-hr-portal-cead.onrender.com/
 - **🔗 Client Portal**: bhiv-hr-client-portal-5g33.onrender.com/
-- **🔗 Candidate Portal**: http://localhost:8503 (Local development)
+- **🔗 Candidate Portal**: bhiv-hr-candidate-portal.onrender.com
 - **🔗 AI Agent**: bhiv-hr-agent-m1me.onrender.com/docs
 
 ---
@@ -497,4 +498,4 @@ python tools/auto_sync_watcher.py
 
 *Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
 
-**Last Updated**: October 15, 2025 | **Production**: ✅ 5/5 Services Live | **Local**: ✅ 5/5 Services Operational | **AI Version**: Phase 3 Advanced (Operational) | **Cost**: $0/month | **Uptime**: 100%
+**Last Updated**: October 22, 2025 | **Production**: ✅ 5/5 Services Live | **Local**: ✅ 5/5 Services Operational | **AI Version**: Phase 3 Advanced (Operational) | **Cost**: $0/month | **Uptime**: 100%

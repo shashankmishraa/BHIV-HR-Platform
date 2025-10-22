@@ -1,420 +1,194 @@
-# 🎯 BHIV HR Platform - Current Features
+# BHIV HR Platform - Current Features
 
-**Complete Feature Overview - October 2025**
+**Last Updated**: October 22, 2025  
+**Status**: 5/5 Services Live ✅  
+**Platform**: Production Ready  
 
-## 📊 Platform Overview
+## 🌐 Live Services Overview
 
-### **System Architecture**
-- **Microservices**: 5 services (5/5 operational) ✅
-- **API Endpoints**: 56 total (50 Gateway + 6 Agent)
-- **Algorithm Version**: 3.1.0-phase3-production (fully operational)
-- **Deployment**: Production on Render (Oregon, US West)
-- **Cost**: $0/month (Free tier)
-- **Uptime**: 100% (all services operational)
+| Service | URL | Status | Features |
+|---------|-----|--------|----------|
+| **API Gateway** | https://bhiv-hr-gateway-46pz.onrender.com | ✅ Live | 55 REST endpoints, authentication, security |
+| **AI Agent** | https://bhiv-hr-agent-m1me.onrender.com | ✅ Live | 6 AI endpoints, semantic matching, learning |
+| **HR Portal** | https://bhiv-hr-portal-cead.onrender.com | ✅ Live | Dashboard, candidate management, job posting |
+| **Client Portal** | https://bhiv-hr-client-portal-5g33.onrender.com | ✅ Live | Enterprise auth, job management, candidate review |
+| **Candidate Portal** | https://bhiv-hr-candidate-portal.onrender.com | ✅ Live | Registration, job search, applications, profile |
 
-### **Technology Stack**
-- **Backend**: FastAPI 0.115.6 + Python 3.12.7
-- **Frontend**: Streamlit 1.41.1
-- **Database**: PostgreSQL 17
-- **AI Engine**: Phase 3 Semantic Matching
-- **Authentication**: JWT + bcrypt + 2FA
-- **Monitoring**: Prometheus + Custom metrics
+## 🚀 Core Platform Features
 
----
+### **1. Multi-Portal Architecture**
+- **HR Portal**: Internal team management and operations
+- **Client Portal**: External company job posting and candidate review
+- **Candidate Portal**: Job seeker registration, search, and applications
+- **Unified Database**: Shared data across all portals for real-time sync
 
-## 🤖 Phase 3 AI Matching Engine
+### **2. Advanced AI Matching (Phase 3)**
+- **Semantic Engine**: Production-grade sentence transformers
+- **Adaptive Scoring**: Company-specific weight optimization
+- **Cultural Fit Analysis**: Feedback-based alignment scoring (10% bonus)
+- **Learning Engine**: Company preference tracking and optimization
+- **Real-time Processing**: <0.02 second response time with caching
+- **Multi-Factor Scoring**: Semantic (40%), Experience (30%), Skills (20%), Location (10%)
 
-### **Advanced Semantic Matching**
-- **Algorithm**: Phase 3 production semantic engine (agent service fixed & operational) ✅
-- **Technology**: Semantic transformers + database integration
-- **Response Time**: <200ms (batch operations), <100ms (single match)
-- **Accuracy**: Multi-factor scoring with learning engine
-- **Authentication**: Bearer token + JWT validation implemented
-- **Status**: Production-ready with all 6 endpoints operational
-
-### **Multi-Factor Scoring System**
-```python
-# Scoring Components (Adaptive Weights)
-{
-    'semantic_similarity': 40%,    # Job-candidate text matching
-    'experience_match': 30%,       # Years + seniority alignment  
-    'skills_match': 20%,          # Technical skills overlap
-    'location_match': 10%,        # Geographic compatibility
-    'cultural_fit': 10% bonus     # Values alignment bonus
-}
-```
-
-### **Learning Engine Capabilities**
-- **Company Preferences**: Tracks hiring patterns by client
-- **Adaptive Scoring**: Adjusts weights based on feedback (4.0+ scores)
-- **Pattern Recognition**: Learns from successful matches
-- **Continuous Improvement**: Updates preferences automatically
-
-### **Enhanced Batch Processing**
-- **Async Processing**: Parallel candidate evaluation with ThreadPoolExecutor
-- **Smart Caching**: Intelligent result caching with cache keys
-- **Chunk Processing**: 50 candidates per chunk for optimal performance
-- **Memory Efficient**: Handles large datasets with connection pooling
-- **Production Implementation**: No fallback modes, enterprise-grade only
-
----
-
-## 🏢 Dual Portal System
-
-### **HR Portal** (bhiv-hr-portal-cead.onrender.com) ✅
-
-#### **Dashboard Features**
-- **Real-time Metrics**: Live candidate and job counts
-- **Pipeline Analytics**: Application → Hire conversion rates
-- **Skills Analysis**: Technical skills distribution
-- **Values Assessment**: 5-point evaluation tracking
-
-#### **Candidate Management**
-- **Advanced Search**: Skills, location, experience filters
-- **Bulk Upload**: CSV batch processing
-- **AI Shortlisting**: Phase 3 semantic matching
-- **Assessment Workflow**: Complete values evaluation
-
-#### **Job Management**
-- **Job Creation**: Full job posting workflow
-- **Client Integration**: Real-time sync with client portal
-- **Match Analytics**: AI scoring and recommendations
-- **Export Reports**: Comprehensive CSV exports
-
-### **Client Portal** (bhiv-hr-client-portal-5g33.onrender.com) ✅
-
-#### **Enterprise Authentication**
-- **Secure Login**: bcrypt password hashing
-- **JWT Tokens**: 24-hour expiration
-- **Account Lockout**: 5 failed attempts = 30min lock
-- **Session Management**: Token revocation support
-
-#### **Job Posting Interface**
-- **Intuitive Forms**: Step-by-step job creation
-- **Real-time Preview**: Live job posting preview
-- **Client Branding**: Company-specific interface
-- **Status Tracking**: Job posting status monitoring
-
-#### **Candidate Review**
-- **AI Match Results**: Direct agent service integration
-- **Dynamic Scoring**: Real-time candidate evaluation
-- **Approval Workflow**: Accept/reject candidate flow
-- **Match Analytics**: Detailed scoring breakdown
-
----
-
-## 🔒 Enterprise Security Features
-
-### **Unified Authentication System**
-- **Dual Authentication**: API keys + JWT tokens in single system
-- **Modular Architecture**: Centralized auth in `dependencies.py`
+### **3. Enterprise Security**
+- **Unified Authentication**: Dual Bearer token + JWT system
+- **Dynamic Rate Limiting**: CPU-based adjustment (60-500 requests/minute)
 - **2FA TOTP**: Complete implementation with QR code generation
-- **Auth Routes**: Dedicated `/auth` endpoints for 2FA management
+- **Security Headers**: CSP, XSS protection, Frame Options
+- **Input Validation**: XSS/SQL injection protection with testing endpoints
 - **Password Policies**: Enterprise-grade validation with strength testing
 
-### **Advanced Rate Limiting & Protection**
-- **Dynamic Rate Limiting**: CPU-based adjustment (60-500 req/min)
-- **Endpoint-Specific Limits**: Granular control per API endpoint
-- **User Tier Support**: Default vs Premium rate limits
-- **Real-time Monitoring**: Rate limit headers in responses
-- **DoS Protection**: Automatic request throttling
-- **IP Blocking**: Suspicious activity detection
+### **4. Comprehensive API (61 Endpoints)**
 
-### **Security Headers & Validation**
-- **CSP Policies**: Content Security Policy enforcement
-- **XSS Protection**: Input sanitization
-- **SQL Injection**: Parameterized queries
-- **Frame Options**: Clickjacking protection
+#### **Gateway Service (55 Endpoints)**
+- **Core API** (3): Health checks, root endpoint, database connectivity
+- **Job Management** (2): List and create job postings
+- **Candidate Management** (5): CRUD operations, search, bulk upload
+- **AI Matching** (2): Top matches, batch processing
+- **Assessment & Workflow** (6): Feedback, interviews, offers
+- **Analytics** (3): Statistics, database schema, reports
+- **Security Testing** (7): Rate limiting, input validation, penetration testing
+- **CSP Management** (4): Policy management, violation reporting
+- **2FA Authentication** (8): Setup, verification, token management
+- **Password Management** (6): Validation, generation, policy enforcement
+- **Client Portal API** (1): Client authentication
+- **Candidate Portal APIs** (5): Registration, login, profile, applications
+- **Monitoring** (3): Prometheus metrics, health checks, dashboard
 
-### **Input Validation & Testing**
-- **Email Validation**: RFC-compliant email checking
-- **Phone Validation**: International format support
-- **Penetration Testing**: Built-in security testing endpoints
-- **Vulnerability Scanning**: Automated security checks
+#### **Agent Service (6 Endpoints)**
+- **Core** (2): Health checks and status
+- **AI Processing** (3): Semantic matching, batch processing, analysis
+- **Diagnostics** (1): Database connectivity testing
 
----
+### **5. Data Management**
+- **Database**: PostgreSQL 17 with 17 tables (v4.1.0 schema)
+- **Real Data**: 31 candidates from actual resume files
+- **Active Jobs**: 19 job postings across multiple departments
+- **Resume Processing**: Multi-format support (PDF, DOCX, TXT)
+- **Batch Operations**: Secure file processing with validation
 
-## 📊 Advanced Monitoring & Analytics
+## 👥 User Experience Features
 
-### **Prometheus Metrics**
-- **API Performance**: Response times, throughput
-- **Business Metrics**: Jobs, matches, assessments
-- **System Health**: CPU, memory, disk usage
-- **Error Tracking**: Categorized error monitoring
+### **HR Portal Features**
+- **Dashboard**: Real-time metrics and analytics
+- **Candidate Search**: Advanced filtering and AI-powered matching
+- **Job Management**: Create, edit, and manage job postings
+- **Values Assessment**: 5-point BHIV values evaluation system
+- **Batch Upload**: Secure candidate data import
+- **Interview Scheduling**: Calendar integration and management
+- **Offer Management**: Job offer creation and tracking
 
-### **Real-time Dashboards**
-- **Performance Summary**: 24-hour metrics overview
-- **Business Analytics**: Hiring pipeline metrics
-- **System Status**: Service health monitoring
-- **Alert Management**: Threshold-based alerting
+### **Client Portal Features**
+- **Enterprise Authentication**: Secure JWT-based login system
+- **Job Posting**: Create and manage job listings
+- **Candidate Review**: Access to matched candidates with AI scores
+- **Interview Coordination**: Schedule and manage interviews
+- **Real-time Sync**: Instant updates across HR and client portals
+- **Security Features**: Account lockout protection, session management
 
-### **Comprehensive Reporting**
-- **Candidate Reports**: Complete assessment data
-- **Job Analytics**: Match success rates
-- **Values Assessment**: 5-point evaluation summaries
-- **Export Options**: CSV, JSON formats
+### **Candidate Portal Features** ✨ **NEW**
+- **Registration**: Secure account creation with validation
+- **Profile Management**: Comprehensive candidate information
+- **Job Search**: Browse and filter available positions
+- **Application Tracking**: Submit applications and monitor status
+- **Dashboard**: Personal overview of applications and activity
+- **Resume Upload**: Multi-format file support
+- **Real-time Updates**: Live job posting and application status
 
----
+## 🔧 Technical Features
 
-## 📋 Assessment & Workflow Management
+### **Performance & Monitoring**
+- **Response Time**: <100ms average for API endpoints
+- **AI Processing**: <0.02 seconds with caching
+- **Uptime**: 99.9% target across all services
+- **Monitoring**: Prometheus metrics with real-time dashboards
+- **Health Checks**: Comprehensive system status monitoring
+- **Error Tracking**: Structured logging with categorization
 
-### **Values-Based Assessment**
-```python
-# 5-Point Assessment Scale
-{
-    'integrity': 1-5,      # Moral uprightness, ethical behavior
-    'honesty': 1-5,        # Truthfulness, transparency
-    'discipline': 1-5,     # Self-control, consistency
-    'hard_work': 1-5,      # Dedication, perseverance
-    'gratitude': 1-5       # Appreciation, humility
-}
-```
+### **Security & Compliance**
+- **Authentication**: Multi-tier system (API keys, JWT, 2FA)
+- **Rate Limiting**: Dynamic adjustment based on system load
+- **Data Protection**: Encrypted passwords, secure sessions
+- **Input Validation**: Comprehensive XSS/SQL injection protection
+- **Audit Logging**: Complete activity tracking and compliance
+- **CSP Policies**: Content Security Policy implementation
 
-### **Interview Management**
-- **Scheduling System**: Calendar integration
-- **Interviewer Assignment**: Team coordination
-- **Feedback Collection**: Structured assessment forms
-- **Status Tracking**: Interview pipeline management
+### **Scalability & Architecture**
+- **Microservices**: Independent, scalable service architecture
+- **Database Pooling**: Optimized connection management
+- **Caching**: Smart caching for AI matching results
+- **Async Processing**: Non-blocking operations for performance
+- **Load Balancing**: CPU-based rate limiting adjustment
+- **Auto-Deploy**: GitHub integration for continuous deployment
 
-### **Offer Management**
-- **Offer Creation**: Salary, terms, start date
-- **Approval Workflow**: Multi-stage approval process
-- **Status Tracking**: Offer acceptance monitoring
-- **Document Generation**: Automated offer letters
+## 📊 Current Statistics
 
----
+### **Platform Metrics**
+- **Total Services**: 5 (All operational)
+- **API Endpoints**: 61 interactive endpoints
+- **Database Tables**: 17 (v4.1.0 schema)
+- **Active Candidates**: 31 with complete profiles
+- **Job Postings**: 19 across multiple departments
+- **Resume Files**: 27 processed files
+- **Monthly Cost**: $0 (Free tier deployment)
 
-## 🔄 Resume Processing & Data Management
+### **Performance Metrics**
+- **API Success Rate**: 85.7% (12/14 endpoints tested)
+- **Average Response Time**: 2.06 seconds
+- **AI Matching Speed**: <0.02 seconds (cached)
+- **Database Queries**: Optimized with connection pooling
+- **Concurrent Users**: Multi-user support enabled
 
-### **Multi-Format Support**
-- **File Types**: PDF, DOCX, TXT
-- **Batch Processing**: Multiple resume upload
-- **Extraction Accuracy**: 75-96% success rate
-- **Error Handling**: Comprehensive error tracking
+## 🎯 Integration Capabilities
 
-### **Data Processing Pipeline**
-- **Text Extraction**: Advanced parsing algorithms
-- **Skills Recognition**: AI-powered skill identification
-- **Experience Calculation**: Automatic years calculation
-- **Data Validation**: Quality assurance checks
+### **API Integration**
+- **RESTful APIs**: 61 endpoints with OpenAPI documentation
+- **Authentication**: Bearer token and JWT support
+- **Webhooks**: Auto-deploy integration with Render
+- **Batch Processing**: Bulk operations for data import/export
+- **Real-time Sync**: Cross-portal data synchronization
 
-### **Database Management**
-- **PostgreSQL 17**: Production database
-- **Connection Pooling**: Optimized performance
-- **Schema Management**: Version-controlled migrations
-- **Backup Strategy**: Automated data protection
+### **Third-Party Integration Ready**
+- **Resume Parsing**: Multi-format document processing
+- **Email Integration**: SMTP support for notifications
+- **Calendar Systems**: Interview scheduling compatibility
+- **Analytics Tools**: Prometheus metrics export
+- **CI/CD Pipeline**: GitHub Actions integration
 
----
+## 🔮 Advanced Features
 
-## 🌐 API & Integration Features
+### **AI & Machine Learning**
+- **Phase 3 Semantic Engine**: Production-grade NLP processing
+- **Learning Algorithms**: Company preference optimization
+- **Adaptive Scoring**: Dynamic weight adjustment based on feedback
+- **Cultural Fit Analysis**: Values-based candidate assessment
+- **Batch Processing**: Intelligent candidate matching at scale
 
-### **REST API (56 Endpoints Total)**
-- **Gateway API**: 50 core endpoints
+### **Business Intelligence**
+- **Real-time Analytics**: Live performance dashboards
+- **Candidate Statistics**: Comprehensive reporting system
+- **Job Market Insights**: Trend analysis and metrics
+- **Performance Tracking**: Success rate monitoring
+- **Custom Reports**: Exportable data analysis
 
-#### **Core API (3 endpoints)**
-- Health checks and system status
-- Database connectivity testing
-- Service information
+## 🚀 Deployment & Operations
 
-#### **Monitoring (3 endpoints)**
-- Metrics and monitoring
-- Detailed health checks
-- Performance dashboards
+### **Production Environment**
+- **Platform**: Render Cloud (Oregon, US West)
+- **SSL Certificates**: HTTPS enabled across all services
+- **Auto-Scaling**: Dynamic resource allocation
+- **Backup Systems**: Automated database backups
+- **Monitoring**: 24/7 health check systems
 
-#### **Analytics (3 endpoints)**
-- Candidate statistics
-- Database schema verification (NEW)
-- Report exports
-
-#### **Job Management (2 endpoints)**
-- Job creation and listing
-- Client-specific job filtering
-
-#### **Candidate Management (5 endpoints)**
-- Candidate search and filtering
-- Bulk upload processing
-- Individual candidate retrieval
-
-#### **AI Matching (2 endpoints)**
-- Single job matching (Phase 3 semantic engine)
-- Batch job processing (async optimization)
-
-#### **Assessment Workflow (6 endpoints)**
-- Values assessment submission
-- Interview scheduling
-- Offer management
-
-#### **Security & Authentication (25 endpoints)**
-- 2FA setup and management (8)
-- Password management (6)
-- Security testing (7)
-- CSP management (4)
-
-### **Integration Capabilities**
-- **Webhook Support**: Real-time notifications
-- **API Documentation**: Interactive Swagger/OpenAPI
-- **SDK Support**: Python client libraries
-- **Rate Limiting**: Configurable request limits
-
----
-
-## 📈 Performance & Scalability
-
-### **Response Times**
-- **API Endpoints**: <100ms average
-- **AI Matching**: <0.02 seconds (cached)
-- **Database Queries**: <50ms average
-- **Portal Loading**: <2 seconds
-
-### **Throughput Capacity**
-- **Concurrent Users**: Multi-user support
-- **API Requests**: 60-500 requests/minute (tiered)
-- **Batch Processing**: 50 candidates per chunk
-- **File Upload**: Multiple resume processing
-
-### **Caching & Optimization**
-- **Smart Caching**: AI match result caching
-- **Connection Pooling**: Database optimization
-- **Async Processing**: Non-blocking operations
-- **Memory Management**: Efficient resource usage
+### **Development Workflow**
+- **Version Control**: Git with GitHub integration
+- **Auto-Deploy**: Continuous deployment pipeline
+- **Testing Suite**: Comprehensive endpoint validation
+- **Documentation**: Complete API and user guides
+- **Support**: Health monitoring and error tracking
 
 ---
 
-## 🎯 Business Intelligence Features
-
-### **Hiring Analytics**
-- **Pipeline Metrics**: Application → Hire conversion
-- **Time-to-Hire**: Average hiring duration
-- **Source Analytics**: Candidate source tracking
-- **Success Rates**: Match success analysis
-
-### **Candidate Insights**
-- **Skills Distribution**: Technical skills analysis
-- **Geographic Spread**: Location-based analytics
-- **Experience Levels**: Seniority distribution
-- **Values Alignment**: Cultural fit metrics
-
-### **Performance Tracking**
-- **AI Accuracy**: Match success rates
-- **User Engagement**: Portal usage analytics
-- **System Performance**: Response time trends
-- **Error Analysis**: Issue identification
-
----
-
-## 🔧 Development & Deployment Features
-
-### **Local Development**
-- **Docker Compose**: Complete local setup
-- **Environment Configuration**: Flexible config management
-- **Health Checks**: Service verification
-- **Hot Reloading**: Development efficiency
-
-### **Production Deployment**
-- **Render Platform**: Cloud deployment
-- **Auto-scaling**: Traffic-based scaling
-- **SSL Certificates**: HTTPS encryption
-- **Global CDN**: Fast content delivery
-
-### **Monitoring & Maintenance**
-- **Health Endpoints**: Service monitoring
-- **Log Aggregation**: Centralized logging
-- **Error Tracking**: Issue identification
-- **Performance Monitoring**: Real-time metrics
-
----
-
-## 📚 Documentation & Support
-
-### **Comprehensive Documentation**
-- **API Reference**: Complete endpoint documentation
-- **User Guides**: Step-by-step instructions
-- **Deployment Guides**: Setup and configuration
-- **Security Analysis**: Bias mitigation and audits
-
-### **Testing & Quality Assurance**
-- **Unit Tests**: Core functionality testing
-- **Integration Tests**: End-to-end workflows
-- **Security Tests**: Vulnerability assessment
-- **Performance Tests**: Load and stress testing
-
-### **Support Resources**
-- **Interactive Documentation**: Swagger UI
-- **Code Examples**: Complete workflow samples
-- **Troubleshooting Guides**: Common issue resolution
-- **Best Practices**: Implementation recommendations
-
----
-
-## 🚀 Recent Updates (October 2025)
-
-### **Agent Service Fixes & Enhancements**
-- ✅ **Event Loop Resolution**: Fixed async conflicts in batch processing
-- ✅ **Authentication Implementation**: Bearer token + JWT validation
-- ✅ **Database Optimization**: ThreadedConnectionPool (2-10 connections)
-- ✅ **All Endpoints Operational**: 6/6 Agent service endpoints working
-
-### **Phase 3 Implementation**
-- ✅ Advanced semantic engine (agent service fully operational)
-- ✅ Learning engine with company preferences (schema deployed)
-- ✅ Enhanced batch processing with caching
-- ✅ Cultural fit scoring (10% bonus)
-
-### **Database & Infrastructure**
-- ✅ Applied consolidated schema v4.1.0 with Phase 3 features
-- ✅ Fixed Docker Compose build context issues
-- ✅ Added database schema verification endpoint
-- ✅ Enhanced local development environment
-- ✅ Comprehensive production readiness verification
-
-### **Documentation Updates**
-- ✅ Production readiness report
-- ✅ Deployment status documentation
-- ✅ Schema comparison analysis
-- ✅ Complete changes log
-- ✅ Updated all technical documentation
-
----
-
-## 📊 Feature Comparison
-
-| Feature Category | Implementation Status | Quality Level |
-|------------------|----------------------|---------------|
-| **AI Matching** | ✅ Phase 3 Production | Enterprise |
-| **Security** | ✅ Complete Suite | Enterprise |
-| **Portals** | ✅ Dual Interface | Professional |
-| **API** | ✅ 60 Endpoints | Production |
-| **Monitoring** | ✅ Prometheus + Custom | Enterprise |
-| **Documentation** | ✅ Comprehensive | Professional |
-| **Testing** | ✅ Multi-layer | Production |
-| **Deployment** | ✅ Cloud Production | Enterprise |
-
----
-
-## 🎯 Platform Strengths
-
-### **Technical Excellence**
-- Production-grade Phase 3 AI implementation
-- Comprehensive security suite
-- Real-time monitoring and analytics
-- Scalable microservices architecture
-
-### **User Experience**
-- Intuitive dual portal system
-- Step-by-step workflows
-- Real-time feedback and updates
-- Professional interface design
-
-### **Business Value**
-- Values-driven candidate assessment
-- AI-powered matching efficiency
-- Comprehensive reporting capabilities
-- Zero-cost production deployment
-
----
-
-**BHIV HR Platform v3.0.0-Phase3** - Complete enterprise recruiting solution with advanced AI, comprehensive security, and professional user experience.
+**BHIV HR Platform v3.0.0-Phase3** - Complete enterprise recruiting solution with advanced AI, multi-portal architecture, and production-grade security.
 
 *Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
-
-**Last Updated**: October 18, 2025 | **Status**: ✅ 5/5 Services Operational | **Cost**: $0/month

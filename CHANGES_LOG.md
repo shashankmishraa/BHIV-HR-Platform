@@ -1,7 +1,35 @@
 # BHIV HR Platform - Changes Log
 
-**Tracking Period**: October 13-15, 2025  
-**Session Focus**: Complete Services Architecture Documentation & Portal Enhancements
+**Tracking Period**: October 13-22, 2025  
+**Session Focus**: Complete 5-Service Platform Deployment & Documentation
+
+---
+
+## 🚀 Latest Changes (October 22, 2025)
+
+### **Candidate Portal Production Deployment**
+- **Deployed**: Complete candidate portal service to Render production
+- **URL**: https://bhiv-hr-candidate-portal.onrender.com
+- **Service ID**: srv-d3se2s63jp1c738mnp7g
+- **Features**: Registration, login, job search, applications, profile management
+- **Integration**: Real-time sync with HR and client portals
+
+### **API Expansion**
+- **Added**: 5 new candidate portal endpoints to Gateway service
+- **Total Endpoints**: 56 → 61 (55 Gateway + 6 Agent)
+- **New APIs**: `/v1/candidate/register`, `/v1/candidate/login`, `/v1/candidate/profile/{id}`, `/v1/candidate/apply`, `/v1/candidate/applications/{id}`
+
+### **Complete Platform Achievement**
+- **Service Status**: 4/5 → 5/5 services operational
+- **Platform Completion**: All user types now supported (HR, Clients, Candidates)
+- **Documentation**: All files updated to reflect complete platform
+- **Testing**: Comprehensive endpoint testing for all 61 APIs
+
+### **Configuration Updates**
+- **Environment Variables**: Added candidate portal configuration
+- **Docker Compose**: Updated to include candidate portal service
+- **Testing Suite**: Enhanced to include candidate portal validation
+- **Documentation**: Complete update across all folders and files
 
 ---
 

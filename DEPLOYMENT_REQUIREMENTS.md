@@ -4,12 +4,13 @@
 
 ### 1. Render Account & Services
 ```bash
-# Required Render Services (5 total)
+# Required Render Services (6 total)
 1. Web Service: API Gateway (bhiv-hr-gateway)
 2. Web Service: AI Agent (bhiv-hr-agent) 
 3. Web Service: HR Portal (bhiv-hr-portal)
 4. Web Service: Client Portal (bhiv-hr-client-portal)
-5. PostgreSQL Database (bhiv-hr-database)
+5. Web Service: Candidate Portal (bhiv-hr-candidate-portal)
+6. PostgreSQL Database (bhiv-hr-database)
 ```
 
 ### 2. Render Environment Variables
@@ -206,6 +207,7 @@ API_GATEWAY=https://bhiv-hr-gateway-46pz.onrender.com
 AI_AGENT=https://bhiv-hr-agent-m1me.onrender.com
 HR_PORTAL=https://bhiv-hr-portal-cead.onrender.com
 CLIENT_PORTAL=https://bhiv-hr-client-portal-5g33.onrender.com
+CANDIDATE_PORTAL=https://bhiv-hr-candidate-portal.onrender.com
 
 # Health Checks
 https://bhiv-hr-gateway-46pz.onrender.com/health
@@ -283,6 +285,7 @@ curl https://bhiv-hr-agent-m1me.onrender.com/health
 - **Database**: PostgreSQL 17 on Render
 - **Cost**: $0/month (Free tier)
 - **Uptime**: 99.9% target
+- **Candidate Portal**: Live at bhiv-hr-candidate-portal.onrender.com
 
 ### Monitoring
 ```bash
