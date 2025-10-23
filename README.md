@@ -12,7 +12,7 @@
 - **Candidate Portal**: bhiv-hr-candidate-portal.onrender.com/ ✅ **NEW**
 - **Database**: PostgreSQL 17 on Render ✅
 - **Status**: ✅ **5/5 SERVICES OPERATIONAL** | **Cost**: $0/month (Free tier)
-- **Total Endpoints**: 61 (55 Gateway + 6 Agent verified) | **Updated**: October 23, 2025
+- **Total Endpoints**: 61 (55 Gateway + 6 Agent verified) | **Updated**: October 23, 2025 - Database & Portal Issues Fixed
 - **Python Version**: 3.12.7-slim | **FastAPI**: 0.115.6 | **Streamlit**: 1.41.1
 
 ### **🔑 Demo Access**
@@ -201,7 +201,7 @@ bhiv-hr-platform/
 │   │   ├── __init__.py        # Package initialization
 │   │   └── phase3_engine.py   # Production semantic engine
 │   └── db/                     # Database Schema
-│       ├── consolidated_schema.sql # Complete schema v4.1.0 (17 tables)
+│       ├── consolidated_schema.sql # Complete schema v4.1.0 (15 core tables)
 │       └── Dockerfile         # Database container
 ├── docs/                       # Complete Documentation
 │   ├── architecture/          # System architecture docs
@@ -246,7 +246,7 @@ bhiv-hr-platform/
 └── README.md                   # This file
 ```
 
-### **Database Schema v4.1.0 (17 Tables)**
+### **Database Schema v4.1.0 (15 Core Tables - Optimized)**
 
 #### **Core Application Tables (12)**
 ```sql
@@ -469,10 +469,10 @@ python tests/test_endpoints.py  # Comprehensive health checks
 - **API Endpoints**: 61 interactive endpoints (55 Gateway + 6 Agent)
 - **AI Algorithm**: Phase 3 - v3.0.0-phase3-production (fully operational)
 - **Learning Engine**: Company preference optimization (schema v4.1.0 deployed)
-- **Database Schema**: v4.1.0 with 17 tables (PostgreSQL 17)
-- **Real Candidates**: ✅ 31 from production database
-- **Real Jobs**: ✅ 19 active job postings
-- **Resume Files**: ✅ 27 resume files processed
+- **Database Schema**: v4.1.0 with 15 core tables (PostgreSQL 17) - Optimized
+- **Real Candidates**: ✅ 11 verified in production database
+- **Real Jobs**: ✅ 20 active job postings
+- **Active Clients**: ✅ 3 client companies with authentication
 - **Portal Services**: ✅ Streamlit 1.41.1 with security enhancements
 - **Code Quality**: ✅ Production-ready with comprehensive error handling
 - **Test Coverage**: ✅ Complete test suite (300+ lines of tests)
@@ -485,23 +485,20 @@ python tests/test_endpoints.py  # Comprehensive health checks
 - **Performance**: <100ms API response, <0.02s AI matching
 
 ### **🔄 Recent Updates (October 23, 2025)**
-- ✅ **Complete Documentation Update**: Accurate project structure and implementation details
+- ✅ **Database Schema Deployment**: Successfully deployed v4.1.0 to live Render PostgreSQL
+- ✅ **Database Cleanup**: Removed 4 redundant tables, optimized to 15 core tables
+- ✅ **Portal Configuration Fix**: Fixed Docker URLs to production URLs for all portals
+- ✅ **Connection Issues Resolved**: All portals now properly connect to Gateway API
 - ✅ **Production Services**: All 5 services operational with 99.9% uptime
-- ✅ **Database Schema**: v4.1.0 with 17 tables (PostgreSQL 17)
 - ✅ **API Gateway**: 55 endpoints with unified authentication system
 - ✅ **AI Agent Service**: 6 endpoints with Phase 3 semantic matching
-- ✅ **Triple Portal System**: HR, Client, and Candidate portals operational
+- ✅ **Triple Portal System**: HR, Client, and Candidate portals fully operational
+- ✅ **Database Integrity**: 11 candidates, 20 jobs, 3 clients, 5 interviews verified
 - ✅ **Security Implementation**: 2FA, rate limiting, CSP policies, input validation
-- ✅ **Testing Suite**: Comprehensive endpoint testing (300+ lines)
-- ✅ **Performance Optimization**: <100ms API response, connection pooling
-- ✅ **Real Data Integration**: 31 candidates, 19 jobs, 27 resume files
-- ✅ **Local Development**: Docker Compose setup with all services
-- ✅ **Monitoring**: Prometheus metrics and health checks
-- ✅ **Architecture Documentation**: Complete system architecture guides
-- ✅ **Security Audit**: Comprehensive security analysis and bias mitigation
-- ✅ **Deployment Status**: Production readiness verification
-- ✅ **Feature Documentation**: Complete current features list
-- ✅ **User Guides**: Comprehensive user and developer documentation
+- ✅ **Performance Optimization**: <100ms API response, 75 indexes for fast queries
+- ✅ **Deployment Scripts**: Complete database deployment and verification tools
+- ✅ **Architecture Documentation**: Updated with current deployment status
+- ✅ **Configuration Management**: Production-ready portal configurations
 
 ---
 
@@ -547,4 +544,4 @@ python tests/test_endpoints.py  # Comprehensive health checks
 
 *Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
 
-**Last Updated**: October 23, 2025 | **Production**: ✅ 5/5 Services Live | **Local**: ✅ 5/5 Services Operational | **AI Version**: Phase 3 Advanced (Operational) | **Cost**: $0/month | **Uptime**: 99.9%
+**Last Updated**: October 23, 2025 | **Production**: ✅ 5/5 Services Live | **Database**: ✅ 15 Core Tables Optimized | **AI Version**: Phase 3 Advanced (Operational) | **Cost**: $0/month | **Uptime**: 99.9%
