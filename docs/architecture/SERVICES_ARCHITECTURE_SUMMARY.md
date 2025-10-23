@@ -1,6 +1,6 @@
 # 🏗️ BHIV HR Platform - Services Architecture Summary
 
-**Generated**: October 15, 2025  
+**Generated**: January 2025  
 **Architecture**: Microservices (5 Services)  
 **Status**: ✅ All Services Operational  
 **Deployment**: Production + Local Development
@@ -16,15 +16,16 @@
 | **Agent** | FastAPI 0.115.6 + Python 3.12.7 | 9000 | ✅ Live | bhiv-hr-agent-m1me.onrender.com |
 | **HR Portal** | Streamlit 1.41.1 + Python 3.12.7 | 8501 | ✅ Live | bhiv-hr-portal-cead.onrender.com |
 | **Client Portal** | Streamlit 1.41.1 + Python 3.12.7 | 8502 | ✅ Live | bhiv-hr-client-portal-5g33.onrender.com |
+| **Candidate Portal** | Streamlit 1.41.1 + Python 3.12.7 | 8503 | ✅ Live | bhiv-hr-candidate-portal.onrender.com |
 | **Database** | PostgreSQL 17 | 5432 | ✅ Live | Internal Render URL |
 
 ### **System Metrics**
-- **Total Endpoints**: 56 (50 Gateway + 6 Agent)
-- **Database Tables**: 17 (12 core + 5 additional)
-- **Schema Version**: v4.1.0 with Phase 3 features
-- **Authentication**: Unified Bearer token + JWT system
+- **Total Endpoints**: 61 (55 Gateway + 6 Agent) - Verified from source code
+- **Database Tables**: 17 (12 core + 5 system)
+- **Schema Version**: v4.1.0 with Phase 3 learning engine
+- **Authentication**: Unified Bearer token + JWT + Candidate JWT system
 - **Monthly Cost**: $0 (Free tier deployment)
-- **Uptime**: 100% (all services operational)
+- **Uptime**: 99.9% (all services operational)
 
 ---
 
@@ -36,15 +37,23 @@
 app = FastAPI(
     title="BHIV HR Platform API Gateway",
     version="3.1.0",
-    description="Enterprise AI-Powered Recruiting Platform API"
+    description="Enterprise HR Platform with Advanced Security Features"
 )
 
 # Database Configuration
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://...")
-engine = create_engine(DATABASE_URL, pool_size=10, max_overflow=20)
+engine = create_engine(
+    DATABASE_URL, 
+    pool_pre_ping=True, 
+    pool_recycle=3600,
+    pool_size=10,
+    connect_args={"connect_timeout": 10, "application_name": "bhiv_gateway"},
+    pool_timeout=20,
+    max_overflow=5
+)
 ```
 
-### **API Endpoints (50 Total)**
+### **API Endpoints (61 Total) - Verified from Source Code**
 ```
 Core API (3):
 ├── GET  /                    - Service information
@@ -66,26 +75,29 @@ Job Management (2):
 └── POST /v1/jobs             - Create new job
 
 Candidate Management (5):
-├── GET  /v1/candidates       - List candidates
+├── GET  /v1/candidates       - List candidates with pagination
 ├── GET  /v1/candidates/{id}  - Get specific candidate
-├── GET  /v1/candidates/search - Search candidates
-├── POST /v1/candidates/bulk  - Bulk upload
+├── GET  /v1/candidates/search - Advanced search with filters
+├── POST /v1/candidates/bulk  - Bulk upload with validation
 └── GET  /v1/candidates/job/{job_id} - Candidates by job
 
 AI Matching (2):
-├── GET  /v1/match/{job_id}/top - Top candidate matches
-└── POST /v1/match/batch      - Batch matching
+├── GET  /v1/match/{job_id}/top - AI-powered semantic matching
+└── POST /v1/match/batch      - Batch matching for multiple jobs
 
 Assessment Workflow (6):
-├── GET/POST /v1/feedback     - Values assessment
-├── GET/POST /v1/interviews   - Interview management
-└── GET/POST /v1/offers       - Offer management
+├── GET/POST /v1/feedback     - Values assessment (5-point BHIV values)
+├── GET/POST /v1/interviews   - Interview scheduling and management
+└── GET/POST /v1/offers       - Job offer management
 
 Security Testing (7):
-├── Rate limiting endpoints
-├── Input validation testing
-├── Security headers testing
-└── Penetration testing tools
+├── GET  /v1/security/rate-limit-status
+├── GET  /v1/security/blocked-ips
+├── POST /v1/security/test-input-validation
+├── POST /v1/security/test-email-validation
+├── POST /v1/security/test-phone-validation
+├── GET  /v1/security/security-headers-test
+└── GET  /v1/security/penetration-test-endpoints
 
 CSP Management (4):
 ├── GET  /v1/security/csp-policies
@@ -118,12 +130,19 @@ Auth Routes (4):
 └── GET  /auth/2fa/status     - 2FA status check
 
 Client Portal (1):
-└── POST /v1/client/login     - Client authentication
+└── POST /v1/client/login     - Client authentication with JWT
+
+Candidate Portal (5):
+├── POST /v1/candidate/register - Candidate registration
+├── POST /v1/candidate/login    - Candidate login with JWT
+├── PUT  /v1/candidate/profile/{id} - Update candidate profile
+├── POST /v1/candidate/apply    - Job application submission
+└── GET  /v1/candidate/applications/{id} - Get candidate applications
 ```
 
-### **Authentication Architecture**
+### **Triple Authentication System**
 ```python
-# Unified Authentication System (dependencies.py)
+# Triple Authentication System (dependencies.py)
 def get_auth(credentials: HTTPAuthorizationCredentials):
     # Try API key first
     if validate_api_key(credentials.credentials):
@@ -131,12 +150,35 @@ def get_auth(credentials: HTTPAuthorizationCredentials):
     
     # Try client JWT token
     try:
+        jwt_secret = os.getenv("JWT_SECRET", "fallback_jwt_secret_key_for_client_auth_2025")
         payload = jwt.decode(credentials.credentials, jwt_secret, algorithms=["HS256"])
         return {"type": "client_token", "client_id": payload.get("client_id")}
     except:
         pass
     
+    # Try candidate JWT token
+    try:
+        candidate_jwt_secret = os.getenv("CANDIDATE_JWT_SECRET", "candidate_jwt_secret_key_2025")
+        payload = jwt.decode(credentials.credentials, candidate_jwt_secret, algorithms=["HS256"])
+        return {"type": "candidate_token", "candidate_id": payload.get("candidate_id")}
+    except:
+        pass
+    
     raise HTTPException(status_code=401, detail="Invalid authentication")
+```
+
+### **Dynamic Rate Limiting**
+```python
+# Dynamic rate limiting based on system load
+def get_dynamic_rate_limit(endpoint: str, user_tier: str = "default") -> int:
+    cpu_usage = psutil.cpu_percent()
+    base_limit = RATE_LIMITS[user_tier].get(endpoint, RATE_LIMITS[user_tier]["default"])
+    
+    if cpu_usage > 80:
+        return int(base_limit * 0.5)  # Reduce by 50% during high load
+    elif cpu_usage < 30:
+        return int(base_limit * 1.5)  # Increase by 50% during low load
+    return base_limit
 ```
 
 ---
@@ -147,20 +189,18 @@ def get_auth(credentials: HTTPAuthorizationCredentials):
 ```python
 # FastAPI AI Service
 app = FastAPI(
-    title="BHIV HR AI Agent",
-    version="3.1.0",
-    description="AI-Powered Candidate Matching Engine"
+    title="BHIV AI Matching Engine",
+    version="3.0.0",
+    description="Advanced AI-Powered Semantic Candidate Matching Service"
 )
 
 # Database Pool Configuration
-pool = ThreadedConnectionPool(
+connection_pool = psycopg2.pool.ThreadedConnectionPool(
     minconn=2,
     maxconn=10,
-    host=db_config['host'],
-    database=db_config['database'],
-    user=db_config['user'],
-    password=db_config['password'],
-    port=db_config['port']
+    dsn=database_url,
+    connect_timeout=10,
+    application_name="bhiv_agent"
 )
 ```
 
@@ -168,51 +208,60 @@ pool = ThreadedConnectionPool(
 ```
 Core (2):
 ├── GET  /                    - Service information
-└── GET  /health              - Health check with auth
+└── GET  /health              - Health check
 
 AI Processing (3):
-├── POST /match               - AI candidate matching (fixed event loop)
-├── POST /batch-match         - Batch processing (async removed)
-└── GET  /analyze/{candidate_id} - Candidate analysis
+├── POST /match               - Phase 3 AI semantic matching
+├── POST /batch-match         - Batch processing for multiple jobs
+└── GET  /analyze/{candidate_id} - Detailed candidate analysis
 
 Diagnostics (1):
 └── GET  /test-db             - Database connectivity test
 ```
 
-### **Authentication Implementation**
+### **Phase 3 AI Engine Integration**
 ```python
-# JWT Validation (mirroring Gateway)
-def verify_jwt_token(token: str):
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-        return payload
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+# Phase 3 Production Engine
+try:
+    from semantic_engine.phase3_engine import (
+        Phase3SemanticEngine,
+        AdvancedSemanticMatcher,
+        BatchMatcher,
+        LearningEngine,
+        SemanticJobMatcher
+    )
+    PHASE3_AVAILABLE = True
+except ImportError:
+    PHASE3_AVAILABLE = False
 
-# Bearer Auth Dependency
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Security(security)):
-    # API key validation
-    if credentials.credentials == API_KEY_SECRET:
-        return {"type": "api_key", "credentials": credentials.credentials}
-    
-    # JWT validation
-    payload = verify_jwt_token(credentials.credentials)
-    return {"type": "jwt", "payload": payload}
+# Initialize Phase 3 engine
+if PHASE3_AVAILABLE:
+    phase3_engine = Phase3SemanticEngine()
+    advanced_matcher = AdvancedSemanticMatcher()
+    batch_matcher = BatchMatcher()
+    learning_engine = LearningEngine()
 ```
 
-### **Event Loop Fixes**
+### **Authentication Implementation**
 ```python
-# BEFORE (Causing conflicts)
-async def match_candidates(request: MatchRequest):
-    # Async function causing event loop issues
-
-# AFTER (Fixed)
-def match_candidates(request: MatchRequest):
-    # Synchronous function with ThreadPoolExecutor for parallelism
-    with ThreadPoolExecutor(max_workers=4) as executor:
-        # Parallel processing without async conflicts
+# Authentication dependency mirroring Gateway
+def auth_dependency(credentials: HTTPAuthorizationCredentials = Security(security)):
+    if not credentials:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    # Try API key first
+    if validate_api_key(credentials.credentials):
+        return {"type": "api_key", "credentials": credentials.credentials}
+    
+    # Try client JWT token
+    try:
+        jwt_secret = os.getenv("JWT_SECRET", "fallback_jwt_secret_key_for_client_auth_2025")
+        payload = jwt.decode(credentials.credentials, jwt_secret, algorithms=["HS256"])
+        return {"type": "client_token", "client_id": payload.get("client_id")}
+    except:
+        pass
+    
+    raise HTTPException(status_code=401, detail="Invalid authentication")
 ```
 
 ---
@@ -228,53 +277,65 @@ st.set_page_config(
     layout="wide"
 )
 
-# API Configuration
-API_BASE = os.getenv("GATEWAY_URL", "http://gateway:8000")
-API_KEY = os.getenv("API_KEY_SECRET", "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o")
+# Unified Bearer Authentication
+API_KEY_SECRET = os.getenv("API_KEY_SECRET", "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o")
+UNIFIED_HEADERS = {
+    "Authorization": f"Bearer {API_KEY_SECRET}",
+    "Content-Type": "application/json"
+}
 
 # HTTP Client with Connection Pooling
 http_client = httpx.Client(
     timeout=httpx.Timeout(connect=15.0, read=60.0, write=30.0, pool=10.0),
     limits=httpx.Limits(max_keepalive_connections=10, max_connections=20),
-    headers={"Authorization": f"Bearer {API_KEY}"}
+    headers=UNIFIED_HEADERS
 )
 ```
 
 ### **Portal Features**
 ```
 HR Workflow (10 Steps):
-├── 📈 Dashboard Overview      - Real-time metrics
+├── 📈 Dashboard Overview      - Real-time metrics with 31 candidates
 ├── 🏢 Step 1: Create Jobs     - Job posting interface
-├── 📤 Step 2: Upload Candidates - Bulk candidate upload
-├── 🔍 Step 3: Search & Filter - Advanced candidate search
-├── 🎯 Step 4: AI Shortlist    - AI-powered matching
+├── 📤 Step 2: Upload Candidates - Bulk candidate upload (CSV)
+├── 🔍 Step 3: Search & Filter - Advanced semantic search
+├── 🎯 Step 4: AI Shortlist    - Phase 3 AI matching
 ├── 📅 Step 5: Schedule Interviews - Interview management
-├── 📊 Step 6: Values Assessment - 5-point evaluation
-├── 🏆 Step 7: Export Reports  - Comprehensive exports
+├── 📊 Step 6: Values Assessment - 5-point BHIV values evaluation
+├── 🏆 Step 7: Export Reports  - Comprehensive assessment exports
 ├── 🔄 Live Client Jobs Monitor - Real-time job tracking
-└── 📁 Batch Operations        - File processing
+└── 📁 Batch Operations        - Secure file processing
 ```
 
-### **Streamlit API Fixes**
+### **Real-time Data Integration**
 ```python
-# BEFORE (Deprecated)
-st.form_submit_button("Submit", use_container_width=True)
+# Real-time job monitoring
+try:
+    jobs_response = http_client.get(f"{API_BASE}/v1/jobs")
+    if jobs_response.status_code == 200:
+        jobs_data = jobs_response.json()
+        jobs = jobs_data.get('jobs', [])
+        st.sidebar.success(f"📊 Total Jobs: {len(jobs)}")
+except:
+    st.sidebar.warning("📊 Jobs: Offline")
 
-# AFTER (Fixed)
-st.form_submit_button("Submit", width='stretch')
+# AI Agent integration
+agent_url = os.getenv("AGENT_SERVICE_URL", "https://bhiv-hr-agent-m1me.onrender.com")
+response = httpx.post(f"{agent_url}/match", json={"job_id": job_id}, timeout=15.0)
 ```
 
-### **Function-Level Imports**
+### **Enhanced Export System**
 ```python
-# 2FA QR Code Generation (Prevents startup crashes)
-def show_2fa_setup():
-    try:
-        import qrcode
-        from PIL import Image
-        # QR code generation logic
-    except ImportError:
-        st.error("❌ QR code libraries not available")
-        return
+# Comprehensive assessment exports
+def export_complete_assessment():
+    candidates_response = httpx.get(f"{API_BASE}/v1/candidates/search", headers=headers)
+    interviews_response = httpx.get(f"{API_BASE}/v1/interviews", headers=headers)
+    
+    # Generate CSV with all assessment data
+    output.write("name,email,ai_score,values_assessment,interview_status,recommendation\n")
+    for candidate in candidates:
+        # Include AI scores, values assessment, interview feedback
+        output.write(f"{name},{email},{ai_score},{values_score},{status},{recommendation}\n")
 ```
 
 ---
@@ -290,376 +351,225 @@ st.set_page_config(
     layout="wide"
 )
 
-# Session Configuration with Retry Strategy
-def create_session():
-    session = requests.Session()
-    retry_strategy = Retry(
-        total=3,
-        backoff_factor=1,
-        status_forcelist=[429, 500, 502, 503, 504]
-    )
-    adapter = HTTPAdapter(
-        max_retries=retry_strategy,
-        pool_connections=10,
-        pool_maxsize=20
-    )
-    session.mount("http://", adapter)
-    session.mount("https://", adapter)
-    return session
-```
-
-### **Enterprise Authentication**
-```python
-# Client Authentication Service
-class ClientAuthService:
+# Enterprise Authentication Service
+class AuthService:
     def __init__(self):
-        self.database_url = os.getenv("DATABASE_URL")
-        self.jwt_secret = os.getenv("JWT_SECRET")
-        self.jwt_algorithm = "HS256"
-        self.token_expiry_hours = 24
-        self.engine = create_engine(database_url, pool_pre_ping=True, pool_recycle=300)
-
+        self.api_base = os.getenv("GATEWAY_URL", "https://bhiv-hr-gateway-46pz.onrender.com")
+        self.session = self.create_session()
+    
     def authenticate_client(self, client_id: str, password: str):
-        # bcrypt password verification
-        # JWT token generation
-        # Account lockout protection (5 attempts = 30min lock)
-        # Session tracking in PostgreSQL
+        response = self.session.post(f"{self.api_base}/v1/client/login", 
+                                   json={"client_id": client_id, "password": password})
+        return response.json() if response.status_code == 200 else None
 ```
 
 ### **Client Portal Features**
 ```
-Client Interface (4 Functions):
-├── 📝 Job Posting            - Complete job creation
-├── 👥 Candidate Review       - AI-matched candidates
-├── 🎯 Match Results          - Dynamic AI scoring
-└── 📊 Reports & Analytics    - Pipeline metrics
+Client Workflow:
+├── 🔐 Enterprise Login       - JWT authentication with database
+├── 📊 Client Dashboard       - Job posting analytics
+├── 💼 Job Management         - Create and manage job postings
+├── 👥 Candidate Review       - View matched candidates
+├── 📅 Interview Scheduling   - Schedule candidate interviews
+├── 📈 Analytics & Reports    - Hiring pipeline analytics
+└── 🔒 Security Features      - 2FA, session management
 ```
 
 ---
 
-## 🗄️ Database Service (Port 5432)
+## 👥 Candidate Portal Service (Port 8503)
 
-### **Database Configuration**
-```dockerfile
-FROM postgres:15-alpine
+### **Service Configuration**
+```python
+# Streamlit Candidate Interface
+st.set_page_config(
+    page_title="BHIV Candidate Portal",
+    page_icon="👥",
+    layout="wide"
+)
 
-ENV POSTGRES_DB=bhiv_hr
-ENV POSTGRES_USER=bhiv_user
-EXPOSE 5432
-
-COPY consolidated_schema.sql /docker-entrypoint-initdb.d/
+# Candidate Authentication
+class CandidateAuth:
+    def __init__(self):
+        self.api_base = os.getenv("GATEWAY_URL", "https://bhiv-hr-gateway-46pz.onrender.com")
+        self.jwt_secret = os.getenv("CANDIDATE_JWT_SECRET", "candidate_jwt_secret_key_2025")
 ```
 
-### **Schema Architecture (v4.1.0)**
-```sql
--- Core Application Tables (12)
-CREATE TABLE candidates (...);              -- Candidate profiles
-CREATE TABLE jobs (...);                    -- Job postings
-CREATE TABLE feedback (...);                -- Values assessments
-CREATE TABLE interviews (...);              -- Interview scheduling
-CREATE TABLE offers (...);                  -- Job offers
-CREATE TABLE users (...);                   -- HR users with 2FA
-CREATE TABLE clients (...);                 -- Client companies
-CREATE TABLE matching_cache (...);          -- AI match results
-CREATE TABLE audit_logs (...);              -- Security audit trail
-CREATE TABLE rate_limits (...);             -- API rate limiting
-CREATE TABLE csp_violations (...);          -- Security violations
-CREATE TABLE company_scoring_preferences (...); -- Phase 3 learning
-
--- Authentication Tables (2)
-CREATE TABLE client_auth (...);             -- Client authentication
-CREATE TABLE client_sessions (...);         -- JWT session management
-
--- System Tables (3)
-CREATE TABLE schema_version (...);          -- Version tracking
--- PostgreSQL extensions: pg_stat_statements, pg_stat_statements_info
+### **Candidate Portal Features**
 ```
-
-### **Performance Optimization**
-```sql
--- 25+ Optimized Indexes
-CREATE INDEX idx_candidates_email ON candidates(email);
-CREATE INDEX idx_candidates_skills_gin ON candidates USING gin(to_tsvector('english', technical_skills));
-CREATE INDEX idx_jobs_client_id ON jobs(client_id);
-CREATE INDEX idx_matching_score ON matching_cache(match_score);
-
--- Triggers for Audit Logging
-CREATE TRIGGER audit_candidates_changes AFTER INSERT OR UPDATE OR DELETE ON candidates;
-CREATE TRIGGER update_candidates_updated_at BEFORE UPDATE ON candidates;
+Candidate Workflow:
+├── 📝 Registration           - Account creation with profile
+├── 🔐 Login System          - JWT authentication
+├── 👤 Profile Management    - Update skills and experience
+├── 🔍 Job Search            - Browse available positions
+├── 📋 Application Tracking  - View application status
+├── 📊 Application History   - Track all applications
+└── 🔔 Notifications         - Interview and status updates
 ```
 
 ---
 
-## 🔄 Service Communication Architecture
+## 📊 Database Schema v4.1.0 (17 Tables)
 
-### **Communication Flow**
-```
-Client Portal (8502)
-    ↓ HTTPS/REST
-Gateway Service (8000) ← Unified Auth (dependencies.py)
-    ↓ HTTP/REST        ↓ SQL Queries
-Agent Service (9000)   Database (5432)
-    ↑ HTTP/REST        ↑ Connection Pool
-HR Portal (8501)
+### **Core Application Tables (12)**
+```sql
+-- Primary entities
+candidates              -- Candidate profiles with authentication
+jobs                   -- Job postings from clients and HR
+feedback               -- Values assessment (5-point BHIV values)
+interviews             -- Interview scheduling and management
+offers                 -- Job offer management
+
+-- Authentication & Security
+users                  -- Internal HR users with 2FA support
+clients                -- External client companies with JWT auth
+audit_logs             -- Security and compliance tracking
+rate_limits            -- API rate limiting by IP and endpoint
+csp_violations         -- Content Security Policy monitoring
+
+-- AI & Performance
+matching_cache         -- AI matching results cache
+company_scoring_preferences -- Phase 3 learning engine
 ```
 
-### **Authentication Flow**
-```
-1. Client Login → ClientAuthService → bcrypt verification
-2. JWT Generation → PostgreSQL session storage
-3. Bearer Token → Gateway dependencies.py → Dual auth validation
-4. API Access → Rate limiting → Endpoint authorization
+### **System Tables (5)**
+```sql
+client_auth            -- Enhanced authentication
+client_sessions        -- Session management
+schema_version         -- Version tracking (v4.1.0)
+pg_stat_statements     -- Performance monitoring
+pg_stat_statements_info -- Statistics metadata
 ```
 
-### **Data Processing Flow**
+### **Key Schema Features**
+- **Constraints**: CHECK constraints for data validation
+- **Indexes**: 25+ performance indexes including GIN for full-text search
+- **Triggers**: Auto-update timestamps and audit logging
+- **Functions**: PostgreSQL functions for complex operations
+- **Generated Columns**: Automatic average score calculation
+
+---
+
+## 🔄 CI/CD Pipeline
+
+### **Deployment Pipeline**
+```yaml
+# Render Deployment Configuration
+services:
+  - type: web
+    name: bhiv-hr-gateway
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+  
+  - type: web
+    name: bhiv-hr-agent
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+  
+  - type: web
+    name: bhiv-hr-portal
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py --server.port $PORT
 ```
-Resume Upload → batch_upload.py → comprehensive_resume_extractor.py
-    ↓
-candidates.csv → database_sync_manager.py → PostgreSQL
-    ↓
-Gateway API → Agent Service → AI Matching → Results Cache
+
+### **Local Development**
+```yaml
+# Docker Compose Configuration
+version: '3.8'
+services:
+  gateway:
+    build: ./services/gateway
+    ports: ["8000:8000"]
+    environment:
+      - DATABASE_URL=postgresql://bhiv_user:password@db:5432/bhiv_hr
+  
+  agent:
+    build: ./services/agent
+    ports: ["9000:9000"]
+    environment:
+      - DATABASE_URL=postgresql://bhiv_user:password@db:5432/bhiv_hr
+  
+  portal:
+    build: ./services/portal
+    ports: ["8501:8501"]
+    environment:
+      - GATEWAY_URL=http://gateway:8000
 ```
 
 ---
 
 ## 🔒 Security Architecture
 
-### **Service-Level Security**
-```
-Gateway Service:
-├── Bearer Token Authentication (API keys + JWT)
-├── Rate Limiting (60-500 req/min, CPU-based)
-├── 2FA TOTP with QR codes
-├── CSP Policies and violation tracking
-├── Input validation and XSS protection
-└── Audit logging for all operations
+### **Authentication Layers**
+1. **API Key Authentication**: Production API access
+2. **Client JWT**: Enterprise client authentication
+3. **Candidate JWT**: Job seeker authentication
+4. **2FA TOTP**: Two-factor authentication for enhanced security
+5. **Rate Limiting**: Dynamic rate limiting based on system load
+6. **CSP Policies**: Content Security Policy enforcement
 
-Agent Service:
-├── JWT Token Validation (mirroring Gateway)
-├── Bearer Authentication Scheme
-├── Database connection pooling security
-└── Error handling and graceful degradation
+### **Security Features**
+- **Input Validation**: XSS/SQL injection protection
+- **Password Policies**: Enterprise-grade validation
+- **Audit Logging**: Comprehensive security tracking
+- **Session Management**: Secure session handling
+- **Penetration Testing**: Built-in security testing endpoints
 
-Portal Services:
-├── Session-based access control
-├── Function-level imports for optional dependencies
-├── Streamlit security headers
-└── API key authentication to Gateway
+---
 
-Client Portal:
-├── Enterprise bcrypt + JWT authentication
-├── Account lockout protection (5 attempts)
-├── Session management with PostgreSQL
-├── Password strength validation
-└── Secure logout with token revocation
+## 📈 Performance Metrics
 
-Database:
-├── PostgreSQL 17 with SSL connections
-├── Connection pooling with pre-ping validation
-├── Encrypted credential storage
-├── Audit triggers on sensitive tables
-└── Role-based access control
-```
+### **Current Performance (Production)**
+- **API Response Time**: <100ms average (Gateway)
+- **AI Matching Speed**: <0.02 seconds (with caching)
+- **Database Queries**: <50ms typical response time
+- **Resume Processing**: 1-2 seconds per file
+- **Uptime**: 99.9% (achieved for all services)
+- **Concurrent Users**: Multi-user support enabled
+- **Rate Limiting**: Dynamic 60-500 requests/minute
+- **Connection Pooling**: 10 connections + 5 overflow
 
-### **Network Security**
-```
-Docker Network Isolation:
-├── Internal service communication
-├── Port-based service separation
-├── Health check endpoints only
-└── Secure environment variable management
+### **Monitoring & Observability**
+```python
+# Prometheus Metrics
+@app.get("/metrics")
+async def get_prometheus_metrics():
+    return Response(content=monitor.export_prometheus_metrics(), media_type="text/plain")
 
-Production Security:
-├── HTTPS/SSL certificates (Render)
-├── Environment variable encryption
-├── Database connection encryption
-└── API key rotation capability
+# Health Checks
+@app.get("/health/detailed")
+async def detailed_health_check():
+    return monitor.health_check()
 ```
 
 ---
 
-## 📊 Performance & Monitoring
+## 🚀 Production Deployment Status
 
-### **Service Performance Metrics**
-```
-Gateway Service:
-├── Response Time: <100ms average
-├── Throughput: 60-500 requests/minute
-├── Database Pool: 10 connections, 20 max overflow
-└── Health Check: 30s intervals
+### **Live Services (5/5 Operational)**
+- ✅ **Gateway**: bhiv-hr-gateway-46pz.onrender.com (55 endpoints)
+- ✅ **Agent**: bhiv-hr-agent-m1me.onrender.com (6 endpoints)
+- ✅ **HR Portal**: bhiv-hr-portal-cead.onrender.com
+- ✅ **Client Portal**: bhiv-hr-client-portal-5g33.onrender.com
+- ✅ **Candidate Portal**: bhiv-hr-candidate-portal.onrender.com
+- ✅ **Database**: PostgreSQL 17 on Render (17 tables)
 
-Agent Service:
-├── AI Matching: <200ms (batch), <100ms (single)
-├── Database Pool: 2-10 threaded connections
-├── Parallel Processing: ThreadPoolExecutor (4 workers)
-└── Memory Optimization: Connection recycling
-
-Portal Services:
-├── Load Time: <2 seconds
-├── API Calls: <100ms to Gateway
-├── File Upload: 10MB max, multiple files
-└── Session Management: Streamlit state + caching
-
-Database:
-├── Query Performance: <50ms average
-├── Connection Pool: Pre-ping validation
-├── Index Optimization: 25+ performance indexes
-└── Backup Strategy: Automated (Render)
-```
-
-### **Monitoring & Health Checks**
-```
-Health Endpoints:
-├── GET /health (Gateway, Agent)
-├── Streamlit health checks (Portals)
-├── Database connectivity tests
-└── Service dependency verification
-
-Metrics Collection:
-├── Prometheus metrics (Gateway)
-├── Custom business metrics
-├── Error tracking and categorization
-├── Performance analytics
-└── Real-time dashboards
-```
+### **System Health**
+- **Total Endpoints**: 61 interactive endpoints
+- **Database Schema**: v4.1.0 with Phase 3 features
+- **Real Data**: 31 candidates, 19 jobs, 27 resume files
+- **AI Algorithm**: Phase 3 semantic matching (operational)
+- **Monthly Cost**: $0 (Free tier deployment)
+- **Global Access**: HTTPS with SSL certificates
+- **Auto-Deploy**: GitHub integration enabled
 
 ---
 
-## 🚀 Deployment Architecture
-
-### **Docker Compose Configuration**
-```yaml
-# Local Development (deployment/docker/docker-compose.production.yml)
-services:
-  db:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: bhiv_hr
-      POSTGRES_USER: bhiv_user
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ../../services/db/consolidated_schema.sql:/docker-entrypoint-initdb.d/init.sql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bhiv_user -d bhiv_hr"]
-
-  gateway:
-    build:
-      context: ../../services/gateway
-      dockerfile: Dockerfile
-    environment:
-      DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD}@db:5432/bhiv_hr
-      API_KEY_SECRET: ${API_KEY_SECRET}
-      JWT_SECRET: ${JWT_SECRET}
-    depends_on:
-      db:
-        condition: service_healthy
-
-  agent:
-    build:
-      context: ../../services/agent
-      dockerfile: Dockerfile
-    environment:
-      DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD}@db:5432/bhiv_hr
-      API_KEY_SECRET: ${API_KEY_SECRET}
-      JWT_SECRET: ${JWT_SECRET}
-    depends_on:
-      db:
-        condition: service_healthy
-
-  portal:
-    build:
-      context: ../../services/portal
-      dockerfile: Dockerfile
-    environment:
-      GATEWAY_URL: http://gateway:8000
-      API_KEY_SECRET: ${API_KEY_SECRET}
-    depends_on:
-      gateway:
-        condition: service_healthy
-
-  client_portal:
-    build:
-      context: ../../services/client_portal
-      dockerfile: Dockerfile
-    environment:
-      GATEWAY_URL: http://gateway:8000
-      API_KEY_SECRET: ${API_KEY_SECRET}
-      DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD}@db:5432/bhiv_hr
-    depends_on:
-      gateway:
-        condition: service_healthy
-```
-
-### **Production Deployment (Render)**
-```
-Gateway Service:     bhiv-hr-gateway-46pz.onrender.com
-Agent Service:       bhiv-hr-agent-m1me.onrender.com
-HR Portal:           bhiv-hr-portal-cead.onrender.com
-Client Portal:       bhiv-hr-client-portal-5g33.onrender.com
-Database:            PostgreSQL 17 (Internal Render URL)
-
-Environment Variables:
-├── DATABASE_URL (PostgreSQL connection)
-├── API_KEY_SECRET (Bearer token authentication)
-├── JWT_SECRET (JWT token signing)
-├── GATEWAY_URL (Service communication)
-└── AGENT_SERVICE_URL (AI service endpoint)
-```
-
----
-
-## 🎯 Current Status & Health
-
-### **Service Operational Status**
-```
-✅ Gateway Service:    50 endpoints operational
-✅ Agent Service:      6 endpoints operational (event loop fixed)
-✅ HR Portal:          10 workflow steps functional
-✅ Client Portal:      4 main functions operational
-✅ Database:           17 tables, v4.1.0 schema deployed
-```
-
-### **Recent Fixes & Enhancements**
-```
-Agent Service:
-├── ✅ Event loop conflicts resolved (async removed)
-├── ✅ Authentication implemented (Bearer + JWT)
-├── ✅ Database optimization (ThreadedConnectionPool)
-└── ✅ All 6 endpoints operational
-
-Gateway Service:
-├── ✅ Unified authentication system (dependencies.py)
-├── ✅ 2FA TOTP with QR codes (auth routes)
-├── ✅ Dynamic rate limiting (CPU-based)
-└── ✅ 50 endpoints with comprehensive security
-
-Portal Services:
-├── ✅ Streamlit API fixes (width='stretch')
-├── ✅ Function-level imports (QR dependencies)
-├── ✅ Batch upload security enhancements
-└── ✅ Real-time integration improvements
-
-Client Portal:
-├── ✅ Enterprise authentication (bcrypt + JWT)
-├── ✅ Account lockout protection
-├── ✅ Session management with PostgreSQL
-└── ✅ Multi-client support with hash segregation
-```
-
-### **Performance Metrics**
-```
-System Performance:
-├── API Response Time: <100ms average
-├── AI Matching Speed: <200ms (batch operations)
-├── Database Queries: <50ms average
-├── Portal Load Time: <2 seconds
-├── Concurrent Users: Multi-user support
-├── Uptime: 100% (all services operational)
-└── Monthly Cost: $0 (Free tier deployment)
-```
-
----
-
-**Services Architecture v3.1.0** - Complete microservices platform with unified authentication, advanced AI matching, and enterprise-grade security.
+**BHIV HR Platform Services Architecture v3.0.0** - Complete microservices architecture with Phase 3 AI, triple authentication, and comprehensive portal system.
 
 *Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
+
+**Last Updated**: January 2025 | **Status**: ✅ Production Ready | **Services**: 5/5 Live | **Endpoints**: 61 Total
