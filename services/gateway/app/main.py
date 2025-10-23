@@ -1109,7 +1109,7 @@ async def client_login(login_data: ClientLogin):
                 return {"success": False, "error": "Invalid credentials"}
             
             # Check if account is locked
-            if client[5] and client[5] > datetime.now(timezone.utc):
+            if client[5] and client[5] > datetime.utcnow():
                 return {"success": False, "error": "Account temporarily locked"}
             
             # Check if account is active
@@ -1123,7 +1123,7 @@ async def client_login(login_data: ClientLogin):
                     new_attempts = (client[4] or 0) + 1
                     locked_until = None
                     if new_attempts >= 5:
-                        locked_until = datetime.now(timezone.utc) + timedelta(minutes=30)
+                        locked_until = datetime.utcnow() + timedelta(minutes=30)
                     
                     with engine.begin() as conn:
                         conn.execute(text("""

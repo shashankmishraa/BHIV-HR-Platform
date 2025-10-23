@@ -6,7 +6,7 @@ Secure, scalable authentication with JWT tokens and bcrypt hashing
 import bcrypt
 import jwt
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import IntegrityError
@@ -117,11 +117,12 @@ class ClientAuthService:
     
     def _generate_jwt_token(self, client_id: str, company_name: str) -> str:
         """Generate JWT token for authenticated client"""
+        now = datetime.utcnow()
         payload = {
             'client_id': client_id,
             'company_name': company_name,
-            'exp': datetime.utcnow() + timedelta(hours=self.token_expiry_hours),
-            'iat': datetime.utcnow(),
+            'exp': now + timedelta(hours=self.token_expiry_hours),
+            'iat': now,
             'iss': 'bhiv_hr_platform'
         }
         return jwt.encode(payload, self.jwt_secret, algorithm=self.jwt_algorithm)

@@ -1,0 +1,49 @@
+{
+  "timestamp": "2025-10-23 16:17:19",
+  "portals_tested": 3,
+  "total_tests": 18,
+  "passed_tests": 0,
+  "portal_results": {
+    "HR Portal": {
+      "score": "0/6",
+      "percentage": "0.0%",
+      "tests": {
+        "bhiv_values": false,
+        "unique_content": false,
+        "streamlit_components": false,
+        "dynamic_content": false,
+        "visual_branding": false,
+        "functional_workflows": false
+      }
+    },
+    "Client Portal": {
+      "score": "0/6",
+      "percentage": "0.0%",
+      "tests": {
+        "bhiv_values": false,
+        "unique_content": false,
+        "streamlit_components": false,
+        "dynamic_content": false,
+        "visual_branding": false,
+        "functional_workflows": false
+      }
+    },
+    "Candidate Portal": {
+      "score": "0/6",
+      "percentage": "0.0%",
+      "tests": {
+        "bhiv_values": false,
+        "unique_content": false,
+        "streamlit_components": false,
+        "dynamic_content": false,
+        "visual_branding": false,
+        "functional_workflows": false
+      }
+    }
+  },
+  "summary": {
+    "overall_score": "0/18",
+    "overall_percentage": "0.0%",
+    "status": "NEEDS_IMPROVEMENT"
+  }
+}

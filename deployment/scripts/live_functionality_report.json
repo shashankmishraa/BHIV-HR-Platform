@@ -1,0 +1,36 @@
+{
+  "timestamp": "2025-10-23 16:23:48",
+  "portal_accessibility": {
+    "HR Portal": false,
+    "Client Portal": true,
+    "Candidate Portal": true
+  },
+  "backend_data": {
+    "candidates": 12,
+    "jobs": 21,
+    "interviews": 7,
+    "schema": "v4.1.0 (16 tables)",
+    "stats": "available"
+  },
+  "portal_functionality": {
+    "HR Portal": [
+      "Job Creation",
+      "Candidate Search"
+    ],
+    "Client Portal": [
+      "Client Authentication",
+      "Offer Management"
+    ],
+    "Candidate Portal": [
+      "Job Application"
+    ]
+  },
+  "bhiv_values_integration": true,
+  "summary": {
+    "accessible_portals": "2/3",
+    "backend_data_sources": 5,
+    "total_functions_tested": 5,
+    "bhiv_values_working": true,
+    "overall_status": "PARTIAL"
+  }
+}

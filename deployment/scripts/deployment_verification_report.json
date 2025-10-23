@@ -1,0 +1,35 @@
+{
+  "timestamp": "2025-10-23T15:54:19.384253",
+  "database_status": "Connected",
+  "services_status": {
+    "Gateway": {
+      "status": "OK",
+      "response_time": 0.575329
+    },
+    "Agent": {
+      "status": "Error: HTTPSConnectionPool(host='bhiv-hr-agent-m1me.onrender.com', port=443): Read timed out. (read timeout=10)",
+      "response_time": null
+    },
+    "HR Portal": {
+      "status": "OK",
+      "response_time": 0.547765
+    },
+    "Client Portal": {
+      "status": "OK",
+      "response_time": 0.614469
+    },
+    "Candidate Portal": {
+      "status": "OK",
+      "response_time": 1.096812
+    }
+  },
+  "database_metrics": {
+    "total_tables": 15,
+    "candidates": 11,
+    "jobs": 20,
+    "clients": 3
+  },
+  "issues_found": [
+    "Agent not accessible: HTTPSConnectionPool(host='bhiv-hr-agent-m1me.onrender.com', port=443): Read timed out. (read timeout=10)"
+  ]
+}
