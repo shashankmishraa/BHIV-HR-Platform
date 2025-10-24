@@ -140,6 +140,24 @@ local_settings.py
 *.backup
 *.old
 
+# Security - Never commit credentials
+**/RENDER_ENVIRONMENT_VARIABLES.md
+**/*credentials*
+**/*secrets*
+**/*password*
+**/config/*production*
+**/.env.render
+**/production.env
+
+# Temporary documentation files
+temp_reports/
+**/comprehensive_portal_exploration_*.md
+**/configuration_validation_report.md
+**/database_url_verification_report.md
+**/security_audit_report.md
+**/security_configuration_report.md
+**/*_FIX_SUMMARY.md
+
 # Analysis and report files (keep in repo for now)
 # codebase_analysis_report.json
 # documentation_update_report.json

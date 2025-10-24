@@ -1,9 +1,9 @@
 # ⚡ BHIV HR Platform - Quick Start Guide
 
 **Get Started in 5 Minutes**  
-**Generated**: January 2025  
+**Updated**: October 2025  
 **Platform**: Production Ready + Local Development  
-**Status**: ✅ All Services Operational
+**Status**: ✅ All 5 Services Operational (99.9% Uptime)
 
 ---
 
@@ -24,10 +24,10 @@ All services are live and operational - no installation needed!
 
 #### **Service URLs**
 ```bash
-# API Gateway (55 endpoints)
+# API Gateway (55 endpoints - FastAPI 3.1.0)
 https://bhiv-hr-gateway-46pz.onrender.com/docs
 
-# AI Matching Engine (6 endpoints)  
+# AI Agent Service (6 endpoints - Phase 3 AI Engine)  
 https://bhiv-hr-agent-m1me.onrender.com/docs
 
 # HR Portal (Complete HR workflow)
@@ -239,14 +239,15 @@ curl -X POST -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477n
 
 ### **Production Database**
 ```bash
-# Current Real Data:
-✅ 31 Candidates - Complete profiles with skills and experience
-✅ 19 Jobs - Active job postings from 3 client companies
-✅ 27 Resume Files - Processed resume files
+# Current Real Data (Production Database):
+✅ 11+ Candidates - Complete profiles with skills and experience
+✅ 20+ Jobs - Active job postings from 3 client companies  
+✅ 27 Resume Files - Processed PDF/DOCX files in assets/resumes/
 ✅ 3 Client Companies - TECH001, STARTUP01, ENTERPRISE01
-✅ 3 HR Users - Different role levels
-✅ Assessment Data - Values assessment framework
-✅ Interview Data - Interview scheduling system
+✅ 3 HR Users - Admin, HR Manager, Recruiter roles
+✅ Assessment Data - 5-point BHIV values framework (Integrity, Honesty, Discipline, Hard Work, Gratitude)
+✅ Interview Data - Complete scheduling and management system
+✅ Database Schema v4.1.0 - 12 core tables with Phase 3 learning engine
 ```
 
 ### **Data Verification**

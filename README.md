@@ -76,34 +76,34 @@ docker-compose -f deployment/docker/docker-compose.production.yml up -d
 ### **Microservices Architecture**
 | Service | Purpose | Technology | Port | Status | Production URL |
 |---------|---------|------------|------|--------|----------------|
-| **API Gateway** | REST API Backend | FastAPI 0.115.6 + Python 3.12.7-slim | 8000 | ✅ Live | bhiv-hr-gateway-46pz.onrender.com |
-| **AI Agent** | Candidate Matching | FastAPI 0.115.6 + Python 3.12.7-slim | 9000 | ✅ Live | bhiv-hr-agent-m1me.onrender.com |
+| **API Gateway** | REST API Backend | FastAPI 3.1.0 + Python 3.12.7-slim | 8000 | ✅ Live | bhiv-hr-gateway-46pz.onrender.com |
+| **AI Agent** | Phase 3 AI Matching | FastAPI 3.1.0 + Python 3.12.7-slim | 9000 | ✅ Live | bhiv-hr-agent-m1me.onrender.com |
 | **HR Portal** | HR Dashboard | Streamlit 1.41.1 + Python 3.12.7-slim | 8501 | ✅ Live | bhiv-hr-portal-cead.onrender.com |
-| **Client Portal** | Client Interface | Streamlit 1.41.1 + Python 3.12.7-slim | 8502 | ✅ Live | bhiv-hr-client-portal-5g33.onrender.com |
+| **Client Portal** | Enterprise Interface | Streamlit 1.41.1 + Python 3.12.7-slim | 8502 | ✅ Live | bhiv-hr-client-portal-5g33.onrender.com |
 | **Candidate Portal** | Job Seeker Interface | Streamlit 1.41.1 + Python 3.12.7-slim | 8503 | ✅ Live | bhiv-hr-candidate-portal.onrender.com |
-| **Database** | Data Storage | PostgreSQL 17 | 5432 | ✅ Live | Internal Render URL |
+| **Database** | PostgreSQL 17 | Schema v4.1.0 (12 core tables) | 5432 | ✅ Live | Render PostgreSQL |
 
 ### **API Endpoints (61 Total)**
 ```
-Gateway Service (55 endpoints):
+Gateway Service (55 endpoints - FastAPI 3.1.0):
   Core API (3):           GET /, /health, /test-candidates
-  Monitoring (3):         GET /metrics, /health/detailed, /metrics/dashboard
+  Monitoring (3):         GET /metrics, /health/detailed, /metrics/dashboard  
   Analytics (3):          GET /candidates/stats, GET /v1/database/schema, GET /v1/reports/job/{job_id}/export.csv
   Job Management (2):     GET /v1/jobs, POST /v1/jobs
-  Candidate Mgmt (5):     GET /v1/candidates, GET /v1/candidates/{id}, GET /v1/candidates/search, 
+  Candidate Mgmt (5):     GET /v1/candidates, GET /v1/candidates/{id}, GET /v1/candidates/search,
                           POST /v1/candidates/bulk, GET /v1/candidates/job/{job_id}
   AI Matching (2):        GET /v1/match/{job_id}/top, POST /v1/match/batch
-  Assessment (6):         GET/POST /v1/feedback, GET/POST /v1/interviews, GET/POST /v1/offers
+  Assessment (5):         GET/POST /v1/feedback, GET/POST /v1/interviews, GET/POST /v1/offers
   Security Testing (7):   Rate limiting, input validation, email/phone validation, headers, penetration testing
   CSP Management (4):     Policies, violations, reporting, testing
   2FA Authentication (8): Setup, verify, login, status, disable, backup codes, token testing
   Password Mgmt (6):      Validate, generate, policy, change, strength test, security tips
   Client Portal (1):      POST /v1/client/login
-  Candidate Portal (5):   POST /v1/candidate/register, POST /v1/candidate/login, 
-                          PUT /v1/candidate/profile/{id}, POST /v1/candidate/apply, 
+  Candidate Portal (5):   POST /v1/candidate/register, POST /v1/candidate/login,
+                          PUT /v1/candidate/profile/{id}, POST /v1/candidate/apply,
                           GET /v1/candidate/applications/{id}
 
-Agent Service (6 endpoints):
+Agent Service (6 endpoints - Phase 3 AI Engine):
   Core (2):              GET /, GET /health
   AI Processing (3):     POST /match, POST /batch-match, GET /analyze/{candidate_id}
   Diagnostics (1):       GET /test-db
@@ -124,12 +124,13 @@ Agent Service (6 endpoints):
 - **No Fallbacks**: Production-grade implementation only
 
 ### **🔒 Enterprise Security**
-- **Unified Authentication**: Dual Bearer token + JWT system with `dependencies.py`
-- **Dynamic Rate Limiting**: CPU-based adjustment (60-500 requests/minute)
-- **2FA TOTP**: Complete implementation with QR code generation
-- **Security Headers**: CSP, XSS protection, Frame Options
-- **Input Validation**: XSS/SQL injection protection with testing endpoints
-- **Password Policies**: Enterprise-grade validation with strength testing
+- **Triple Authentication**: API Key + Client JWT + Candidate JWT with timezone-aware tokens
+- **Dynamic Rate Limiting**: CPU-based adjustment (60-500 requests/minute) with granular endpoint limits
+- **2FA TOTP**: Complete implementation with QR code generation and backup codes
+- **Security Headers**: CSP, XSS protection, Frame Options, HSTS
+- **Input Validation**: XSS/SQL injection protection with 7 testing endpoints
+- **Password Policies**: Enterprise-grade validation with strength testing and history
+- **Audit Logging**: Complete security event tracking with IP monitoring
 
 ### **📊 Triple Portal System**
 - **HR Portal**: Dashboard, candidate search, job management, AI matching with Streamlit 1.41.1 fixes
@@ -246,37 +247,37 @@ bhiv-hr-platform/
 └── README.md                   # This file
 ```
 
-### **Database Schema v4.1.0 (15 Core Tables - Optimized)**
+### **Database Schema v4.1.0 (12 Core Tables - Production Optimized)**
 
-#### **Core Application Tables (12)**
+#### **Core Application Tables (8)**
 ```sql
 -- Primary entities
-candidates              -- Candidate profiles with authentication
+candidates              -- Candidate profiles with bcrypt authentication
 jobs                   -- Job postings from clients and HR
-feedback               -- Values assessment (5-point BHIV values)
+feedback               -- Values assessment (5-point BHIV values: Integrity, Honesty, Discipline, Hard Work, Gratitude)
 interviews             -- Interview scheduling and management
 offers                 -- Job offer management
 
 -- Authentication & Security
-users                  -- Internal HR users with 2FA support
-clients                -- External client companies with JWT auth
-audit_logs             -- Security and compliance tracking
-rate_limits            -- API rate limiting by IP and endpoint
-csp_violations         -- Content Security Policy monitoring
-
--- AI & Performance
-matching_cache         -- AI matching results cache
-company_scoring_preferences -- Phase 3 learning engine
+users                  -- Internal HR users with 2FA TOTP support
+clients                -- External client companies with JWT auth and account locking
+audit_logs             -- Security and compliance tracking with IP monitoring
 ```
 
-#### **System Tables (5)**
+#### **Performance & Security Tables (4)**
 ```sql
-client_auth            -- Enhanced authentication
-client_sessions        -- Session management
-schema_version         -- Version tracking (v4.1.0)
-pg_stat_statements     -- Performance monitoring
-pg_stat_statements_info -- Statistics metadata
+rate_limits            -- API rate limiting by IP and endpoint with dynamic adjustment
+csp_violations         -- Content Security Policy monitoring
+matching_cache         -- AI matching results cache with algorithm versioning
+company_scoring_preferences -- Phase 3 learning engine for adaptive scoring
 ```
+
+#### **Key Schema Features**
+- **75+ Performance Indexes**: Including GIN indexes for full-text search
+- **Generated Columns**: Automatic average score calculation in feedback table
+- **Audit Triggers**: Automatic logging of all sensitive table changes
+- **Constraints**: CHECK constraints for data validation and integrity
+- **Extensions**: pg_stat_statements, pg_trgm for performance monitoring
 
 #### **Key Schema Features**
 - **Constraints**: CHECK constraints for data validation
@@ -544,4 +545,4 @@ python tests/test_endpoints.py  # Comprehensive health checks
 
 *Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
 
-**Last Updated**: October 23, 2025 | **Production**: ✅ 5/5 Services Live | **Database**: ✅ 15 Core Tables Optimized | **AI Version**: Phase 3 Advanced (Operational) | **Cost**: $0/month | **Uptime**: 99.9%
+**Last Updated**: October 23, 2025 | **Production**: ✅ 5/5 Services Live | **Database**: ✅ Schema v4.1.0 (12 Core Tables) | **AI Version**: Phase 3 Advanced (Operational) | **Cost**: $0/month | **Uptime**: 99.9%

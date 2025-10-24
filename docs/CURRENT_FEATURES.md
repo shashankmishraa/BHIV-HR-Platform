@@ -1,6 +1,6 @@
 # 🎯 BHIV HR Platform - Current Features & Capabilities
 
-**Generated**: January 2025  
+**Generated**: October 2025  
 **Platform Version**: v3.0.0-Phase3-Production  
 **Status**: ✅ All Features Operational  
 **Services**: 5/5 Live + Database
@@ -22,6 +22,7 @@
 - **Authentication**: API Key + Client JWT + Candidate JWT
 - **Deployment**: Production on Render (99.9% uptime)
 - **Cost**: $0/month (Free tier optimization)
+- **Database**: PostgreSQL 17 with Schema v4.1.0 (12 core tables)
 
 ---
 
@@ -180,8 +181,8 @@ Core Values Assessment:
 #### **Real-time Dashboard**
 ```
 Dashboard Metrics:
-✅ Total Candidates: 31 (real production data)
-✅ Active Jobs: 19 (from 3 client companies)
+✅ Total Candidates: 11+ (real production data)
+✅ Active Jobs: 20+ (from 3 client companies)
 ✅ Interview Pipeline: Complete interview tracking
 ✅ Values Scores: Average values assessment metrics
 ✅ AI Matching: Real-time matching performance
@@ -228,8 +229,8 @@ Export Capabilities:
 #### **PostgreSQL 17 Schema v4.1.0**
 ```sql
 Core Tables (12):
-✅ candidates - 31 candidate profiles with authentication
-✅ jobs - 19 job postings from clients and HR
+✅ candidates - 11+ candidate profiles with authentication
+✅ jobs - 20+ job postings from clients and HR
 ✅ feedback - Values assessment with 5-point scoring
 ✅ interviews - Interview scheduling and management
 ✅ offers - Job offer management and tracking
@@ -240,17 +241,10 @@ Core Tables (12):
 ✅ csp_violations - Content Security Policy monitoring
 ✅ matching_cache - AI matching results cache
 ✅ company_scoring_preferences - Phase 3 learning engine
-
-System Tables (5):
-✅ client_auth - Enhanced authentication
-✅ client_sessions - Session management
-✅ schema_version - Version tracking (v4.1.0)
-✅ pg_stat_statements - Performance monitoring
-✅ pg_stat_statements_info - Statistics metadata
 ```
 
 #### **Database Features**
-- **Performance Indexes**: 25+ indexes including GIN for full-text search
+- **Performance Indexes**: 75+ indexes including GIN for full-text search
 - **Triggers**: Auto-update timestamps and audit logging
 - **Generated Columns**: Automatic average score calculation
 - **Constraints**: CHECK constraints for data validation
@@ -478,8 +472,8 @@ Integration Features:
 ### **Platform Adoption**
 - **Services Deployed**: 5/5 (100% success rate)
 - **Endpoints Operational**: 61/61 (100% availability)
-- **Database Health**: 17/17 tables operational
-- **Real Data Integration**: 31 candidates, 19 jobs, 27 resumes
+- **Database Health**: 12/12 core tables operational
+- **Real Data Integration**: 11+ candidates, 20+ jobs, 27 resumes
 - **Client Adoption**: 3 active client companies
 - **User Engagement**: Multi-user support with session management
 
@@ -525,4 +519,4 @@ Integration Features:
 
 *Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
 
-**Last Updated**: January 2025 | **Features**: 100+ | **Services**: 5/5 Live | **Endpoints**: 61 Total | **Status**: ✅ Production Ready
+**Last Updated**: October 2025 | **Features**: 100+ | **Services**: 5/5 Live | **Endpoints**: 61 Total | **Status**: ✅ Production Ready

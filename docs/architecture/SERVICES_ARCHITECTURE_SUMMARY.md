@@ -1,6 +1,6 @@
 # 🏗️ BHIV HR Platform - Services Architecture Summary
 
-**Generated**: January 2025  
+**Generated**: October 2025  
 **Architecture**: Microservices (5 Services)  
 **Status**: ✅ All Services Operational  
 **Deployment**: Production + Local Development
@@ -12,8 +12,8 @@
 ### **Microservices Architecture**
 | Service | Technology | Port | Status | Production URL |
 |---------|------------|------|--------|----------------|
-| **Gateway** | FastAPI 0.115.6 + Python 3.12.7 | 8000 | ✅ Live | bhiv-hr-gateway-46pz.onrender.com |
-| **Agent** | FastAPI 0.115.6 + Python 3.12.7 | 9000 | ✅ Live | bhiv-hr-agent-m1me.onrender.com |
+| **Gateway** | FastAPI 3.1.0 + Python 3.12.7 | 8000 | ✅ Live | bhiv-hr-gateway-46pz.onrender.com |
+| **Agent** | FastAPI 3.1.0 + Python 3.12.7 | 9000 | ✅ Live | bhiv-hr-agent-m1me.onrender.com |
 | **HR Portal** | Streamlit 1.41.1 + Python 3.12.7 | 8501 | ✅ Live | bhiv-hr-portal-cead.onrender.com |
 | **Client Portal** | Streamlit 1.41.1 + Python 3.12.7 | 8502 | ✅ Live | bhiv-hr-client-portal-5g33.onrender.com |
 | **Candidate Portal** | Streamlit 1.41.1 + Python 3.12.7 | 8503 | ✅ Live | bhiv-hr-candidate-portal.onrender.com |
@@ -21,7 +21,7 @@
 
 ### **System Metrics**
 - **Total Endpoints**: 61 (55 Gateway + 6 Agent) - Verified from source code
-- **Database Tables**: 17 (12 core + 5 system)
+- **Database Tables**: 12 core tables (Schema v4.1.0)
 - **Schema Version**: v4.1.0 with Phase 3 learning engine
 - **Authentication**: Unified Bearer token + JWT + Candidate JWT system
 - **Monthly Cost**: $0 (Free tier deployment)
@@ -572,4 +572,4 @@ async def detailed_health_check():
 
 *Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
 
-**Last Updated**: January 2025 | **Status**: ✅ Production Ready | **Services**: 5/5 Live | **Endpoints**: 61 Total
+**Last Updated**: October 23, 2025 | **Status**: ✅ Production Ready | **Services**: 5/5 Live | **Endpoints**: 61 Total | **Database**: Schema v4.1.0

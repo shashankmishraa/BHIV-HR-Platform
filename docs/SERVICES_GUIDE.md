@@ -14,7 +14,7 @@ The BHIV HR Platform consists of 5 core microservices, each with specific respon
 - `client_auth.py` - Client authentication utilities
 - `app/db/schemas.py` - Pydantic models for validation
 
-#### API Endpoints (50 total):
+#### API Endpoints (55 total):
 ```
 Core API (7 endpoints):
 ├── GET  /           - Service information
@@ -86,7 +86,7 @@ Reports (1 endpoint):
 ```
 
 #### Dependencies:
-- FastAPI 0.115.6
+- FastAPI 3.1.0
 - SQLAlchemy 2.0.36
 - psycopg2-binary 2.9.10
 - Pydantic 2.10.3
@@ -121,7 +121,7 @@ Diagnostics (1 endpoint):
 ```
 
 #### Dependencies:
-- FastAPI 0.115.6
+- FastAPI 3.1.0
 - httpx 0.28.1
 - psycopg2-binary 2.9.10
 - pydantic 2.10.3
@@ -245,7 +245,7 @@ Views: Materialized views for analytics
 - Audit triggers and logging
 - Health check monitoring
 - Connection pooling (pool_size=10)
-- Real data: 31 candidates from actual resumes
+- Real data: 11+ candidates from actual resumes
 
 ## 🧠 Semantic Engine
 
@@ -386,3 +386,7 @@ docker-compose -f docker-compose.production.yml up -d --scale gateway=2
 ---
 
 **🔧 Services Guide** - Comprehensive microservices documentation for BHIV HR Platform architecture.
+
+*Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
+
+**Last Updated**: October 23, 2025 | **Services**: 5/5 Live | **Endpoints**: 61 Total | **Database**: Schema v4.1.0

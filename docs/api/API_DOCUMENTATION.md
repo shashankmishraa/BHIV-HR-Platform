@@ -1,9 +1,9 @@
 # 📚 BHIV HR Platform - Complete API Documentation
 
-**Generated**: January 2025  
+**Updated**: October 2025  
 **API Version**: v3.1.0  
 **Total Endpoints**: 61 (55 Gateway + 6 Agent)  
-**Status**: ✅ All Endpoints Operational
+**Status**: ✅ All Endpoints Operational (99.9% Uptime)
 
 ---
 
@@ -84,7 +84,7 @@ curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr
 ```json
 {
   "database_status": "connected",
-  "total_candidates": 31,
+  "total_candidates": 11,
   "test_timestamp": "2025-01-XX T XX:XX:XX Z"
 }
 ```
@@ -139,8 +139,8 @@ curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr
 **Response:**
 ```json
 {
-  "total_candidates": 31,
-  "active_jobs": 19,
+  "total_candidates": 11,
+  "active_jobs": 20,
   "recent_matches": 25,
   "pending_interviews": 8,
   "statistics_generated_at": "2025-01-XX T XX:XX:XX Z"
@@ -156,8 +156,8 @@ curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr
 ```json
 {
   "schema_version": "4.1.0",
-  "total_tables": 17,
-  "tables": ["candidates", "jobs", "feedback", "interviews", "offers", "users", "clients", "audit_logs", "rate_limits", "csp_violations", "matching_cache", "company_scoring_preferences", "client_auth", "client_sessions", "schema_version", "pg_stat_statements", "pg_stat_statements_info"],
+  "total_tables": 12,
+  "tables": ["candidates", "jobs", "feedback", "interviews", "offers", "users", "clients", "audit_logs", "rate_limits", "csp_violations", "matching_cache", "company_scoring_preferences"],
   "phase3_enabled": true,
   "checked_at": "2025-01-XX T XX:XX:XX Z"
 }
@@ -1060,4 +1060,4 @@ fetch(`${BASE_URL}/v1/match/1/top`, { headers })
 
 *Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
 
-**Last Updated**: January 2025 | **API Version**: v3.1.0 | **Endpoints**: 61 Total | **Status**: ✅ All Operational
+**Last Updated**: October 2025 | **API Version**: v3.1.0 | **Endpoints**: 61 Total | **Status**: ✅ All Operational

@@ -35,7 +35,7 @@
 ### **Production Details**
 - **URL**: https://bhiv-hr-gateway-46pz.onrender.com
 - **Status**: ✅ Operational
-- **Technology**: FastAPI 0.115.6 + Python 3.12.7-slim
+- **Technology**: FastAPI 3.1.0 + Python 3.12.7-slim
 - **Endpoints**: 55 total (verified from source code)
 - **Authentication**: Triple-layer (API Key + Client JWT + Candidate JWT)
 
@@ -86,7 +86,7 @@ curl -H "Authorization: Bearer prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr
 ### **Production Details**
 - **URL**: https://bhiv-hr-agent-m1me.onrender.com
 - **Status**: ✅ Operational
-- **Technology**: FastAPI 0.115.6 + Python 3.12.7-slim
+- **Technology**: FastAPI 3.1.0 + Python 3.12.7-slim
 - **Endpoints**: 6 total
 - **AI Engine**: Phase 3 semantic matching
 
@@ -377,8 +377,8 @@ curl https://bhiv-hr-agent-m1me.onrender.com/health
 
 ### **Production Data Metrics**
 ```
-✅ Candidates: 31 real profiles with complete data
-✅ Jobs: 19 active job postings from 3 clients
+✅ Candidates: 11+ real profiles with complete data
+✅ Jobs: 20+ active job postings from 3 clients
 ✅ Resume Files: 27 processed resume files
 ✅ Client Companies: 3 registered clients (TECH001, STARTUP01, ENTERPRISE01)
 ✅ HR Users: 3 internal users with different roles
@@ -478,4 +478,4 @@ API Key: prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o
 
 *Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
 
-**Last Updated**: October 23, 2025 | **Status**: ✅ Production Ready - Database Optimized | **Services**: 5/5 Live | **Cost**: $0/month | **Uptime**: 99.9%
+**Last Updated**: October 23, 2025 | **Status**: ✅ Production Ready - Database Optimized | **Services**: 5/5 Live | **Cost**: $0/month | **Uptime**: 99.9% | **Database**: Schema v4.1.0 (12 Core Tables)

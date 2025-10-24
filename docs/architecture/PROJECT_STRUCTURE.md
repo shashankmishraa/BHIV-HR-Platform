@@ -1,8 +1,8 @@
 # 📁 BHIV HR Platform - Complete Project Structure
 
-**Generated**: January 2025  
+**Updated**: October 2025  
 **Architecture**: Microservices (5 Services + Database)  
-**Status**: ✅ Production Ready  
+**Status**: ✅ Production Ready (99.9% Uptime)  
 **Deployment**: Live on Render + Local Development
 
 ---
@@ -11,7 +11,7 @@
 
 ### **System Architecture**
 - **Microservices**: 5 independent services
-- **Database**: PostgreSQL 17 with 17 tables
+- **Database**: PostgreSQL 17 with Schema v4.1.0 (12 core tables)
 - **Authentication**: Triple-layer (API Key + Client JWT + Candidate JWT)
 - **AI Engine**: Phase 3 semantic matching
 - **Deployment**: Production on Render + Local Docker
@@ -35,7 +35,7 @@ bhiv-hr-platform/
 │   │   ├── semantic_engine/   # Shared semantic engine
 │   │   ├── dependencies.py    # Triple authentication system
 │   │   ├── Dockerfile         # Container configuration
-│   │   └── requirements.txt   # Dependencies (FastAPI 0.115.6)
+│   │   └── requirements.txt   # Dependencies (FastAPI 3.1.0)
 │   ├── agent/                  # AI Matching Engine Service (Port 9000)
 │   │   ├── app.py             # FastAPI AI service (600+ lines, 6 endpoints)
 │   │   ├── semantic_engine/   # Phase 3 AI engine
@@ -70,7 +70,7 @@ bhiv-hr-platform/
 │   │   ├── __init__.py        # Package initialization
 │   │   └── phase3_engine.py   # Production semantic engine
 │   └── db/                     # Database Schema & Configuration
-│       ├── consolidated_schema.sql # Complete schema v4.1.0 (17 tables)
+│       ├── consolidated_schema.sql # Complete schema v4.1.0 (12 core tables)
 │       ├── Dockerfile         # Database container
 │       └── README.md          # Database documentation
 ├── docs/                       # Complete Documentation Suite
@@ -78,7 +78,7 @@ bhiv-hr-platform/
 │   │   ├── PROJECT_STRUCTURE.md      # This file - complete structure
 │   │   ├── SERVICES_ARCHITECTURE_SUMMARY.md # Services architecture
 │   │   ├── DEPLOYMENT_STATUS.md      # Current deployment status
-│   │   └── PROJECT_ORGANIZATION.md   # Project organization
+│   
 │   ├── api/                   # API documentation
 │   │   └── API_DOCUMENTATION.md      # Complete API reference
 │   ├── database/              # Database documentation
@@ -96,7 +96,7 @@ bhiv-hr-platform/
 │   │   ├── PRODUCTION_READINESS_REPORT.md # Production verification
 │   │   ├── COMPREHENSIVE_CODEBASE_AUDIT_OCTOBER_2025.md # Code audit
 │   │   ├── COMPREHENSIVE_VALIDATION_REPORT.md # Validation report
-│   │   ├── DOCUMENTATION_SYNC_SUMMARY.md # Documentation sync
+
 │   │   └── SCHEMA_COMPARISON_REPORT.md # Database schema analysis
 │   ├── QUICK_START_GUIDE.md   # Get started in 5 minutes
 │   ├── CURRENT_FEATURES.md    # Complete feature list
@@ -136,7 +136,7 @@ bhiv-hr-platform/
 │   ├── .env.render           # Render platform configuration
 │   └── production.env        # Production settings
 ├── data/                       # Production Data
-│   └── candidates.csv        # Candidate data (31 candidates)
+│   └── candidates.csv        # Candidate data (11+ candidates)
 ├── assets/                     # Static Assets
 │   └── resumes/               # Resume files (27 files)
 │       ├── AdarshYadavResume.pdf
@@ -193,7 +193,7 @@ bhiv-hr-platform/
 
 ### **1. Gateway Service (services/gateway/)**
 **Purpose**: Central API gateway with authentication and routing  
-**Technology**: FastAPI 0.115.6 + Python 3.12.7  
+**Technology**: FastAPI 3.1.0 + Python 3.12.7  
 **Port**: 8000  
 **Endpoints**: 55 total
 
@@ -216,7 +216,7 @@ app/monitoring.py       # Prometheus metrics & health monitoring
 
 ### **2. Agent Service (services/agent/)**
 **Purpose**: AI-powered semantic candidate matching  
-**Technology**: FastAPI 0.115.6 + Python 3.12.7  
+**Technology**: FastAPI 3.1.0 + Python 3.12.7  
 **Port**: 9000  
 **Endpoints**: 6 total
 
@@ -427,8 +427,8 @@ deployment/scripts/unified-deploy.sh   # Unified deployment
 
 ### **System Metrics**
 - **Total Endpoints**: 61 (55 Gateway + 6 Agent)
-- **Database Tables**: 17 (PostgreSQL 17)
-- **Real Data**: 31 candidates, 19 jobs, 27 resume files
+- **Database Tables**: 12 core tables (PostgreSQL 17, Schema v4.1.0)
+- **Real Data**: 11+ candidates, 20+ jobs, 27 resume files
 - **Monthly Cost**: $0 (Free tier deployment)
 - **Uptime**: 99.9% (all services operational)
 
@@ -510,4 +510,4 @@ curl http://localhost:8000/health/detailed
 
 *Built with Integrity, Honesty, Discipline, Hard Work & Gratitude*
 
-**Last Updated**: January 2025 | **Status**: ✅ Production Ready | **Services**: 5/5 Live | **Files**: 100+ | **Lines of Code**: 10,000+
+**Last Updated**: October 2025 | **Status**: ✅ Production Ready (99.9% Uptime) | **Services**: 5/5 Live | **Database**: Schema v4.1.0 | **Timezone Fix**: Completed

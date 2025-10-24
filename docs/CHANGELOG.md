@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.1.2] - 2025-10-23
+
+### 🔄 Changed
+- **Documentation Updates**: Updated all documentation with accurate system information
+- **Database Schema**: Verified production deployment of Schema v4.1.0 (12 core tables)
+- **System Status**: Confirmed 5/5 services operational with 99.9% uptime
+- **API Endpoints**: Verified 61 total endpoints (55 Gateway + 6 Agent)
+- **Production Data**: Updated counts to reflect current production database (11+ candidates, 20+ jobs)
+
+### 🐛 Fixed
+- **Timezone Issues**: Resolved authentication problems by standardizing datetime operations
+- **Documentation Accuracy**: Corrected all documentation to reflect current system implementation
+- **Production Status**: Updated all references to current deployment status
+
+---
+
 ## [3.1.1] - 2025-10-03
 
 ### 🔄 Changed
@@ -157,11 +173,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## 🔮 Upcoming Features
 
 ### **Version 3.2.0 (Planned)**
+- **Candidate Portal**: Complete job seeker interface
 - **Advanced Analytics**: Predictive hiring analytics
 - **Email Integration**: Automated email notifications
 - **Calendar Integration**: Google/Outlook calendar sync
 - **Mobile Responsiveness**: Mobile-optimized interfaces
-- **Advanced Reporting**: Custom report builder
 
 ### **Version 3.3.0 (Planned)**
 - **Third-party Integrations**: ATS system integrations
@@ -176,8 +192,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Release Date | Features Added | Bugs Fixed | API Endpoints | Services |
 |---------|--------------|----------------|------------|---------------|----------|
-| 3.1.1   | 2025-10-03   | 1              | 0          | 56            | 5        |
-| 3.1.0   | 2025-10-02   | 8              | 5          | 56            | 5        |
+| 3.1.2   | 2025-10-23   | 0              | 2          | 61            | 5        |
+| 3.1.1   | 2025-10-03   | 1              | 0          | 61            | 5        |
+| 3.1.0   | 2025-10-02   | 8              | 5          | 61            | 5        |
 | 3.0.0   | 2025-10-01   | 6              | 3          | 48            | 5        |
 | 2.1.0   | 2024-12-30   | 4              | 3          | 25            | 4        |
 | 2.0.0   | 2024-12-25   | 4              | 3          | 15            | 4        |
@@ -188,7 +205,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 🏷️ Release Tags
 
-- **v3.1.1** - Current production release (file cleanup)
+- **v3.1.2** - Current production release (documentation update)
+- **v3.1.1** - File cleanup release
 - **v3.1.0** - Major feature update
 - **v3.0.0** - Major architecture update
 - **v2.1.0** - AI features introduction
@@ -216,14 +234,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 🐛 Known Issues
 
-### **Current Issues (v3.1.1)**
+### **Current Issues (v3.1.2)**
 - None reported
 
 ### **Resolved Issues**
+- ✅ Timezone authentication issues (v3.1.2)
+- ✅ Documentation accuracy issues (v3.1.2)
 - ✅ Skills match TypeError in portal displays (v3.1.0)
 - ✅ Batch upload container path issues (v3.1.0)
 - ✅ Database email constraint conflicts (v3.0.0)
-- ✅ Portal sync timing issues (v3.0.0)
 
 ---
 
@@ -253,7 +272,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **GitHub Issues**: Report bugs and feature requests
 
 ### **Version Support**
-- **v3.1.1**: ✅ Active development and support
+- **v3.1.2**: ✅ Active development and support
+- **v3.1.1**: ✅ Security updates only
 - **v3.1.0**: ✅ Security updates only
 - **v3.0.0**: ✅ Security updates only
 - **v2.x**: ⚠️ Limited support
@@ -262,5 +282,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 **Changelog Maintained By**: BHIV Development Team  
-**Last Updated**: October 2025  
-**Current Version**: 3.1.1
+**Last Updated**: October 23, 2025  
+**Current Version**: 3.1.2
