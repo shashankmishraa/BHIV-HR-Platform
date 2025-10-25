@@ -69,6 +69,14 @@ def auth_dependency(credentials: HTTPAuthorizationCredentials = Security(securit
     except:
         pass
     
+    # Try candidate JWT token
+    try:
+        candidate_jwt_secret = os.getenv("CANDIDATE_JWT_SECRET", "candidate_jwt_secret_key_2025")
+        payload = jwt.decode(credentials.credentials, candidate_jwt_secret, algorithms=["HS256"])
+        return {"type": "candidate_token", "candidate_id": payload.get("candidate_id")}
+    except:
+        pass
+    
     raise HTTPException(status_code=401, detail="Invalid authentication")
 
 app = FastAPI(

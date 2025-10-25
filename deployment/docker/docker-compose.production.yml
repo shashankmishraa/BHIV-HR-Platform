@@ -45,6 +45,8 @@ services:
       DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD:-bhiv_local_password_2025}@db:5432/bhiv_hr
       API_KEY_SECRET: ${API_KEY_SECRET:-prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o}
       JWT_SECRET: ${JWT_SECRET:-prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA}
+      AGENT_SERVICE_URL: http://agent:9000
+      CANDIDATE_JWT_SECRET: ${CANDIDATE_JWT_SECRET:-candidate_jwt_secret_key_2025}
     volumes:
       - ../../services/gateway/logs:/app/logs
     depends_on:
@@ -69,6 +71,7 @@ services:
       DATABASE_URL: postgresql://bhiv_user:${DB_PASSWORD:-bhiv_local_password_2025}@db:5432/bhiv_hr
       API_KEY_SECRET: ${API_KEY_SECRET:-prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o}
       JWT_SECRET: ${JWT_SECRET:-prod_jwt_Ova9A8L-OU4uIcAero0v3ZLQRckNr3xBDuO0OXF6uwA}
+      CANDIDATE_JWT_SECRET: ${CANDIDATE_JWT_SECRET:-candidate_jwt_secret_key_2025}
     depends_on:
       db:
         condition: service_healthy

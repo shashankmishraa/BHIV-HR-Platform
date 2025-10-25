@@ -2,3 +2,32 @@
 2025-10-11 11:25:44,132 - httpx - INFO - HTTP Request: POST https://bhiv-hr-agent-m1me.onrender.com/match "HTTP/1.1 200 OK"
 2025-10-11 11:34:49,880 - httpx - INFO - HTTP Request: POST https://bhiv-hr-agent-m1me.onrender.com/match "HTTP/1.1 200 OK"
 2025-10-11 11:35:23,597 - httpx - INFO - HTTP Request: POST https://bhiv-hr-agent-m1me.onrender.com/match "HTTP/1.1 200 OK"
+2025-10-25 08:57:39,069 - app.monitoring - ERROR - Error logged: agent_service_error in  - {'job_id': 1}
+2025-10-25 08:59:26,987 - app.monitoring - ERROR - Error logged: agent_service_error in  - {'job_id': 1}
+2025-10-25 09:00:31,851 - httpx - INFO - HTTP Request: POST https://bhiv-hr-agent-m1me.onrender.com/batch-match "HTTP/1.1 403 Forbidden"
+2025-10-25 09:00:31,853 - app.monitoring - ERROR - Error logged: batch_matching_error in 403: Agent service error - {'job_ids': [1, 2]}
+2025-10-25 09:02:05,455 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 403 Forbidden"
+2025-10-25 09:02:16,511 - httpx - INFO - HTTP Request: POST http://agent:9000/batch-match "HTTP/1.1 403 Forbidden"
+2025-10-25 09:02:16,512 - app.monitoring - ERROR - Error logged: batch_matching_error in 403: Agent service error - {'job_ids': [1, 2]}
+2025-10-25 09:03:17,404 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 403 Forbidden"
+2025-10-25 09:03:27,913 - httpx - INFO - HTTP Request: POST http://agent:9000/batch-match "HTTP/1.1 403 Forbidden"
+2025-10-25 09:03:27,914 - app.monitoring - ERROR - Error logged: batch_matching_error in 403: Agent service error - {'job_ids': [1, 2]}
+2025-10-25 09:07:15,525 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
+2025-10-25 09:07:26,200 - httpx - INFO - HTTP Request: POST http://agent:9000/batch-match "HTTP/1.1 200 OK"
+2025-10-25 10:14:54,045 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
+2025-10-25 10:43:31,584 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
+2025-10-25 10:51:23,908 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
+2025-10-25 10:56:37,727 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
+2025-10-25 10:57:07,427 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
+2025-10-25 10:57:17,245 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
+2025-10-25 10:57:22,081 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
+2025-10-25 10:59:35,433 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
+2025-10-25 11:01:03,852 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
+2025-10-25 11:02:27,295 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
+2025-10-25 11:05:06,953 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
+2025-10-25 11:05:18,514 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
+2025-10-25 11:05:27,925 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
+2025-10-25 11:05:37,989 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
+2025-10-25 11:05:45,157 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
+2025-10-25 11:05:50,713 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
+2025-10-25 11:05:55,853 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
