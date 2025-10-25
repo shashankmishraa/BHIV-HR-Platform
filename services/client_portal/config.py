@@ -21,9 +21,9 @@ __version__ = "3.1.0"
 __updated__ = "2025-10-23"
 __status__ = "Production Ready - Database Fixed"
 
-# API Configuration - FIXED FOR PRODUCTION
-# Production: Use actual Render URLs, not Docker internal URLs
-API_BASE_URL = os.getenv("GATEWAY_URL", "https://bhiv-hr-gateway-46pz.onrender.com")
+# API Configuration - LOCAL DEVELOPMENT
+# Local: Use localhost for development, production URLs for deployment
+API_BASE_URL = os.getenv("GATEWAY_URL", "http://localhost:8000")
 API_KEY = os.getenv("API_KEY_SECRET", "prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o")
 
 # Set required environment variables for auth service

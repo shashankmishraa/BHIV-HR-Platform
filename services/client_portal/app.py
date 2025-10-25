@@ -125,7 +125,7 @@ def show_client_login():
                         
                         if success:
                             st.session_state['client_authenticated'] = True
-                            st.session_state['client_token'] = result['token']
+                            st.session_state['client_token'] = result.get('access_token', result.get('token', ''))
                             st.session_state['client_id'] = result['client_id']
                             st.session_state['client_name'] = result['company_name']
                             st.success("✅ Login successful!")
@@ -180,8 +180,28 @@ def register_new_client(client_id, company_name, email, password, confirm_passwo
     if password != confirm_password:
         return False, "Passwords don't match"
     
-    # In production, this would call Gateway registration endpoint
-    return False, "Registration not implemented - contact administrator"
+    try:
+        response = requests.post(
+            f"{API_BASE_URL}/v1/client/register",
+            json={
+                "client_id": client_id,
+                "company_name": company_name,
+                "contact_email": email,
+                "password": password
+            },
+            headers={"Content-Type": "application/json"}
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            if result.get("success"):
+                return True, result.get("message", "Registration successful")
+            else:
+                return False, result.get("error", "Registration failed")
+        else:
+            return False, f"Server error: {response.status_code}"
+    except Exception as e:
+        return False, f"Connection error: {str(e)}"
 
 def get_client_info(client_id):
     """Get client information via Gateway API"""
@@ -299,22 +319,22 @@ def show_candidate_review():
                         job_id = job_options[selected_job]
                         job_details = unique_jobs[job_id]
                         
-                        # Use AI agent directly for dynamic matching
-                        st.info(f"Connecting to AI agent for job {job_id}...")
+                        # Use Gateway API for AI matching with proper authentication
+                        st.info(f"Connecting to AI matching for job {job_id}...")
                         try:
-                            # Call AI agent service directly
-                            agent_url = os.getenv("AGENT_SERVICE_URL", "https://bhiv-hr-agent-m1me.onrender.com")
-                            agent_response = requests.post(
-                                f"{agent_url}/match", 
-                                json={"job_id": job_id}, 
+                            # Call Gateway API which handles AI agent authentication
+                            match_response = requests.get(
+                                f"{API_BASE_URL}/v1/match/{job_id}/top", 
+                                headers=UNIFIED_HEADERS,
                                 timeout=30
                             )
-                            st.info(f"AI agent response: {agent_response.status_code}")
+                            agent_response = match_response
+                            st.info(f"AI matching response: {agent_response.status_code}")
                             
                             if agent_response.status_code == 200:
                                 agent_data = agent_response.json()
                                 
-                                # Transform AI agent response
+                                # Transform AI matching response
                                 candidates = []
                                 for candidate in agent_data.get('top_candidates', []):
                                     candidates.append({
@@ -330,8 +350,8 @@ def show_candidate_review():
                                     })
                                 
                                 if candidates:
-                                    st.success(f"Found {len(candidates)} AI-matched candidates (Dynamic Matching)")
-                                    st.info(f"Job: {job_details.get('title')} | Algorithm: {agent_data.get('algorithm_version', 'Dynamic AI')}")
+                                    st.success(f"Found {len(candidates)} AI-matched candidates")
+                                    st.info(f"Job: {job_details.get('title')} | Algorithm: {agent_data.get('algorithm_version', 'Phase 3 AI')}")
                                     
                                     for i, candidate in enumerate(candidates[:10]):
                                         if isinstance(candidate, dict) and candidate.get('name'):
@@ -368,44 +388,12 @@ def show_candidate_review():
                                 else:
                                     st.warning("No AI matches found for this job")
                             else:
-                                st.error(f"AI agent failed: {agent_response.status_code}")
+                                st.error(f"AI matching failed: {agent_response.status_code}")
                                 st.text(f"Response: {agent_response.text[:200]}")
-                                # Fallback to gateway API
-                                try:
-                                    match_response = http_session.get(f"{API_BASE_URL}/v1/match/{job_id}/top")
-                                    if match_response.status_code == 200:
-                                        match_data = match_response.json()
-                                        candidates = match_data.get('top_candidates', [])
-                                        if candidates:
-                                            st.info("Using fallback matching system")
-                                            # Process fallback candidates
-                                            for i, candidate in enumerate(candidates[:10]):
-                                                if isinstance(candidate, dict) and candidate.get('name'):
-                                                    with st.expander(f"Candidate: {candidate.get('name')} (Score: {candidate.get('score', 0)})"):
-                                                        st.write(f"Email: {candidate.get('email', 'N/A')}")
-                                                        st.write(f"Phone: {candidate.get('phone', 'N/A')}")
-                                                        st.write(f"Score: {candidate.get('score', 0)}")
-                                except Exception as gateway_error:
-                                    st.error(f"Gateway fallback failed: {str(gateway_error)}")
+                                st.warning("Unable to get AI matches for this job")
                         except Exception as e:
                             st.error(f"AI matching error: {str(e)}")
-                            st.info("Attempting fallback to gateway API...")
-                            try:
-                                match_response = http_session.get(f"{API_BASE_URL}/v1/match/{job_id}/top")
-                                if match_response.status_code == 200:
-                                    match_data = match_response.json()
-                                    candidates = match_data.get('top_candidates', [])
-                                    if candidates:
-                                        st.info("Using fallback matching system")
-                                        # Process fallback candidates
-                                        for i, candidate in enumerate(candidates[:10]):
-                                            if isinstance(candidate, dict) and candidate.get('name'):
-                                                with st.expander(f"Candidate: {candidate.get('name')} (Score: {candidate.get('score', 0)})"):
-                                                    st.write(f"Email: {candidate.get('email', 'N/A')}")
-                                                    st.write(f"Phone: {candidate.get('phone', 'N/A')}")
-                                                    st.write(f"Score: {candidate.get('score', 0)}")
-                            except Exception as fallback_error:
-                                st.error(f"Fallback also failed: {str(fallback_error)}")
+                            st.info("Please check your connection and try again")
                 else:
                     st.info("No valid jobs found")
             else:
@@ -449,13 +437,12 @@ def show_match_results():
                         st.session_state.ai_match_clicked = True
                         job_id = job_map[selected_job]
                         
-                        with st.spinner("🤖 AI is dynamically analyzing candidates..."):
+                        with st.spinner("🤖 AI is analyzing candidates..."):
                             try:
-                                # Call AI agent directly for dynamic matching
-                                agent_url = os.getenv("AGENT_SERVICE_URL", "https://bhiv-hr-agent-m1me.onrender.com")
-                                response = requests.post(
-                                    f"{agent_url}/match", 
-                                    json={"job_id": job_id}, 
+                                # Call Gateway API for AI matching with proper authentication
+                                response = requests.get(
+                                    f"{API_BASE_URL}/v1/match/{job_id}/top", 
+                                    headers=UNIFIED_HEADERS,
                                     timeout=30
                                 )
                                 if response.status_code == 200:
@@ -475,8 +462,13 @@ def show_match_results():
                                         })
                                     
                                     if matches:
-                                        st.success(f"✅ Found {len(matches)} dynamically matched candidates")
-                                        st.info(f"📊 Algorithm: {data.get('algorithm_version', 'Dynamic AI')} | Processing: {data.get('processing_time', 0):.3f}s")
+                                        st.success(f"✅ Found {len(matches)} AI-matched candidates")
+                                        processing_time = data.get('processing_time', '0.000s')
+                                        if isinstance(processing_time, (int, float)):
+                                            processing_time_str = f"{processing_time:.3f}s"
+                                        else:
+                                            processing_time_str = str(processing_time)
+                                        st.info(f"📊 Algorithm: {data.get('algorithm_version', 'Phase 3 AI')} | Processing: {processing_time_str}")
                                         
                                         # Display dynamic matches in clean format
                                         for i, match in enumerate(matches, 1):
@@ -522,11 +514,11 @@ def show_match_results():
                                         st.warning("⚠️ No AI matches found for this job")
                                         st.info("💡 Ensure candidates are uploaded and try again")
                                 else:
-                                    st.error(f"❌ AI agent failed: {response.status_code}")
-                                    st.info("Attempting fallback matching...")
+                                    st.error(f"❌ AI matching failed: {response.status_code}")
+                                    st.info("Unable to get AI matches - please try again")
                             except Exception as e:
-                                st.error(f"❌ Dynamic matching error: {str(e)}")
-                                st.info("AI agent may be unavailable - check system status")
+                                st.error(f"❌ AI matching error: {str(e)}")
+                                st.info("Please check your connection and try again")
                 else:
                     st.info("No valid jobs available for matching")
             else:
