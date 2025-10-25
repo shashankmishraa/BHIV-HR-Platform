@@ -673,7 +673,10 @@ async def get_top_matches(job_id: int, limit: int = 10, api_key: str = Depends(g
             response = await client.post(
                 f"{agent_url}/match",
                 json={"job_id": job_id},
-                headers={"Content-Type": "application/json"}
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {api_key}"
+                }
             )
             
             if response.status_code == 200:
@@ -764,7 +767,10 @@ async def batch_match_jobs(job_ids: List[int], api_key: str = Depends(get_api_ke
             response = await client.post(
                 f"{agent_url}/batch-match",
                 json={"job_ids": job_ids},
-                headers={"Content-Type": "application/json"}
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {os.getenv('API_KEY_SECRET', 'prod_api_key_XUqM2msdCa4CYIaRywRNXRVc477nlI3AQ-lr6cgTB2o')}"
+                }
             )
             
             if response.status_code == 200:
