@@ -31,3 +31,10 @@
 2025-10-25 11:05:45,157 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
 2025-10-25 11:05:50,713 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
 2025-10-25 11:05:55,853 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
+2025-10-25 11:07:45,597 - app.monitoring - ERROR - Error logged: agent_service_error in All connection attempts failed - {'job_id': 3}
+2025-10-25 11:08:02,359 - app.monitoring - ERROR - Error logged: agent_service_error in All connection attempts failed - {'job_id': 1}
+2025-10-25 11:09:11,623 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
+2025-10-25 11:12:18,647 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
+2025-10-25 11:12:28,765 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
+2025-10-25 11:12:39,698 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
+2025-10-25 11:12:47,328 - httpx - INFO - HTTP Request: POST http://agent:9000/match "HTTP/1.1 200 OK"
